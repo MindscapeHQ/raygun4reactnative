@@ -1,13 +1,19 @@
 #import "Rg4rn.h"
+#import <Raygun4iOS/Raygun.h>
 
 @implementation Rg4rn
 
 RCT_EXPORT_MODULE()
 
-RCT_EXPORT_METHOD(sampleMethod:(NSString *)stringArgument numberParameter:(nonnull NSNumber *)numberArgument callback:(RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(sharedInstanceWithApiKey:(NSString *)apiKey)
 {
-    // TODO: Implement some actually useful functionality
-    callback(@[[NSString stringWithFormat: @"numberArgument: %@ stringArgument: %@", numberArgument, stringArgument]]);
+    RCTLogInfo(@"Start create shared RaygunClient");
+    return [RaygunClient sharedInstanceWithApiKey:apiKey];
+}
+
+RCT_EXPORT_METHOD(enableCrashReporting){
+    RCTLogInfo(@"Enabling unhandled native side crash reporting");
+    [RaygunClient enableCrashReporting];
 }
 
 @end

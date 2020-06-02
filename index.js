@@ -1,6 +1,6 @@
-import {NativeModules} from 'react-native';
+import { NativeModules } from 'react-native';
 
-const {Rg4rn} = NativeModules;
+const { Rg4rn } = NativeModules;
 
 console.log('rg4rn:', Rg4rn);
 
