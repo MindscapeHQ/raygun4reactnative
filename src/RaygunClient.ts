@@ -1,40 +1,14 @@
 import { NativeModules } from 'react-native';
 import { Platform } from 'react-native';
+import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
+import { User, Session, CrashReportPayload } from './types';
+import { sendReport, sendPrevReports } from './transport';
 
 const { Rg4rn } = NativeModules;
+const SOURCE_MAP_PREFIX = 'file://reactnative.local/';
+const devicePathPattern = /^(.*@)?.*\/[^\.]+(\.app|CodePush)\/?(.*)/;
 
-export interface User {
-  identifier: string;
-  isAnonymous?: boolean;
-  email?: string;
-  firstName?: string;
-  fullName?: string;
-  uuid?: string;
-}
-
-export interface Session {
-  tags: Set<string>;
-  customData: Record<string, any>;
-  user: User;
-}
-
-interface Stack {
-  fileName: string;
-  methodName: string;
-  lineNumber: number;
-  columnNumber: number;
-  className: string;
-}
-
-export interface StackTrace {
-  mode: string;
-  name: string;
-  stack: Stack[];
-  message: string;
-  stackRawString: string;
-}
-
-let session = {
+let session: Session = {
   tags: new Set(['React Native']),
   customData: {},
   user: {
@@ -42,71 +16,78 @@ let session = {
   }
 };
 
+let resolvedOptions: Record<string, any> = {};
+
 const init = (options: Record<string, any>) => {
   Rg4rn.init(options); //Enable native side crash reporting
   const prevHandler = ErrorUtils.getGlobalHandler();
-  ErrorUtils.setGlobalHandler((error: Error, isFatal?: boolean) => {
+  ErrorUtils.setGlobalHandler(async (error: Error, isFatal?: boolean) => {
     // TODO: doing RN side error reporting for now, will migrate to Rg4rn.sendMessage once raygun4apple is ready.
-    processUnhandledError(error, isFatal);
+    await processUnhandledError(error, isFatal);
     prevHandler && prevHandler(error, isFatal);
   });
+  const rejectionTracking = require('promise/setimmediate/rejection-tracking');
+  rejectionTracking.disable();
+  rejectionTracking.enable({
+    allRejections: true,
+    onUnhandled: processUnhandledError
+  });
+  setTimeout(() => sendPrevReports(resolvedOptions.apiKey), 10);
 };
 
-const releasePattern = /^\s*(.*?)(?:\((.*?)\))?(?:^|@)((?:file|https?|blob|chrome|webpack|\[native).*?|[^@]*bundle)(?::(\d+))?(?::(\d+))?\s*$/i;
-const pathStrip = /^(.*@)?.*\/[^\.]+(\.app|CodePush)\/?(.*)/;
-const devPatterns = /.*at\s(.+)(\s*.*)\(http:\/\/.*\/(.*)\?.*:(\d+):(\d+)/i;
-const sourceMapPrefix = 'file://reactnative.local/';
+const internalTrace = new RegExp(
+  'ReactNativeRenderer-dev\\.js$|MessageQueue\\.js$|native\\scode'
+);
 
-const stripNativePaths = (line: string) => {
-  const result = pathStrip.exec(line);
-  if (result) {
-    const [_, func, __, rest] = result;
-    return func + sourceMapPrefix + rest;
-  }
-  return line;
-};
+const filterOutReactFrames = (frame: StackFrame): boolean =>
+  !!frame.file && !frame.file.match(internalTrace);
 
-const generateStackTrace = (error: Error): StackTrace => {
-  const [message, ...traces] = error.stack!.split('\n');
-  const stack = traces.map(stripNativePaths).reduce((prev, line) => {
-    const results = devPatterns.exec(line) || releasePattern.exec(line);
-    if (results) {
-      const [_, func, __, url, lineNum, columnNum] = results;
-      prev.push({
-        fileName: url,
-        methodName: func || '[anonymous]',
-        lineNumber: +lineNum,
-        columnNumber: +columnNum,
-        className: `line ${line}, column ${columnNum}`
-      });
-    }
-    return prev;
-  }, [] as Stack[]);
-
+/**
+ * Remove the '(address at' suffix added by stacktrace-parser which used by React
+ * @param frame StackFrame
+ */
+const noAddressAt = ({ methodName, ...rest }: StackFrame): StackFrame => {
+  const pos = methodName.indexOf('(address at');
   return {
-    mode: 'stack',
-    name: error.name || '',
-    message: error.message || message,
-    stack,
-    stackRawString: error.toString()
+    ...rest,
+    methodName: pos > -1 ? methodName.slice(0, pos).trim() : methodName
   };
 };
 
+const cleanFilePath = (frames: StackFrame[]): StackFrame[] =>
+  frames.map(frame => {
+    const result = devicePathPattern.exec(frame.file);
+    if (result) {
+      const [_, __, ___, fileName] = result;
+      return { ...frame, file: SOURCE_MAP_PREFIX + fileName };
+    }
+    return frame;
+  });
+
 const generatePayload = (
-  stackTrace: StackTrace,
+  error: Error,
+  stackFrames: StackFrame[],
   tags: string[],
   customData: Record<string, any>,
   user: User,
   version?: string
-) => {
+): CrashReportPayload => {
   return {
     OccurredOn: new Date(),
     Details: {
       Error: {
-        ClassName: stackTrace.name,
-        Message: stackTrace.message,
-        StackTrace: stackTrace.stack,
-        StackString: stackTrace.stackRawString
+        ClassName: error?.name || '',
+        Message: error?.message || '',
+        StackTrace: stackFrames.map(
+          ({ file, methodName, lineNumber, column }) => ({
+            FileName: file,
+            MethodName: methodName || '[anonymous]',
+            LineNumber: lineNumber,
+            ColumnNumber: column,
+            ClassName: `line ${lineNumber}, column ${column}`
+          })
+        ),
+        StackString: error?.toString() || ''
       },
       Environment: {
         UtcOffset: new Date().getTimezoneOffset() / 60.0
@@ -136,6 +117,10 @@ const addCustomData = (customData: Record<string, any>) => {
   Object.assign(session.customData, customData);
 };
 
+const clearCustomData = () => {
+  session.customData = {};
+};
+
 const clearSession = () => {
   session = {
     tags: new Set(['React Native']),
@@ -146,32 +131,57 @@ const clearSession = () => {
   };
 };
 
-const sendTo = (
-  body: string,
+const remoteLog = (
+  body: string | object,
   options?: Record<string, any> | undefined
 ): Promise<any> =>
   fetch('http://localhost:4000/report', {
     method: 'POST',
     mode: 'cors',
     ...options,
-    body
+    body: typeof body === 'object' ? JSON.stringify(body) : body,
+    ...(typeof body === 'object' && {
+      headers: { 'Content-Type': 'application/json' }
+    })
   });
 
 const processUnhandledError = async (error: Error, isFatal?: boolean) => {
   if (!error || !error.stack) {
     return;
   }
-  const stackTrace = generateStackTrace(error);
+
+  const parseErrorStack = require('react-native/Libraries/Core/Devtools/parseErrorStack');
+  const stackFrame = parseErrorStack(error);
+
+  const symbolicateStackTrace = require('react-native/Libraries/Core/Devtools/symbolicateStackTrace');
+
+  const symbolicatedTrace = __DEV__
+    ? await symbolicateStackTrace(stackFrame)
+    : { stack: cleanFilePath(stackFrame) };
+
+  const stack = symbolicatedTrace.stack
+    .filter(filterOutReactFrames)
+    .map(noAddressAt);
+
   const { tags, customData, user } = session;
+
   const tagsArray = Array.from(tags.values());
   const payload = generatePayload(
-    stackTrace,
+    error,
+    stack,
     isFatal ? tagsArray.concat('Fatal') : tagsArray,
     customData,
     user
   );
-  console.log(payload);
-  await sendTo(JSON.stringify(payload), { 'Content-Type': 'application/json' });
+
+  await sendReport(payload, resolvedOptions.apiKey);
 };
 
-export default { init, addTag, setUser, addCustomData, clearSession };
+export default {
+  init,
+  addTag,
+  setUser,
+  addCustomData,
+  clearSession,
+  clearCustomData
+};
