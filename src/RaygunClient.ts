@@ -1,8 +1,7 @@
-import { NativeModules } from 'react-native';
-import { Platform } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
 import { User, Session, CrashReportPayload } from './types';
-import { sendReport, sendPrevReports } from './transport';
+import { sendReport, sendCachedReports } from './transport';
 
 const { Rg4rn } = NativeModules;
 const SOURCE_MAP_PREFIX = 'file://reactnative.local/';
@@ -19,7 +18,10 @@ let session: Session = {
 let resolvedOptions: Record<string, any> = {};
 
 const init = (options: Record<string, any>) => {
-  Rg4rn.init(options); //Enable native side crash reporting
+  // Enable native side crash reporting
+  if (Rg4rn && typeof Rg4rn.init === 'function') {
+    Rg4rn.init(options);
+  }
   const prevHandler = ErrorUtils.getGlobalHandler();
   ErrorUtils.setGlobalHandler(async (error: Error, isFatal?: boolean) => {
     // TODO: doing RN side error reporting for now, will migrate to Rg4rn.sendMessage once raygun4apple is ready.
@@ -32,7 +34,7 @@ const init = (options: Record<string, any>) => {
     allRejections: true,
     onUnhandled: processUnhandledError
   });
-  setTimeout(() => sendPrevReports(resolvedOptions.apiKey), 10);
+  setTimeout(() => sendCachedReports(resolvedOptions.apiKey), 10);
 };
 
 const internalTrace = new RegExp(

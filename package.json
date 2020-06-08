@@ -12,7 +12,7 @@
   "scripts": {
     "build": "tsc -p ./",
     "build-watch": "tsc -p ./ -w",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest "
   },
   "repository": {
     "type": "git",
@@ -35,6 +35,7 @@
     "@react-native-community/async-storage": "^1.11.0"
   },
   "devDependencies": {
+    "@types/jest": "^25.2.3",
     "@types/react": "^16.9.35",
     "@types/react-native": "^0.62.12",
     "@typescript-eslint/eslint-plugin": "^3.1.0",
@@ -43,8 +44,11 @@
     "eslint-config-prettier": "^6.11.0",
     "eslint-import-resolver-typescript": "^2.0.0",
     "eslint-plugin-jest": "^23.13.2",
+    "jest": "^26.0.1",
+    "jest-fetch-mock": "^3.0.3",
     "react": "^16.9.0",
     "react-native": "^0.61.5",
+    "ts-jest": "^26.1.0",
     "typescript": "^3.9.3"
   },
   "dependencies": {

@@ -13,13 +13,13 @@ const sendReport = (report: CrashReportPayload, apiKey: string) => {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify(report)
-  }).catch((err) => {
+  }).catch(err => {
     console.log(err);
     return cacheReport(report);
   });
 };
 
-const sendPrevReports = async (apiKey: string) => {
+const sendCachedReports = async (apiKey: string) => {
   const reportsRaw = await AsyncStorage.getItem(RAYGUN_STORAGE_KEY);
   let reports;
   try {
@@ -29,7 +29,7 @@ const sendPrevReports = async (apiKey: string) => {
     reports = [];
   }
   return Promise.all(
-    reports.forEach((report: CrashReportPayload) => sendReport(report, apiKey))
+    reports.map((report: CrashReportPayload) => sendReport(report, apiKey))
   );
 };
 
@@ -50,4 +50,4 @@ const cacheReport = async (report: CrashReportPayload) => {
   );
 };
 
-export { sendReport, sendPrevReports };
+export { sendReport, sendCachedReports };

@@ -42,7 +42,7 @@ export interface CrashReportPayload {
     };
     UserCustomData: Record<string, any>;
     Tags: string[];
-    User: User;
+    User?: User;
     Version: string;
   };
 }

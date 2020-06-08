@@ -10,3 +10,5 @@ android/local.properties
 android/.settings
 android/.project
 android/.classpath
+.jest/
+coverage/
