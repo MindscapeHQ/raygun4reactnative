@@ -99,7 +99,7 @@ describe('Transport Unit Testing', () => {
       URL + API_KEY,
       getPostParams(crA)
     ]);
-    console.log(crA);
+
     expect(fetchMock.mock.calls[2]).toMatchObject([
       URL + API_KEY,
       getPostParams(crB)

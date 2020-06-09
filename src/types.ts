@@ -1,5 +1,14 @@
 import { ErrorUtils } from 'react-native';
 
+type BasicType = string | number | boolean;
+
+export interface Session {
+  tags: Set<string>;
+  customData: CustomData;
+  user: User;
+  breadcrumbs: Breadcrumb[];
+}
+
 export interface User {
   identifier: string;
   isAnonymous?: boolean;
@@ -9,10 +18,40 @@ export interface User {
   uuid?: string;
 }
 
-export interface Session {
-  tags: Set<string>;
-  customData: Record<string, any>;
-  user: User;
+export interface CustomData {
+  [key: string]: BasicType | CustomData | BasicType[] | CustomData[];
+}
+
+export type BreadcrumbOption = Omit<Breadcrumb, 'message' | 'timestamp'>;
+
+interface Environment {
+  UtcOffset: number;
+  Cpu?: string;
+  Architecture?: string;
+  ProcessorCount?: number;
+  OSVersion?: string;
+  OSSDKVersion?: string;
+  WindowsBoundWidth?: number;
+  WindowsBoundHeight?: number;
+  CurrentOrientation?: string;
+  Locale?: string;
+  TotalPhysicalMemory?: number;
+  AvailablePhysicalMemory?: number;
+  TotalVirtualMemory?: number;
+  AvailableVirtualMemory?: number;
+  DiskSpaceFree?: number;
+  DeviceName?: string;
+  Brand?: string;
+  Board?: string;
+  DeviceCode?: string;
+}
+
+export interface Breadcrumb {
+  message: string;
+  category?: string;
+  level?: 'debug' | 'info' | 'warning' | 'error';
+  customData?: CustomData;
+  timestamp?: number;
 }
 
 export interface StackTrace {
@@ -32,19 +71,28 @@ export interface CrashReportPayload {
       StackTrace: StackTrace[];
       StackString: string;
     };
-    Environment: {
-      UtcOffset: number;
-      //TODO: adds RN environment infos
-    };
+    Environment: Environment;
     Client: {
       Name: string;
       Version: string;
     };
-    UserCustomData: Record<string, any>;
-    Tags: string[];
+    UserCustomData: CustomData;
+    Tags?: string[];
     User?: User;
+    Breadcrumbs?: Breadcrumb[];
     Version: string;
   };
+}
+
+export type BeforeSendHandler = (
+  payload: CrashReportPayload
+) => CrashReportPayload;
+
+export interface RaygunClientOptions {
+  apiKey: string;
+  version?: string;
+  enableNative?: boolean;
+  onBeforeSend?: BeforeSendHandler;
 }
 
 declare global {

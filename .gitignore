@@ -4,7 +4,7 @@ node_modules/
 android/.idea/
 android/.gradle
 android/build/
-android/lib/
+android/libs/
 android/*.iml
 android/local.properties
 android/.settings
@@ -12,3 +12,6 @@ android/.project
 android/.classpath
 .jest/
 coverage/
+release/
+docker/
+.vscode
