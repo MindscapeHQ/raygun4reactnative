@@ -23,5 +23,7 @@ Pod::Spec.new do |s|
 
   s.dependency "React"
   s.dependency "Raygun4iOS"
+  s.dependency "RNAsyncStorage"
+
 end
 
