@@ -9,9 +9,13 @@ export interface User {
   uuid?: string;
 }
 
+export interface CustomData {
+  [key: string]: any;
+}
+
 export interface Session {
   tags: Set<string>;
-  customData: Record<string, any>;
+  customData: CustomData;
   user: User;
 }
 
@@ -40,7 +44,7 @@ export interface CrashReportPayload {
       Name: string;
       Version: string;
     };
-    UserCustomData: Record<string, any>;
+    UserCustomData: CustomData;
     Tags: string[];
     User?: User;
     Version: string;

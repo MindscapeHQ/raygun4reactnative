@@ -12,3 +12,4 @@ android/.project
 android/.classpath
 .jest/
 coverage/
+.vscode

@@ -1,6 +1,7 @@
+import { v4 as uuidv4 } from 'uuid';
 import { NativeModules, Platform } from 'react-native';
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
-import { User, Session, CrashReportPayload } from './types';
+import { User, Session, CrashReportPayload, CustomData } from './types';
 import { sendReport, sendCachedReports } from './transport';
 
 const { Rg4rn } = NativeModules;
@@ -34,7 +35,7 @@ const init = (options: Record<string, any>) => {
     allRejections: true,
     onUnhandled: processUnhandledError
   });
-  setTimeout(() => sendCachedReports(resolvedOptions.apiKey), 10);
+  setTimeout(() => sendCachedReports(options.apiKey), 10);
 };
 
 const internalTrace = new RegExp(
@@ -108,19 +109,29 @@ const generatePayload = (
 };
 
 const addTag = (...tags: string[]) => {
-  tags.forEach(session.tags.add);
+  tags.forEach(tag => {
+    session.tags.add(tag);
+    if (Platform.OS === 'android') {
+      Rg4rn.addTag(tag);
+    }
+  });
 };
 
-const setUser = (user: User) => {
-  session.user = user;
+const setUser = (user: User | string) => {
+  session.user =
+    typeof user === 'string'
+      ? !!user
+        ? { identifier: user }
+        : { identifier: uuidv4(), isAnonymous: true }
+      : user;
 };
 
-const addCustomData = (customData: Record<string, any>) => {
+const addCustomData = (customData: CustomData) => {
   Object.assign(session.customData, customData);
 };
 
-const clearCustomData = () => {
-  session.customData = {};
+const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
+  session.customData = updater(session.customData);
 };
 
 const clearSession = () => {
@@ -185,5 +196,5 @@ export default {
   setUser,
   addCustomData,
   clearSession,
-  clearCustomData
+  updateCustomData
 };
