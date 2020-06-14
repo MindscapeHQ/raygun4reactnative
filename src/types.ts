@@ -1,5 +1,14 @@
 import { ErrorUtils } from 'react-native';
 
+type BasicType = string | number | boolean;
+
+export interface Session {
+  tags: Set<string>;
+  customData: CustomData;
+  user: User;
+  breadcrumbs: Breadcrumb[];
+}
+
 export interface User {
   identifier: string;
   isAnonymous?: boolean;
@@ -10,13 +19,17 @@ export interface User {
 }
 
 export interface CustomData {
-  [key: string]: any;
+  [key: string]: BasicType | CustomData | BasicType[] | CustomData[];
 }
 
-export interface Session {
-  tags: Set<string>;
-  customData: CustomData;
-  user: User;
+export interface Breadcrumb {
+  message: string;
+  category?: string;
+  level?: 'debug' | 'info' | 'warning' | 'error';
+  customData?: CustomData;
+  className?: string;
+  methodName?: string;
+  lineNumber?: number;
 }
 
 export interface StackTrace {
@@ -47,8 +60,16 @@ export interface CrashReportPayload {
     UserCustomData: CustomData;
     Tags: string[];
     User?: User;
+    Breadcrumbs: Breadcrumb[];
     Version: string;
   };
+}
+
+export interface RaygunClientOptions {
+  apiKey: string;
+  version: string;
+  enableNative: boolean;
+  onBeforeSend: (payload: CrashReportPayload) => CrashReportPayload;
 }
 
 declare global {
