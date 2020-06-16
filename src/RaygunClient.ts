@@ -7,7 +7,8 @@ import {
   CrashReportPayload,
   CustomData,
   Breadcrumb,
-  RaygunClientOptions
+  RaygunClientOptions,
+  BreadcrumbOption
 } from './types';
 import { sendReport, sendCachedReports } from './transport';
 
@@ -15,22 +16,26 @@ const { Rg4rn } = NativeModules;
 const SOURCE_MAP_PREFIX = 'file://reactnative.local/';
 const devicePathPattern = /^(.*@)?.*\/[^\.]+(\.app|CodePush)\/?(.*)/;
 
-const curSession: Session = {
+const getCleanSession = (): Session => ({
   tags: new Set(['React Native']),
   customData: {},
   breadcrumbs: [],
   user: {
     identifier: 'anonymous'
   }
-};
+});
+
+const curSession = getCleanSession();
 
 let GlobalOptions: RaygunClientOptions;
 
 const init = (options: RaygunClientOptions) => {
   GlobalOptions = Object.assign({ enableNative: true }, options);
+
   // Enable native side crash reporting
   if (GlobalOptions.enableNative && Rg4rn && typeof Rg4rn.init === 'function') {
-    Rg4rn.init(options);
+    const { enableNative, onBeforeSend, ...rest } = options;
+    Rg4rn.init(rest);
   }
 
   const prevHandler = ErrorUtils.getGlobalHandler();
@@ -46,7 +51,10 @@ const init = (options: RaygunClientOptions) => {
     onUnhandled: processUnhandledError
   });
   if (!GlobalOptions.enableNative) {
-    setTimeout(() => sendCachedReports(GlobalOptions.apiKey), 10);
+    setTimeout(
+      () => sendCachedReports(GlobalOptions.apiKey, GlobalOptions.onBeforeSend),
+      10
+    );
   }
 };
 
@@ -123,7 +131,7 @@ const addTag = (...tags: string[]) => {
   tags.forEach(tag => {
     curSession.tags.add(tag);
   });
-  Rg4rn.setTags(curSession.tags);
+  Rg4rn.setTags([...curSession.tags]);
 };
 
 const setUser = (user: User | string) => {
@@ -146,23 +154,14 @@ const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
   Rg4rn.setCustomData(curSession.customData);
 };
 
-const recordBreadcrumb = (
-  message: string,
-  details?: Omit<Breadcrumb, 'message'>
-) => {
+const recordBreadcrumb = (message: string, details?: BreadcrumbOption) => {
   const breadcrumb = { ...details, message };
   curSession.breadcrumbs.push(breadcrumb);
   Rg4rn.recordBreadcrumb(breadcrumb);
 };
 
 const clearSession = () => {
-  Object.assign(curSession, {
-    tags: new Set(['React Native']),
-    customData: {},
-    user: {
-      identifier: 'anonymous'
-    }
-  });
+  Object.assign(curSession, getCleanSession());
 };
 
 const remoteLog = (
@@ -205,7 +204,7 @@ const processUnhandledError = async (error: Error, isFatal?: boolean) => {
   if (GlobalOptions.enableNative && Platform.OS !== 'ios') {
     Rg4rn.sendCrashReport(JSON.stringify(payload), GlobalOptions.apiKey);
   } else {
-    await sendReport(payload, GlobalOptions.apiKey);
+    await sendReport(payload, GlobalOptions.apiKey, GlobalOptions.onBeforeSend);
   }
 };
 

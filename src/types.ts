@@ -22,6 +22,8 @@ export interface CustomData {
   [key: string]: BasicType | CustomData | BasicType[] | CustomData[];
 }
 
+export type BreadcrumbOption = Omit<Breadcrumb, 'message'>;
+
 export interface Breadcrumb {
   message: string;
   category?: string;
@@ -58,18 +60,22 @@ export interface CrashReportPayload {
       Version: string;
     };
     UserCustomData: CustomData;
-    Tags: string[];
+    Tags?: string[];
     User?: User;
-    Breadcrumbs: Breadcrumb[];
+    Breadcrumbs?: Breadcrumb[];
     Version: string;
   };
 }
 
+export type BeforeSendHandler = (
+  payload: CrashReportPayload
+) => CrashReportPayload;
+
 export interface RaygunClientOptions {
   apiKey: string;
-  version: string;
-  enableNative: boolean;
-  onBeforeSend: (payload: CrashReportPayload) => CrashReportPayload;
+  version?: string;
+  enableNative?: boolean;
+  onBeforeSend?: BeforeSendHandler;
 }
 
 declare global {
