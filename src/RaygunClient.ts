@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { NativeModules, Platform } from 'react-native';
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
+
 import {
   User,
   Session,
@@ -24,6 +25,10 @@ const getCleanSession = (): Session => ({
     identifier: 'anonymous'
   }
 });
+
+interface StackTrace {
+  stack: StackFrame[];
+}
 
 const curSession = getCleanSession();
 
@@ -164,37 +169,35 @@ const clearSession = () => {
   Object.assign(curSession, getCleanSession());
 };
 
-const remoteLog = (
-  body: string | object,
-  options?: Record<string, any> | undefined
-): Promise<any> =>
-  fetch('http://localhost:4000/report', {
-    method: 'POST',
-    mode: 'cors',
-    ...options,
-    body: typeof body === 'object' ? JSON.stringify(body) : body,
-    ...(typeof body === 'object' && {
-      headers: { 'Content-Type': 'application/json' }
-    })
-  });
+// const remoteLog = (
+//   body: string | object,
+//   options?: Record<string, any> | undefined
+// ): Promise<any> =>
+//   fetch('http://localhost:4000/report', {
+//     method: 'POST',
+//     mode: 'cors',
+//     ...options,
+//     body: typeof body === 'object' ? JSON.stringify(body) : body,
+//     ...(typeof body === 'object' && {
+//       headers: { 'Content-Type': 'application/json' }
+//     })
+//   });
 
 const processUnhandledError = async (error: Error, isFatal?: boolean) => {
   if (!error || !error.stack) {
     return;
   }
-
+  /** Following two module came from react flow source code, so we require here to prevent TS transpile it */
   const parseErrorStack = require('react-native/Libraries/Core/Devtools/parseErrorStack');
-  const stackFrame = parseErrorStack(error);
-
   const symbolicateStackTrace = require('react-native/Libraries/Core/Devtools/symbolicateStackTrace');
-
-  const symbolicatedTrace = __DEV__
+  const stackFrame = parseErrorStack(error);
+  const cleanedStackFrames: StackTrace = __DEV__
     ? await symbolicateStackTrace(stackFrame)
     : { stack: cleanFilePath(stackFrame) };
 
-  const stack = symbolicatedTrace.stack
-    .filter(filterOutReactFrames)
-    .map(noAddressAt);
+  const stack =
+    cleanedStackFrames.stack ||
+    [].filter(filterOutReactFrames).map(noAddressAt);
 
   if (isFatal) {
     curSession.tags.add('Fatal');
@@ -208,12 +211,15 @@ const processUnhandledError = async (error: Error, isFatal?: boolean) => {
   }
 };
 
-export default {
+export {
   init,
   addTag,
   setUser,
   addCustomData,
   clearSession,
   updateCustomData,
-  recordBreadcrumb
+  recordBreadcrumb,
+  filterOutReactFrames,
+  noAddressAt,
+  generatePayload
 };

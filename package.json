@@ -10,7 +10,8 @@
   "typings": "dist/index.d.ts",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc -p ./",
+    "prebuild": "jest",
+    "build": "tsc -p ./ && mkdir release && cp -R ios android dist package.json package-lock.json react-native.config.js *.podspec README.md ./release",
     "build-watch": "tsc -p ./ -w",
     "test": "jest "
   },

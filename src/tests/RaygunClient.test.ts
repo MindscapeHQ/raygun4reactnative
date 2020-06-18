@@ -1,21 +1,19 @@
 import { CrashReportPayload, Breadcrumb, BreadcrumbOption } from 'src/types';
-
-const initMock = jest.fn();
-const setTagsMock = jest.fn();
-const setCustomDataMock = jest.fn();
-const setUserMock = jest.fn();
-const recordBreadcrumbMock = jest.fn();
-const sendCachedReportsMock = jest.fn();
-const sendReportMock = jest.fn();
+import {
+  internalStackFrames,
+  stackFramesWithAddress,
+  fullStackFrames
+} from './fixture/errors';
+import { sendCachedReports, sendReport } from '../transport';
 
 jest.mock('react-native', () => ({
   NativeModules: {
     Rg4rn: {
-      init: initMock,
-      setTags: setTagsMock,
-      setUser: setUserMock,
-      setCustomData: setCustomDataMock,
-      recordBreadcrumb: recordBreadcrumbMock
+      init: jest.fn(),
+      setTags: jest.fn(),
+      setUser: jest.fn(),
+      setCustomData: jest.fn(),
+      recordBreadcrumb: jest.fn()
     }
   },
   Platform: {
@@ -28,24 +26,27 @@ jest.mock('promise/setimmediate/rejection-tracking', () => ({
   enable: jest.fn()
 }));
 
-global.ErrorUtils = {
-  setGlobalHandler: jest.fn() as jest.Mock<any>,
-  getGlobalHandler: jest.fn() as jest.Mock<any>
-};
-
 jest.mock('../transport', () => ({
-  sendCachedReports: sendCachedReportsMock,
-  sendReport: sendReportMock
+  sendCachedReports: jest.fn(),
+  sendReport: jest.fn()
 }));
 
-jest.useFakeTimers();
+beforeAll(() => {
+  global.ErrorUtils = {
+    setGlobalHandler: jest.fn() as jest.Mock<any>,
+    getGlobalHandler: jest.fn() as jest.Mock<any>
+  };
+  jest.useFakeTimers();
+});
+
+import * as RaygunClient from '../RaygunClient';
+import { NativeModules, Platform } from 'react-native';
+import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
+const { Rg4rn } = NativeModules;
 
 afterEach(() => {
   RaygunClient.clearSession();
 });
-
-import RaygunClient from '../RaygunClient';
-import RN from 'react-native';
 
 describe('RaygunClient Initialization', () => {
   test('should setup error handler on Global ErrorUtils and Promise', () => {
@@ -61,10 +62,10 @@ describe('RaygunClient Initialization', () => {
 
   test('should correctly pass apiKey to JS transport when enableNative is false', () => {
     RaygunClient.init({ apiKey: 'someKey', enableNative: false });
-    expect(initMock).not.toBeCalled();
+    expect(Rg4rn.init).not.toBeCalled();
     jest.runAllTimers();
-    expect(sendCachedReportsMock).toBeCalledTimes(1);
-    expect(sendCachedReportsMock).toBeCalledWith('someKey', undefined);
+    expect(sendCachedReports).toBeCalledTimes(1);
+    expect(sendCachedReports).toBeCalledWith('someKey', undefined);
   });
 
   test('should not pass unnecessary options to native side', () => {
@@ -73,7 +74,7 @@ describe('RaygunClient Initialization', () => {
       onBeforeSend: (report: CrashReportPayload) => report,
       enableNative: true
     });
-    expect(initMock).toHaveBeenLastCalledWith({ apiKey: 'someKey' });
+    expect(Rg4rn.init).toHaveBeenLastCalledWith({ apiKey: 'someKey' });
   });
 
   test('should not initialize native side and sendCachedReport from JS side when not enableNative', () => {
@@ -84,34 +85,34 @@ describe('RaygunClient Initialization', () => {
       enableNative: false
     });
     jest.runAllTimers();
-    expect(initMock).not.toBeCalled();
-    expect(sendCachedReportsMock).toBeCalledTimes(1);
-    expect(sendCachedReportsMock).toBeCalledWith('someKey', onBeforeFn);
+    expect(Rg4rn.init).not.toBeCalled();
+    expect(sendCachedReports).toBeCalledTimes(1);
+    expect(sendCachedReports).toBeCalledWith('someKey', onBeforeFn);
   });
 });
 
 describe('RaygunClient functions', () => {
   test('should pass accumulated tags to backend', () => {
     RaygunClient.addTag('a');
-    expect(setTagsMock).lastCalledWith(['React Native', 'a']);
+    expect(Rg4rn.setTags).lastCalledWith(['React Native', 'a']);
     RaygunClient.addTag('b', 'c');
-    expect(setTagsMock).lastCalledWith(['React Native', 'a', 'b', 'c']);
+    expect(Rg4rn.setTags).lastCalledWith(['React Native', 'a', 'b', 'c']);
   });
 
   test('should pass customData to backend', () => {
     RaygunClient.addCustomData({ a: '1' });
-    expect(setCustomDataMock).toBeCalledWith({ a: '1' });
+    expect(Rg4rn.setCustomData).toBeCalledWith({ a: '1' });
     RaygunClient.addCustomData({ b: '2' });
-    expect(setCustomDataMock).toBeCalledWith({ a: '1', b: '2' });
+    expect(Rg4rn.setCustomData).toBeCalledWith({ a: '1', b: '2' });
     RaygunClient.updateCustomData(data => ({ val: 'key' }));
-    expect(setCustomDataMock).toBeCalledWith({ val: 'key' });
+    expect(Rg4rn.setCustomData).toBeCalledWith({ val: 'key' });
   });
 
   test('should pass correct user to backend', () => {
     RaygunClient.setUser('user name');
-    expect(setUserMock).lastCalledWith({ identifier: 'user name' });
+    expect(Rg4rn.setUser).lastCalledWith({ identifier: 'user name' });
     RaygunClient.setUser('');
-    expect(setUserMock).lastCalledWith({
+    expect(Rg4rn.setUser).lastCalledWith({
       identifier: expect.any(String),
       isAnonymous: true
     });
@@ -122,23 +123,103 @@ describe('RaygunClient functions', () => {
       fullName: 'fullName'
     };
     RaygunClient.setUser(user);
-    expect(setUserMock).lastCalledWith(user);
+    expect(Rg4rn.setUser).lastCalledWith(user);
   });
 
   test('should pass correct breadcrumb to backend', () => {
     RaygunClient.recordBreadcrumb('breadcrumbA');
-    expect(recordBreadcrumbMock).lastCalledWith({ message: 'breadcrumbA' });
+    expect(Rg4rn.recordBreadcrumb).lastCalledWith({ message: 'breadcrumbA' });
     const details: BreadcrumbOption = {
       category: 'bug',
-      level: 'info',
-      className: 'class name',
-      methodName: 'method name',
-      lineNumber: 0
+      level: 'info'
     };
     RaygunClient.recordBreadcrumb('breadcrumbB', details);
-    expect(recordBreadcrumbMock).lastCalledWith({
+    expect(Rg4rn.recordBreadcrumb).lastCalledWith({
       message: 'breadcrumbB',
       ...details
+    });
+  });
+});
+
+describe('Error process function', () => {
+  test('should filter out react frames', async () => {
+    const restFrames = (internalStackFrames as StackFrame[]).filter(
+      RaygunClient.filterOutReactFrames
+    );
+    expect(restFrames).toEqual([
+      internalStackFrames[0],
+      internalStackFrames[5]
+    ]);
+  });
+  test('should filter out "addressAt" ', async () => {
+    const restFrames = (stackFramesWithAddress as StackFrame[]).map(
+      RaygunClient.noAddressAt
+    );
+    expect(restFrames).toEqual([
+      { methodName: 'calls' },
+      { methodName: 'calls' },
+      { methodName: 'calls' }
+    ]);
+  });
+
+  test('should generate Crash Report payload', async () => {
+    const error = new Error('test error message');
+    error.name = 'test error name';
+    const customData = { key: 'val' };
+    const breadcrumb: Breadcrumb = {
+      message: 'breadcrumb',
+      category: 'category',
+      level: 'info',
+      customData: { a: '1' }
+    };
+    const session = {
+      tags: new Set(['react-native']),
+      user: { identifier: 'mock user' },
+      customData: { key: 'val' },
+      breadcrumbs: [breadcrumb]
+    };
+    const payload = RaygunClient.generatePayload(
+      error,
+      fullStackFrames,
+      session
+    );
+    expect(payload).toEqual({
+      OccurredOn: expect.any(Date),
+      Details: {
+        Environment: {
+          UtcOffset: -12
+        },
+        Error: {
+          ClassName: error.name,
+          Message: error.message,
+          StackTrace: [
+            {
+              FileName: 'main.jsbundle',
+              MethodName: 'call',
+              LineNumber: 1,
+              ColumnNumber: 42,
+              ClassName: 'line 1, column 42'
+            },
+            {
+              FileName: 'main.jsbundle',
+              MethodName: 'apply',
+              LineNumber: 1,
+              ColumnNumber: null,
+              ClassName: 'line 1, column null'
+            }
+          ],
+          StackString: expect.any(String)
+        },
+        Client: {
+          Name: `raygun4reactnative.${Platform.OS}`,
+          Version: '{{VERSION}}'
+        },
+        UserCustomData: customData,
+        Tags: ['react-native'],
+        User: session.user,
+        Breadcrumbs: [breadcrumb],
+        Version: 'Not supplied'
+      }
     });
   });
 });

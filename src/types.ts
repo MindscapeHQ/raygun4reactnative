@@ -29,9 +29,6 @@ export interface Breadcrumb {
   category?: string;
   level?: 'debug' | 'info' | 'warning' | 'error';
   customData?: CustomData;
-  className?: string;
-  methodName?: string;
-  lineNumber?: number;
 }
 
 export interface StackTrace {
