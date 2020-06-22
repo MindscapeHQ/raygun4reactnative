@@ -4,7 +4,6 @@
 #import <Raygun4iOS/Raygun.h>
 
 
-
 @implementation Rg4rn
 
 RCT_EXPORT_MODULE()
@@ -20,6 +19,20 @@ RCT_EXPORT_METHOD(init:(NSDictionary *)options)
         RCTLogInfo(@"key: %@, value: %@ \n", key, [options objectForKey:key]);
     }
     [Raygun sharedReporterWithApiKey: apiKey withCrashReporting: !disableCrashReport];
+}
+
+RCT_EXPORT_METHOD(setTags:(NSArray *) tags) {
+    Raygun *sharedReport = [Raygun sharedReporter];
+    if (sharedReport){
+        sharedReport.tags = tags;
+    }
+}
+
+RCT_EXPORT_METHOD(setCustomData:(NSDictionary *) customData) {
+    Raygun *sharedReport = [Raygun sharedReporter];
+    if (sharedReport){
+        sharedReport.userCustomData = customData;
+    }
 }
 
 RCT_EXPORT_METHOD(sendException:(NSString *)name withReason:(nullable NSString *)reason withTags:(nullable NSArray<NSString *> *)tags withData:(nullable NSDictionary<NSString *, id> *)customData)

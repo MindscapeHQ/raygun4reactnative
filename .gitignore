@@ -12,4 +12,6 @@ android/.project
 android/.classpath
 .jest/
 coverage/
+release/
+docker/
 .vscode

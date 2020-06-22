@@ -1,28 +1,48 @@
 import { v4 as uuidv4 } from 'uuid';
 import { NativeModules, Platform } from 'react-native';
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
-import { User, Session, CrashReportPayload, CustomData } from './types';
+
+import {
+  User,
+  Session,
+  CrashReportPayload,
+  CustomData,
+  Breadcrumb,
+  RaygunClientOptions,
+  BreadcrumbOption
+} from './types';
 import { sendReport, sendCachedReports } from './transport';
 
 const { Rg4rn } = NativeModules;
 const SOURCE_MAP_PREFIX = 'file://reactnative.local/';
 const devicePathPattern = /^(.*@)?.*\/[^\.]+(\.app|CodePush)\/?(.*)/;
 
-let session: Session = {
+const getCleanSession = (): Session => ({
   tags: new Set(['React Native']),
   customData: {},
+  breadcrumbs: [],
   user: {
     identifier: 'anonymous'
   }
-};
+});
 
-let resolvedOptions: Record<string, any> = {};
+interface StackTrace {
+  stack: StackFrame[];
+}
 
-const init = (options: Record<string, any>) => {
+const curSession = getCleanSession();
+
+let GlobalOptions: RaygunClientOptions;
+
+const init = (options: RaygunClientOptions) => {
+  GlobalOptions = Object.assign({ enableNative: true }, options);
+
   // Enable native side crash reporting
-  if (Rg4rn && typeof Rg4rn.init === 'function') {
-    Rg4rn.init(options);
+  if (GlobalOptions.enableNative && Rg4rn && typeof Rg4rn.init === 'function') {
+    const { enableNative, onBeforeSend, ...rest } = options;
+    Rg4rn.init(rest);
   }
+
   const prevHandler = ErrorUtils.getGlobalHandler();
   ErrorUtils.setGlobalHandler(async (error: Error, isFatal?: boolean) => {
     // TODO: doing RN side error reporting for now, will migrate to Rg4rn.sendMessage once raygun4apple is ready.
@@ -35,7 +55,12 @@ const init = (options: Record<string, any>) => {
     allRejections: true,
     onUnhandled: processUnhandledError
   });
-  setTimeout(() => sendCachedReports(options.apiKey), 10);
+  if (!GlobalOptions.enableNative) {
+    setTimeout(
+      () => sendCachedReports(GlobalOptions.apiKey, GlobalOptions.onBeforeSend),
+      10
+    );
+  }
 };
 
 const internalTrace = new RegExp(
@@ -70,11 +95,9 @@ const cleanFilePath = (frames: StackFrame[]): StackFrame[] =>
 const generatePayload = (
   error: Error,
   stackFrames: StackFrame[],
-  tags: string[],
-  customData: Record<string, any>,
-  user: User,
-  version?: string
+  session: Session
 ): CrashReportPayload => {
+  const { breadcrumbs, tags, user, customData } = session;
   return {
     OccurredOn: new Date(),
     Details: {
@@ -101,100 +124,102 @@ const generatePayload = (
         Version: '{{VERSION}}'
       },
       UserCustomData: customData,
-      Tags: tags,
+      Tags: [...tags],
       User: user,
-      Version: version || 'Not supplied'
+      Breadcrumbs: breadcrumbs,
+      Version: GlobalOptions.version || 'Not supplied'
     }
   };
 };
 
 const addTag = (...tags: string[]) => {
   tags.forEach(tag => {
-    session.tags.add(tag);
-    if (Platform.OS === 'android') {
-      Rg4rn.addTag(tag);
-    }
+    curSession.tags.add(tag);
   });
+  Rg4rn.setTags([...curSession.tags]);
 };
 
 const setUser = (user: User | string) => {
-  session.user =
+  curSession.user =
     typeof user === 'string'
       ? !!user
         ? { identifier: user }
         : { identifier: uuidv4(), isAnonymous: true }
       : user;
+  Rg4rn.setUser(curSession.user);
 };
 
 const addCustomData = (customData: CustomData) => {
-  Object.assign(session.customData, customData);
+  Object.assign(curSession.customData, customData);
+  Rg4rn.setCustomData(curSession.customData);
 };
 
 const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
-  session.customData = updater(session.customData);
+  curSession.customData = updater(curSession.customData);
+  Rg4rn.setCustomData(curSession.customData);
+};
+
+const recordBreadcrumb = (message: string, details?: BreadcrumbOption) => {
+  const breadcrumb = { ...details, message };
+  curSession.breadcrumbs.push(breadcrumb);
+  Rg4rn.recordBreadcrumb(breadcrumb);
 };
 
 const clearSession = () => {
-  session = {
-    tags: new Set(['React Native']),
-    customData: {},
-    user: {
-      identifier: 'anonymous'
-    }
-  };
+  Object.assign(curSession, getCleanSession());
 };
 
-const remoteLog = (
-  body: string | object,
-  options?: Record<string, any> | undefined
-): Promise<any> =>
-  fetch('http://localhost:4000/report', {
-    method: 'POST',
-    mode: 'cors',
-    ...options,
-    body: typeof body === 'object' ? JSON.stringify(body) : body,
-    ...(typeof body === 'object' && {
-      headers: { 'Content-Type': 'application/json' }
-    })
-  });
+// const remoteLog = (
+//   body: string | object,
+//   options?: Record<string, any> | undefined
+// ): Promise<any> =>
+//   fetch('http://localhost:4000/report', {
+//     method: 'POST',
+//     mode: 'cors',
+//     ...options,
+//     body: typeof body === 'object' ? JSON.stringify(body) : body,
+//     ...(typeof body === 'object' && {
+//       headers: { 'Content-Type': 'application/json' }
+//     })
+//   });
 
 const processUnhandledError = async (error: Error, isFatal?: boolean) => {
   if (!error || !error.stack) {
     return;
   }
-
+  /** Following two module came from react flow source code, so we require here to prevent TS transpile it */
   const parseErrorStack = require('react-native/Libraries/Core/Devtools/parseErrorStack');
-  const stackFrame = parseErrorStack(error);
-
   const symbolicateStackTrace = require('react-native/Libraries/Core/Devtools/symbolicateStackTrace');
-
-  const symbolicatedTrace = __DEV__
+  const stackFrame = parseErrorStack(error);
+  const cleanedStackFrames: StackTrace = __DEV__
     ? await symbolicateStackTrace(stackFrame)
     : { stack: cleanFilePath(stackFrame) };
 
-  const stack = symbolicatedTrace.stack
-    .filter(filterOutReactFrames)
-    .map(noAddressAt);
+  const stack =
+    cleanedStackFrames.stack ||
+    [].filter(filterOutReactFrames).map(noAddressAt);
 
-  const { tags, customData, user } = session;
+  if (isFatal) {
+    curSession.tags.add('Fatal');
+  }
 
-  const tagsArray = Array.from(tags.values());
-  const payload = generatePayload(
-    error,
-    stack,
-    isFatal ? tagsArray.concat('Fatal') : tagsArray,
-    customData,
-    user
-  );
-
-  await sendReport(payload, resolvedOptions.apiKey);
+  const payload = generatePayload(error, stack, curSession);
+  if (GlobalOptions.enableNative && Platform.OS !== 'ios') {
+    Rg4rn.sendCrashReport(JSON.stringify(payload), GlobalOptions.apiKey);
+  } else {
+    await sendReport(payload, GlobalOptions.apiKey, GlobalOptions.onBeforeSend);
+  }
 };
 
-export default {
+export {
   init,
   addTag,
   setUser,
   addCustomData,
   clearSession,
-  updateCustomData
+  updateCustomData,
+  recordBreadcrumb,
+  filterOutReactFrames,
+  noAddressAt,
+  generatePayload
 };
