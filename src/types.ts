@@ -50,7 +50,6 @@ export interface CrashReportPayload {
     };
     Environment: {
       UtcOffset: number;
-      //TODO: adds RN environment infos
     };
     Client: {
       Name: string;
