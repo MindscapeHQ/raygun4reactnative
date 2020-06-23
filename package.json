@@ -1,7 +1,7 @@
 {
-  "name": "raygun4reactnative",
+  "name": "@hunteva/raygun4reactnative",
   "title": "Raygun4reactnative",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Raygun React Native SDK",
   "main": "dist/index.js",
   "typescript": {
@@ -10,15 +10,18 @@
   "typings": "dist/index.d.ts",
   "types": "dist/index.d.ts",
   "scripts": {
-    "prebuild": "jest",
-    "build": "tsc -p ./ && mkdir release && cp -R ios android dist package.json package-lock.json react-native.config.js *.podspec README.md ./release",
+    "prebuild": "jest && npx rimraf release",
+    "build": "tsc -p ./ && mkdir release",
+    "postbuild": "npm pack && cp *.tgz ./release",
     "build-watch": "tsc -p ./ -w",
     "test": "jest "
   },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/MindscapeHQ/raygun4reactnative.git",
-    "baseUrl": "https://github.com/MindscapeHQ/raygun4reactnative"
+    "url": "git+https://github.com/hunteva/raygun4reactnative.git"
   },
   "keywords": [
     "react-native"
@@ -50,6 +53,7 @@
     "jest-fetch-mock": "^3.0.3",
     "react": "^16.9.0",
     "react-native": "^0.61.5",
+    "rimraf": "^3.0.2",
     "ts-jest": "^26.1.0",
     "typescript": "^3.9.3"
   },

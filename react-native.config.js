@@ -1,10 +1,9 @@
 module.exports = {
   dependency: {
     platforms: {
-      ios: {
-      },
+      ios: {},
       android: {
-        packageInstance: "new Rg4rnPackage()"
+        // packageInstance: "new Rg4rnPackage()"
       }
     }
   }
