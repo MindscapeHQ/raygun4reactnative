@@ -2,7 +2,6 @@ src/
 coverage/
 android/.idea/
 android/build/
-android/libs/
 android/android.iml
 android/.gradle/
 android/gradle/
