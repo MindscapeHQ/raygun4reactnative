@@ -13,7 +13,9 @@ jest.mock('react-native', () => ({
       setTags: jest.fn(),
       setUser: jest.fn(),
       setCustomData: jest.fn(),
-      recordBreadcrumb: jest.fn()
+      recordBreadcrumb: jest.fn(),
+      hasInitialized: jest.fn().mockResolvedValue(false),
+      getEnvironmentInfo: jest.fn().mockResolvedValue({})
     }
   },
   Platform: {
@@ -49,9 +51,9 @@ afterEach(() => {
 });
 
 describe('RaygunClient Initialization', () => {
-  test('should setup error handler on Global ErrorUtils and Promise', () => {
+  test('should setup error handler on Global ErrorUtils and Promise', async () => {
     const rejectTracking = require('promise/setimmediate/rejection-tracking');
-    RaygunClient.init({ apiKey: 'someKey' });
+    await RaygunClient.init({ apiKey: 'someKey' });
     expect(rejectTracking.disable).toBeCalled();
     expect(rejectTracking.enable).toBeCalledWith({
       allRejections: true,
@@ -60,26 +62,29 @@ describe('RaygunClient Initialization', () => {
     expect(ErrorUtils.setGlobalHandler).toBeCalledWith(expect.any(Function));
   });
 
-  test('should correctly pass apiKey to JS transport when enableNative is false', () => {
-    RaygunClient.init({ apiKey: 'someKey', enableNative: false });
+  test('should correctly pass apiKey to JS transport when enableNative is false', async () => {
+    await RaygunClient.init({ apiKey: 'someKey', enableNative: false });
     expect(Rg4rn.init).not.toBeCalled();
     jest.runAllTimers();
     expect(sendCachedReports).toBeCalledTimes(1);
     expect(sendCachedReports).toBeCalledWith('someKey', undefined);
   });
 
-  test('should not pass unnecessary options to native side', () => {
-    RaygunClient.init({
+  test('should not pass unnecessary options to native side', async () => {
+    await RaygunClient.init({
       apiKey: 'someKey',
       onBeforeSend: (report: CrashReportPayload) => report,
       enableNative: true
     });
-    expect(Rg4rn.init).toHaveBeenLastCalledWith({ apiKey: 'someKey' });
+    expect(Rg4rn.init).toHaveBeenLastCalledWith({
+      apiKey: 'someKey',
+      version: ''
+    });
   });
 
-  test('should not initialize native side and sendCachedReport from JS side when not enableNative', () => {
+  test('should not initialize native side and sendCachedReport from JS side when not enableNative', async () => {
     const onBeforeFn = (report: CrashReportPayload) => report;
-    RaygunClient.init({
+    await RaygunClient.init({
       apiKey: 'someKey',
       onBeforeSend: onBeforeFn,
       enableNative: false
@@ -92,14 +97,16 @@ describe('RaygunClient Initialization', () => {
 });
 
 describe('RaygunClient functions', () => {
-  test('should pass accumulated tags to backend', () => {
+  test('should pass accumulated tags to backend', async () => {
+    await RaygunClient.init({ apiKey: 'someKey' });
     RaygunClient.addTag('a');
     expect(Rg4rn.setTags).lastCalledWith(['React Native', 'a']);
     RaygunClient.addTag('b', 'c');
     expect(Rg4rn.setTags).lastCalledWith(['React Native', 'a', 'b', 'c']);
   });
 
-  test('should pass customData to backend', () => {
+  test('should pass customData to backend', async () => {
+    await RaygunClient.init({ apiKey: 'someKey' });
     RaygunClient.addCustomData({ a: '1' });
     expect(Rg4rn.setCustomData).toBeCalledWith({ a: '1' });
     RaygunClient.addCustomData({ b: '2' });
@@ -108,13 +115,24 @@ describe('RaygunClient functions', () => {
     expect(Rg4rn.setCustomData).toBeCalledWith({ val: 'key' });
   });
 
-  test('should pass correct user to backend', () => {
+  test('should pass correct user to backend', async () => {
+    await RaygunClient.init({ apiKey: 'someKey' });
     RaygunClient.setUser('user name');
-    expect(Rg4rn.setUser).lastCalledWith({ identifier: 'user name' });
+    expect(Rg4rn.setUser).lastCalledWith({
+      identifier: 'user name',
+      firstName: '',
+      fullName: '',
+      email: '',
+      isAnonymous: false
+    });
+    Rg4rn.setUser.mockReset();
     RaygunClient.setUser('');
     expect(Rg4rn.setUser).lastCalledWith({
       identifier: expect.any(String),
-      isAnonymous: true
+      isAnonymous: true,
+      firstName: '',
+      fullName: '',
+      email: ''
     });
     const user = {
       identifier: 'id',
@@ -122,13 +140,21 @@ describe('RaygunClient functions', () => {
       firstName: 'first name',
       fullName: 'fullName'
     };
+    Rg4rn.setUser.mockReset();
     RaygunClient.setUser(user);
-    expect(Rg4rn.setUser).lastCalledWith(user);
+    expect(Rg4rn.setUser).lastCalledWith({ ...user, isAnonymous: false });
   });
 
-  test('should pass correct breadcrumb to backend', () => {
+  test('should pass correct breadcrumb to backend', async () => {
+    await RaygunClient.init({ apiKey: 'someKey' });
     RaygunClient.recordBreadcrumb('breadcrumbA');
-    expect(Rg4rn.recordBreadcrumb).lastCalledWith({ message: 'breadcrumbA' });
+    expect(Rg4rn.recordBreadcrumb).lastCalledWith({
+      message: 'breadcrumbA',
+      category: '',
+      level: 'info',
+      customData: {},
+      timestamp: expect.any(Number)
+    });
     const details: BreadcrumbOption = {
       category: 'bug',
       level: 'info'
@@ -136,7 +162,10 @@ describe('RaygunClient functions', () => {
     RaygunClient.recordBreadcrumb('breadcrumbB', details);
     expect(Rg4rn.recordBreadcrumb).lastCalledWith({
       message: 'breadcrumbB',
-      ...details
+      customData: {},
+      category: 'bug',
+      level: 'info',
+      timestamp: expect.any(Number)
     });
   });
 });
@@ -170,7 +199,8 @@ describe('Error process function', () => {
       message: 'breadcrumb',
       category: 'category',
       level: 'info',
-      customData: { a: '1' }
+      customData: { a: '1' },
+      timestamp: 1593750000000
     };
     const session = {
       tags: new Set(['react-native']),
@@ -178,7 +208,7 @@ describe('Error process function', () => {
       customData: { key: 'val' },
       breadcrumbs: [breadcrumb]
     };
-    const payload = RaygunClient.generatePayload(
+    const payload = await RaygunClient.generatePayload(
       error,
       fullStackFrames,
       session
@@ -216,8 +246,16 @@ describe('Error process function', () => {
         },
         UserCustomData: customData,
         Tags: ['react-native'],
-        User: session.user,
-        Breadcrumbs: [breadcrumb],
+        User: { Identifier: 'mock user' },
+        Breadcrumbs: [
+          {
+            Message: 'breadcrumb',
+            Category: 'category',
+            Level: 'info',
+            CustomData: { a: '1' },
+            Timestamp: 1593750000000
+          }
+        ],
         Version: 'Not supplied'
       }
     });

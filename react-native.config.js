@@ -3,7 +3,7 @@ module.exports = {
     platforms: {
       ios: {},
       android: {
-        // packageInstance: "new Rg4rnPackage()"
+        packageInstance: "new Rg4rnPackage()"
       }
     }
   }

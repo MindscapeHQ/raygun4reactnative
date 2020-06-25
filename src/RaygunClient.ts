@@ -7,9 +7,9 @@ import {
   Session,
   CrashReportPayload,
   CustomData,
-  Breadcrumb,
   RaygunClientOptions,
-  BreadcrumbOption
+  BreadcrumbOption,
+  Breadcrumb
 } from './types';
 import { sendReport, sendCachedReports } from './transport';
 
@@ -26,6 +26,24 @@ const getCleanSession = (): Session => ({
   }
 });
 
+const upperFirst = (obj: any | any[]): any | any[] => {
+  if (Array.isArray(obj)) {
+    return obj.map(upperFirst);
+  }
+  if (typeof obj === 'object') {
+    return Object.entries(obj).reduce(
+      (all, [key, val]) => ({
+        ...all,
+        ...(key !== 'customData'
+          ? { [key.slice(0, 1).toUpperCase() + key.slice(1)]: upperFirst(val) }
+          : { CustomData: val })
+      }),
+      {}
+    );
+  }
+  return obj;
+};
+
 interface StackTrace {
   stack: StackFrame[];
 }
@@ -37,30 +55,43 @@ let GlobalOptions: RaygunClientOptions;
 const init = (options: RaygunClientOptions) => {
   GlobalOptions = Object.assign({ enableNative: true }, options);
 
-  // Enable native side crash reporting
-  if (GlobalOptions.enableNative && Rg4rn && typeof Rg4rn.init === 'function') {
-    const { enableNative, onBeforeSend, ...rest } = options;
-    Rg4rn.init(rest);
-  }
+  return Rg4rn.hasInitialized().then((initialized: boolean) => {
+    if (initialized) {
+      console.log('Already initialized');
+      return;
+    }
 
-  const prevHandler = ErrorUtils.getGlobalHandler();
-  ErrorUtils.setGlobalHandler(async (error: Error, isFatal?: boolean) => {
-    // TODO: doing RN side error reporting for now, will migrate to Rg4rn.sendMessage once raygun4apple is ready.
-    await processUnhandledError(error, isFatal);
-    prevHandler && prevHandler(error, isFatal);
+    // Enable native side crash reporting
+    if (
+      GlobalOptions.enableNative &&
+      Rg4rn &&
+      typeof Rg4rn.init === 'function'
+    ) {
+      const { enableNative, onBeforeSend, version, ...rest } = GlobalOptions;
+      const resolvedVersion = version || '';
+      Rg4rn.init({ ...rest, version: resolvedVersion });
+    }
+
+    const prevHandler = ErrorUtils.getGlobalHandler();
+    ErrorUtils.setGlobalHandler(async (error: Error, isFatal?: boolean) => {
+      // TODO: doing RN side error reporting for now, will migrate to Rg4rn.sendMessage once raygun4apple is ready.
+      await processUnhandledError(error, isFatal);
+      prevHandler && prevHandler(error, isFatal);
+    });
+    const rejectionTracking = require('promise/setimmediate/rejection-tracking');
+    rejectionTracking.disable();
+    rejectionTracking.enable({
+      allRejections: true,
+      onUnhandled: processUnhandledRejection
+    });
+    if (!GlobalOptions.enableNative) {
+      setTimeout(
+        () =>
+          sendCachedReports(GlobalOptions.apiKey, GlobalOptions.onBeforeSend),
+        10
+      );
+    }
   });
-  const rejectionTracking = require('promise/setimmediate/rejection-tracking');
-  rejectionTracking.disable();
-  rejectionTracking.enable({
-    allRejections: true,
-    onUnhandled: processUnhandledError
-  });
-  if (!GlobalOptions.enableNative) {
-    setTimeout(
-      () => sendCachedReports(GlobalOptions.apiKey, GlobalOptions.onBeforeSend),
-      10
-    );
-  }
 };
 
 const internalTrace = new RegExp(
@@ -92,12 +123,14 @@ const cleanFilePath = (frames: StackFrame[]): StackFrame[] =>
     return frame;
   });
 
-const generatePayload = (
+const generatePayload = async (
   error: Error,
   stackFrames: StackFrame[],
   session: Session
-): CrashReportPayload => {
+): Promise<CrashReportPayload> => {
   const { breadcrumbs, tags, user, customData } = session;
+  const environmentDetails =
+    Platform.OS === 'android' ? await Rg4rn.getEnvironmentInfo() : {};
   return {
     OccurredOn: new Date(),
     Details: {
@@ -116,8 +149,8 @@ const generatePayload = (
         StackString: error?.toString() || ''
       },
       Environment: {
-        UtcOffset: new Date().getTimezoneOffset() / 60.0
-        //TODO: adds RN environment infos
+        UtcOffset: new Date().getTimezoneOffset() / 60.0,
+        ...environmentDetails
       },
       Client: {
         Name: `raygun4reactnative.${Platform.OS}`,
@@ -125,8 +158,8 @@ const generatePayload = (
       },
       UserCustomData: customData,
       Tags: [...tags],
-      User: user,
-      Breadcrumbs: breadcrumbs,
+      User: upperFirst(user),
+      Breadcrumbs: upperFirst(breadcrumbs),
       Version: GlobalOptions.version || 'Not supplied'
     }
   };
@@ -136,17 +169,28 @@ const addTag = (...tags: string[]) => {
   tags.forEach(tag => {
     curSession.tags.add(tag);
   });
-  Rg4rn.setTags([...curSession.tags]);
+  if (GlobalOptions.enableNative) {
+    Rg4rn.setTags([...curSession.tags]);
+  }
 };
 
 const setUser = (user: User | string) => {
-  curSession.user =
+  const userObj = Object.assign(
+    { firstName: '', fullName: '', email: '', isAnonymous: false },
     typeof user === 'string'
       ? !!user
-        ? { identifier: user }
-        : { identifier: uuidv4(), isAnonymous: true }
-      : user;
-  Rg4rn.setUser(curSession.user);
+        ? {
+            identifier: user
+          }
+        : {
+            identifier: uuidv4(),
+            isAnonymous: true
+          }
+      : user
+  );
+  if (GlobalOptions.enableNative) {
+    Rg4rn.setUser((curSession.user = userObj));
+  }
 };
 
 const addCustomData = (customData: CustomData) => {
@@ -156,13 +200,24 @@ const addCustomData = (customData: CustomData) => {
 
 const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
   curSession.customData = updater(curSession.customData);
-  Rg4rn.setCustomData(curSession.customData);
+  if (GlobalOptions.enableNative) {
+    Rg4rn.setCustomData(curSession.customData);
+  }
 };
 
 const recordBreadcrumb = (message: string, details?: BreadcrumbOption) => {
-  const breadcrumb = { ...details, message };
+  const breadcrumb: Breadcrumb = {
+    customData: {},
+    category: '',
+    level: 'info',
+    message,
+    ...details,
+    timestamp: new Date().getTime()
+  };
   curSession.breadcrumbs.push(breadcrumb);
-  Rg4rn.recordBreadcrumb(breadcrumb);
+  if (GlobalOptions.enableNative) {
+    Rg4rn.recordBreadcrumb(breadcrumb);
+  }
 };
 
 const clearSession = () => {
@@ -182,9 +237,12 @@ const clearSession = () => {
 //       headers: { 'Content-Type': 'application/json' }
 //     })
 //   });
+const processUnhandledRejection = (id: number, error: any) =>
+  processUnhandledError(error, false);
 
 const processUnhandledError = async (error: Error, isFatal?: boolean) => {
   if (!error || !error.stack) {
+    console.log('Unrecognized error occurred');
     return;
   }
   /** Following two module came from react flow source code, so we require here to prevent TS transpile it */
@@ -203,8 +261,8 @@ const processUnhandledError = async (error: Error, isFatal?: boolean) => {
     curSession.tags.add('Fatal');
   }
 
-  const payload = generatePayload(error, stack, curSession);
-  if (GlobalOptions.enableNative && Platform.OS !== 'ios') {
+  const payload = await generatePayload(error, stack, curSession);
+  if (GlobalOptions.enableNative) {
     Rg4rn.sendCrashReport(JSON.stringify(payload), GlobalOptions.apiKey);
   } else {
     await sendReport(payload, GlobalOptions.apiKey, GlobalOptions.onBeforeSend);

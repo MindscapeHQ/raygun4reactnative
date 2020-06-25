@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import { CrashReportPayload, BeforeSendHandler } from './types';
 
 const RAYGUN_ENDPOINT_CP = 'https://api.raygun.com/entries';
+// const RAYGUN_ENDPOINT_CP = 'http://localhost:4000';
 const RAYGUN_STORAGE_KEY = '@__RaygunCrashReports__';
 
 const sendReport = async (
