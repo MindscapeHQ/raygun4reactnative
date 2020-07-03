@@ -22,13 +22,36 @@ export interface CustomData {
   [key: string]: BasicType | CustomData | BasicType[] | CustomData[];
 }
 
-export type BreadcrumbOption = Omit<Breadcrumb, 'message'>;
+export type BreadcrumbOption = Omit<Breadcrumb, 'message' | 'timestamp'>;
+
+interface Environment {
+  UtcOffset: number;
+  Cpu?: string;
+  Architecture?: string;
+  ProcessorCount?: number;
+  OSVersion?: string;
+  OSSDKVersion?: string;
+  WindowsBoundWidth?: number;
+  WindowsBoundHeight?: number;
+  CurrentOrientation?: string;
+  Locale?: string;
+  TotalPhysicalMemory?: number;
+  AvailablePhysicalMemory?: number;
+  TotalVirtualMemory?: number;
+  AvailableVirtualMemory?: number;
+  DiskSpaceFree?: number;
+  DeviceName?: string;
+  Brand?: string;
+  Board?: string;
+  DeviceCode?: string;
+}
 
 export interface Breadcrumb {
   message: string;
   category?: string;
   level?: 'debug' | 'info' | 'warning' | 'error';
   customData?: CustomData;
+  timestamp?: number;
 }
 
 export interface StackTrace {
@@ -48,10 +71,7 @@ export interface CrashReportPayload {
       StackTrace: StackTrace[];
       StackString: string;
     };
-    Environment: {
-      UtcOffset: number;
-      //TODO: adds RN environment infos
-    };
+    Environment: Environment;
     Client: {
       Name: string;
       Version: string;
