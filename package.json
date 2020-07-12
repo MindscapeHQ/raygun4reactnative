@@ -1,7 +1,7 @@
 {
   "name": "@hunteva/raygun4reactnative",
   "title": "Raygun4reactnative",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Raygun React Native SDK",
   "main": "dist/index.js",
   "typescript": {
