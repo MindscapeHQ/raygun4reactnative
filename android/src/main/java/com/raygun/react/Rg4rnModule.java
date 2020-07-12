@@ -12,10 +12,8 @@ import com.raygun.raygun4android.CrashReportingOnBeforeSend;
 import com.raygun.raygun4android.RaygunClient;
 import com.raygun.raygun4android.messages.crashreporting.RaygunBreadcrumbLevel;
 import com.raygun.raygun4android.messages.crashreporting.RaygunBreadcrumbMessage;
-import com.raygun.raygun4android.messages.crashreporting.RaygunEnvironmentMessage;
 import com.raygun.raygun4android.messages.crashreporting.RaygunErrorMessage;
 import com.raygun.raygun4android.messages.crashreporting.RaygunMessage;
-import com.raygun.raygun4android.messages.crashreporting.RaygunMessageDetails;
 import com.raygun.raygun4android.messages.shared.RaygunUserInfo;
 import com.raygun.raygun4android.services.CrashReportingPostService;
 
@@ -56,6 +54,20 @@ public class Rg4rnModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    private void hasReportingServiceRunning(Promise promise) {
+        ActivityManager manager = (ActivityManager)reactContext.getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (CrashReportingPostService.class.getName().equals(service.service.getClassName())) {
+                Log.i("Service already","running");
+                promise.resolve(true);
+                return;
+            }
+        }
+        Log.i("Service not","running");
+        promise.resolve(false);
+    }
+
+    @ReactMethod
     public void getEnvironmentInfo(Promise promise) {
         WritableMap map = Arguments.createMap();
         map.putString("Architecture", Build.CPU_ABI);
@@ -82,8 +94,6 @@ public class Rg4rnModule extends ReactContextBaseJavaModule {
             ActivityManager.MemoryInfo mi = new ActivityManager.MemoryInfo();
             ActivityManager am = (ActivityManager) this.reactContext.getSystemService(Context.ACTIVITY_SERVICE);
             am.getMemoryInfo(mi);
-
-
             map.putInt("ProcessorCount", Runtime.getRuntime().availableProcessors());
             map.putString("OSVersion", Build.VERSION.RELEASE);
             map.putString("OSSDKVersion", Integer.toString(Build.VERSION.SDK_INT));
@@ -91,12 +101,7 @@ public class Rg4rnModule extends ReactContextBaseJavaModule {
             map.putInt("WindowsBoundHeight", metrics.heightPixels);
             map.putString("CurrentOrientation", currentOrientation);
             map.putString("Locale", this.reactContext.getResources().getConfiguration().locale.toString());
-            // map.putDouble("TotalPhysicalMemory", env.totalPhysicalMemory);
             map.putDouble("AvailablePhysicalMemory", mi.availMem / 0x100000);
-            // map.putDouble("TotalVirtualMemory", env.totalVirtualMemory);
-            // map.putDouble("AvailableVirtualMemory", env.availableVirtualMemory);
-            // map.putDouble("DiskSpaceFree", env.diskSpaceFree);
-
         }catch (Exception e) {
             Log.e("Environment", "Retireve Environment Info Error", e);
         }

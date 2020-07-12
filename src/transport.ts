@@ -41,7 +41,7 @@ const sendCachedReports = async (
   try {
     reports = reportsRaw ? JSON.parse(reportsRaw) : [];
   } catch (err) {
-    console.log(err);
+    console.log('Parsing saved error report failed:', err);
     reports = [];
   }
   return Promise.all(

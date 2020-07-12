@@ -53,7 +53,7 @@ afterEach(() => {
 describe('RaygunClient Initialization', () => {
   test('should setup error handler on Global ErrorUtils and Promise', async () => {
     const rejectTracking = require('promise/setimmediate/rejection-tracking');
-    await RaygunClient.init({ apiKey: 'someKey' });
+    await RaygunClient.init({ apiKey: 'someKey', version: '' });
     expect(rejectTracking.disable).toBeCalled();
     expect(rejectTracking.enable).toBeCalledWith({
       allRejections: true,
@@ -242,7 +242,7 @@ describe('Error process function', () => {
         },
         Client: {
           Name: `raygun4reactnative.${Platform.OS}`,
-          Version: '{{VERSION}}'
+          Version: expect.any(String)
         },
         UserCustomData: customData,
         Tags: ['react-native'],

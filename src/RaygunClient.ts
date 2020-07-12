@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { NativeModules, Platform } from 'react-native';
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
-
+import { version } from '../package.json';
 import {
   User,
   Session,
@@ -51,47 +51,44 @@ interface StackTrace {
 const curSession = getCleanSession();
 
 let GlobalOptions: RaygunClientOptions;
+let hasReportingServiceRunning = false;
 
-const init = (options: RaygunClientOptions) => {
+const init = async (options: RaygunClientOptions) => {
   GlobalOptions = Object.assign({ enableNative: true }, options);
+  const alreadyInitialized = await Rg4rn.hasInitialized();
+  if (alreadyInitialized) {
+    console.log('Already initialized');
+    return false;
+  }
 
-  return Rg4rn.hasInitialized().then((initialized: boolean) => {
-    if (initialized) {
-      console.log('Already initialized');
-      return;
-    }
+  // Enable native side crash reporting
+  if (GlobalOptions.enableNative && Rg4rn && typeof Rg4rn.init === 'function') {
+    const { enableNative, onBeforeSend, version, ...rest } = GlobalOptions;
+    const resolvedVersion = version || '';
+    Rg4rn.init({ ...rest, version: resolvedVersion });
+    hasReportingServiceRunning =
+      Platform.OS === 'ios' || (await Rg4rn.hasReportingServiceRunning());
+  }
 
-    // Enable native side crash reporting
-    if (
-      GlobalOptions.enableNative &&
-      Rg4rn &&
-      typeof Rg4rn.init === 'function'
-    ) {
-      const { enableNative, onBeforeSend, version, ...rest } = GlobalOptions;
-      const resolvedVersion = version || '';
-      Rg4rn.init({ ...rest, version: resolvedVersion });
-    }
-
-    const prevHandler = ErrorUtils.getGlobalHandler();
-    ErrorUtils.setGlobalHandler(async (error: Error, isFatal?: boolean) => {
-      // TODO: doing RN side error reporting for now, will migrate to Rg4rn.sendMessage once raygun4apple is ready.
-      await processUnhandledError(error, isFatal);
-      prevHandler && prevHandler(error, isFatal);
-    });
-    const rejectionTracking = require('promise/setimmediate/rejection-tracking');
-    rejectionTracking.disable();
-    rejectionTracking.enable({
-      allRejections: true,
-      onUnhandled: processUnhandledRejection
-    });
-    if (!GlobalOptions.enableNative) {
-      setTimeout(
-        () =>
-          sendCachedReports(GlobalOptions.apiKey, GlobalOptions.onBeforeSend),
-        10
-      );
-    }
+  const prevHandler = ErrorUtils.getGlobalHandler();
+  ErrorUtils.setGlobalHandler(async (error: Error, isFatal?: boolean) => {
+    // TODO: doing RN side error reporting for now, will migrate to Rg4rn.sendMessage once raygun4apple is ready.
+    await processUnhandledError(error, isFatal);
+    prevHandler && prevHandler(error, isFatal);
   });
+  const rejectionTracking = require('promise/setimmediate/rejection-tracking');
+  rejectionTracking.disable();
+  rejectionTracking.enable({
+    allRejections: true,
+    onUnhandled: processUnhandledRejection
+  });
+  if (!GlobalOptions.enableNative) {
+    setTimeout(
+      () => sendCachedReports(GlobalOptions.apiKey, GlobalOptions.onBeforeSend),
+      10
+    );
+  }
+  return true;
 };
 
 const internalTrace = new RegExp(
@@ -154,7 +151,7 @@ const generatePayload = async (
       },
       Client: {
         Name: `raygun4reactnative.${Platform.OS}`,
-        Version: '{{VERSION}}'
+        Version: version
       },
       UserCustomData: customData,
       Tags: [...tags],
@@ -263,7 +260,18 @@ const processUnhandledError = async (error: Error, isFatal?: boolean) => {
 
   const payload = await generatePayload(error, stack, curSession);
   if (GlobalOptions.enableNative) {
-    Rg4rn.sendCrashReport(JSON.stringify(payload), GlobalOptions.apiKey);
+    if (hasReportingServiceRunning) {
+      Rg4rn.sendCrashReport(JSON.stringify(payload), GlobalOptions.apiKey);
+    } else {
+      await sendReport(
+        payload,
+        GlobalOptions.apiKey,
+        GlobalOptions.onBeforeSend
+      );
+      console.warn(
+        'CrashReporting Service not detected, please check the AndroidManifest.xml configuration'
+      );
+    }
   } else {
     await sendReport(payload, GlobalOptions.apiKey, GlobalOptions.onBeforeSend);
   }
