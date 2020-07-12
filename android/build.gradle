@@ -77,9 +77,8 @@ repositories {
 dependencies {
     //noinspection GradleDynamicVersion
     implementation 'com.facebook.react:react-native:+'  // From node_modules
-    // api 'com.raygun:raygun4android:4.0.1'
+    implementation 'com.raygun:raygun4android:4.0.2-beta1'
     implementation 'com.jakewharton.timber:timber:4.7.1'
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
 }
 
 def configureReactNativePom(def pom) {
