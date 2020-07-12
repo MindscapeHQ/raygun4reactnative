@@ -1,3 +1,4 @@
+.npmrc
 dist/
 example/
 node_modules/
