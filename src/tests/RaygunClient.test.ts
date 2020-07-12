@@ -1,4 +1,4 @@
-import { CrashReportPayload, Breadcrumb, BreadcrumbOption } from 'src/types';
+import { CrashReportPayload, Breadcrumb, BreadcrumbOption } from '../types';
 import {
   internalStackFrames,
   stackFramesWithAddress,

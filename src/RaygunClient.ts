@@ -1,7 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
 import { NativeModules, Platform } from 'react-native';
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
-import { version } from '../package.json';
+//@ts-ignore
+const { version: clientVersion } = require('../package.json');
 import {
   User,
   Session,
@@ -151,7 +152,7 @@ const generatePayload = async (
       },
       Client: {
         Name: `raygun4reactnative.${Platform.OS}`,
-        Version: version
+        Version: clientVersion
       },
       UserCustomData: customData,
       Tags: [...tags],
