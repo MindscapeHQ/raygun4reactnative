@@ -49,8 +49,7 @@ interface StackTrace {
   stack: StackFrame[];
 }
 
-const curSession = getCleanSession();
-
+let curSession = getCleanSession();
 let GlobalOptions: RaygunClientOptions;
 let hasReportingServiceRunning = false;
 
@@ -191,7 +190,7 @@ const setUser = (user: User | string) => {
 };
 
 const addCustomData = (customData: CustomData) => {
-  Object.assign(curSession.customData, customData);
+  curSession.customData = Object.assign({}, curSession.customData, customData);
   Rg4rn.setCustomData(curSession.customData);
 };
 
@@ -218,7 +217,7 @@ const recordBreadcrumb = (message: string, details?: BreadcrumbOption) => {
 };
 
 const clearSession = () => {
-  Object.assign(curSession, getCleanSession());
+  curSession = getCleanSession();
 };
 
 const processUnhandledRejection = (id: number, error: any) =>
