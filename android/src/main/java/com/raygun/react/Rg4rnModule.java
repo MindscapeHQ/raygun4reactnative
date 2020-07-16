@@ -103,7 +103,7 @@ public class Rg4rnModule extends ReactContextBaseJavaModule {
             map.putString("Locale", this.reactContext.getResources().getConfiguration().locale.toString());
             map.putDouble("AvailablePhysicalMemory", mi.availMem / 0x100000);
         }catch (Exception e) {
-            Log.e("Environment", "Retireve Environment Info Error", e);
+            Log.e("Environment", "Retrieve Environment Info Error", e);
         }
         promise.resolve(map);
     }

@@ -84,10 +84,7 @@ const init = async (options: RaygunClientOptions) => {
     onUnhandled: processUnhandledRejection
   });
   if (!GlobalOptions.enableNative) {
-    setTimeout(
-      () => sendCachedReports(GlobalOptions.apiKey, GlobalOptions.onBeforeSend),
-      10
-    );
+    setTimeout(() => sendCachedReports(GlobalOptions.apiKey), 10);
   }
   return true;
 };
@@ -128,7 +125,9 @@ const generatePayload = async (
 ): Promise<CrashReportPayload> => {
   const { breadcrumbs, tags, user, customData } = session;
   const environmentDetails =
-    Platform.OS === 'android' ? await Rg4rn.getEnvironmentInfo() : {};
+    Platform.OS === 'android'
+      ? Rg4rn.getEnvironmentInfo && (await Rg4rn.getEnvironmentInfo())
+      : {};
   return {
     OccurredOn: new Date(),
     Details: {
@@ -222,19 +221,6 @@ const clearSession = () => {
   Object.assign(curSession, getCleanSession());
 };
 
-// const remoteLog = (
-//   body: string | object,
-//   options?: Record<string, any> | undefined
-// ): Promise<any> =>
-//   fetch('http://localhost:4000/report', {
-//     method: 'POST',
-//     mode: 'cors',
-//     ...options,
-//     body: typeof body === 'object' ? JSON.stringify(body) : body,
-//     ...(typeof body === 'object' && {
-//       headers: { 'Content-Type': 'application/json' }
-//     })
-//   });
 const processUnhandledRejection = (id: number, error: any) =>
   processUnhandledError(error, false);
 
@@ -260,21 +246,27 @@ const processUnhandledError = async (error: Error, isFatal?: boolean) => {
   }
 
   const payload = await generatePayload(error, stack, curSession);
+  const { onBeforeSend } = GlobalOptions;
+  const shouldSkip =
+    onBeforeSend &&
+    typeof onBeforeSend === 'function' &&
+    !onBeforeSend(Object.freeze(payload));
+
+  if (shouldSkip) {
+    return;
+  }
+
   if (GlobalOptions.enableNative) {
     if (hasReportingServiceRunning) {
       Rg4rn.sendCrashReport(JSON.stringify(payload), GlobalOptions.apiKey);
     } else {
-      await sendReport(
-        payload,
-        GlobalOptions.apiKey,
-        GlobalOptions.onBeforeSend
-      );
+      await sendReport(payload, GlobalOptions.apiKey);
       console.warn(
         'CrashReporting Service not detected, please check the AndroidManifest.xml configuration'
       );
     }
   } else {
-    await sendReport(payload, GlobalOptions.apiKey, GlobalOptions.onBeforeSend);
+    await sendReport(payload, GlobalOptions.apiKey);
   }
 };
 

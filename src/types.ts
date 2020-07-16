@@ -84,9 +84,7 @@ export interface CrashReportPayload {
   };
 }
 
-export type BeforeSendHandler = (
-  payload: CrashReportPayload
-) => CrashReportPayload;
+export type BeforeSendHandler = (payload: CrashReportPayload) => boolean;
 
 export interface RaygunClientOptions {
   apiKey: string;

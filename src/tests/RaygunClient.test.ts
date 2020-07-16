@@ -67,13 +67,12 @@ describe('RaygunClient Initialization', () => {
     expect(Rg4rn.init).not.toBeCalled();
     jest.runAllTimers();
     expect(sendCachedReports).toBeCalledTimes(1);
-    expect(sendCachedReports).toBeCalledWith('someKey', undefined);
+    expect(sendCachedReports).toBeCalledWith('someKey');
   });
 
   test('should not pass unnecessary options to native side', async () => {
     await RaygunClient.init({
       apiKey: 'someKey',
-      onBeforeSend: (report: CrashReportPayload) => report,
       enableNative: true
     });
     expect(Rg4rn.init).toHaveBeenLastCalledWith({
@@ -83,16 +82,15 @@ describe('RaygunClient Initialization', () => {
   });
 
   test('should not initialize native side and sendCachedReport from JS side when not enableNative', async () => {
-    const onBeforeFn = (report: CrashReportPayload) => report;
     await RaygunClient.init({
       apiKey: 'someKey',
-      onBeforeSend: onBeforeFn,
+
       enableNative: false
     });
     jest.runAllTimers();
     expect(Rg4rn.init).not.toBeCalled();
     expect(sendCachedReports).toBeCalledTimes(1);
-    expect(sendCachedReports).toBeCalledWith('someKey', onBeforeFn);
+    expect(sendCachedReports).toBeCalledWith('someKey');
   });
 });
 
