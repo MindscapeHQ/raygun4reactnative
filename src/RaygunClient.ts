@@ -18,6 +18,8 @@ const { Rg4rn } = NativeModules;
 const SOURCE_MAP_PREFIX = 'file://reactnative.local/';
 const devicePathPattern = /^(.*@)?.*\/[^\.]+(\.app|CodePush)\/?(.*)/;
 
+const clone = <T>(object: T): T => JSON.parse(JSON.stringify(object));
+
 const getCleanSession = (): Session => ({
   tags: new Set(['React Native']),
   customData: {},
@@ -191,13 +193,13 @@ const setUser = (user: User | string) => {
 
 const addCustomData = (customData: CustomData) => {
   curSession.customData = Object.assign({}, curSession.customData, customData);
-  Rg4rn.setCustomData(curSession.customData);
+  Rg4rn.setCustomData(clone(curSession.customData));
 };
 
 const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
   curSession.customData = updater(curSession.customData);
   if (GlobalOptions.enableNative) {
-    Rg4rn.setCustomData(curSession.customData);
+    Rg4rn.setCustomData(clone(curSession.customData));
   }
 };
 
