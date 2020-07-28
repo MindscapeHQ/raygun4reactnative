@@ -91,6 +91,9 @@ export interface RaygunClientOptions {
   version?: string;
   enableNative?: boolean;
   onBeforeSend?: BeforeSendHandler;
+  enableRUM?: boolean;
+  enableNetworkMonitoring?: boolean;
+  ignoreURLs?: string[];
 }
 
 declare global {

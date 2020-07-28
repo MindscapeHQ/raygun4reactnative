@@ -1,5 +1,6 @@
 package com.raygun.react;
 
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -28,6 +29,7 @@ import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.Arguments;
+import com.raygun.raygun4android.services.RUMPostService;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,16 +56,30 @@ public class Rg4rnModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    private void hasReportingServiceRunning(Promise promise) {
+    private void hasCrashReportingServiceRunning(Promise promise) {
         ActivityManager manager = (ActivityManager)reactContext.getSystemService(Context.ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
             if (CrashReportingPostService.class.getName().equals(service.service.getClassName())) {
-                Log.i("Service already","running");
+                Log.i("CrashReportingService","is running");
                 promise.resolve(true);
                 return;
             }
         }
-        Log.i("Service not","running");
+        Log.i("CrashReportingService","is not running");
+        promise.resolve(false);
+    }
+
+    @ReactMethod
+    private void hasRUMPostServiceRunning(Promise promise) {
+        ActivityManager manager = (ActivityManager)reactContext.getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (RUMPostService.class.getName().equals(service.service.getClassName())) {
+                Log.i("RUMPostService","is running");
+                promise.resolve(true);
+                return;
+            }
+        }
+        Log.i("RUMPostService","is not running");
         promise.resolve(false);
     }
 
@@ -112,10 +128,18 @@ public class Rg4rnModule extends ReactContextBaseJavaModule {
     public void init(ReadableMap options) {
         String apiKey = options.getString("apiKey");
         String version = options.getString("version");
+        boolean enableRUM = options.getBoolean("enableRUM");
+        boolean enableNetworkMonitoring = options.getBoolean("enableNetworkMonitoring");
+        String[] urls = options.getArray("ignoreURLs").toArrayList().toArray(new String[0]);
         RaygunClient.init(this.reactContext, apiKey, version);
         Log.i("init", "version:" + version);
         initialized = true;
         RaygunClient.setOnBeforeSend(new OnBeforeSendHandler());
+        if (enableRUM) {
+            Log.i("Enable RUM", "network monitoring:" + enableNetworkMonitoring + "ignoreURLs:" + urls.toString());
+            RaygunClient.enableRUM(getCurrentActivity(), enableNetworkMonitoring);
+            RaygunClient.ignoreURLs(urls);
+        }
     }
 
     @ReactMethod

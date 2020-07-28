@@ -53,23 +53,45 @@ interface StackTrace {
 
 let curSession = getCleanSession();
 let GlobalOptions: RaygunClientOptions;
-let hasReportingServiceRunning = false;
+let canEnableNative = false;
+let hasCrashReportingServiceRunning = false;
 
 const init = async (options: RaygunClientOptions) => {
-  GlobalOptions = Object.assign({ enableNative: true }, options);
+  GlobalOptions = Object.assign(
+    { enableNative: true, enableNetworkMonitoring: true, ignoreURLs: [] },
+    options
+  );
   const alreadyInitialized = await Rg4rn.hasInitialized();
   if (alreadyInitialized) {
     console.log('Already initialized');
     return false;
   }
 
+  canEnableNative =
+    (GlobalOptions.enableNative || GlobalOptions.enableRUM) &&
+    Rg4rn &&
+    typeof Rg4rn.init === 'function';
+
+  hasCrashReportingServiceRunning =
+    Platform.OS !== 'android' ||
+    (await Rg4rn.hasCrashReportingServiceRunning());
+
+  if (GlobalOptions.enableRUM) {
+    const hasRUMPostService = await Rg4rn.hasRUMPostServiceRunning();
+    if (!hasRUMPostService) {
+      throw Error(
+        'RUMPostService not detected, Please config the RUMPostService in AndroidManifest.xml'
+      );
+    }
+    if (!canEnableNative) {
+      throw Error('Can not enable RUM as native sdk not configured properly');
+    }
+  }
+
   // Enable native side crash reporting
-  if (GlobalOptions.enableNative && Rg4rn && typeof Rg4rn.init === 'function') {
-    const { enableNative, onBeforeSend, version, ...rest } = GlobalOptions;
-    const resolvedVersion = version || '';
-    Rg4rn.init({ ...rest, version: resolvedVersion });
-    hasReportingServiceRunning =
-      Platform.OS === 'ios' || (await Rg4rn.hasReportingServiceRunning());
+  if (canEnableNative) {
+    const { onBeforeSend, version: appVersion, ...rest } = GlobalOptions;
+    Rg4rn.init({ ...rest, version: appVersion || '' });
   }
 
   const prevHandler = ErrorUtils.getGlobalHandler();
@@ -84,7 +106,7 @@ const init = async (options: RaygunClientOptions) => {
     allRejections: true,
     onUnhandled: processUnhandledRejection
   });
-  if (!GlobalOptions.enableNative) {
+  if (!hasCrashReportingServiceRunning || !canEnableNative) {
     setTimeout(() => sendCachedReports(GlobalOptions.apiKey), 10);
   }
   return true;
@@ -167,7 +189,7 @@ const addTag = (...tags: string[]) => {
   tags.forEach(tag => {
     curSession.tags.add(tag);
   });
-  if (GlobalOptions.enableNative) {
+  if (canEnableNative) {
     Rg4rn.setTags([...curSession.tags]);
   }
 };
@@ -186,7 +208,7 @@ const setUser = (user: User | string) => {
           }
       : user
   );
-  if (GlobalOptions.enableNative) {
+  if (canEnableNative) {
     Rg4rn.setUser((curSession.user = userObj));
   }
 };
@@ -198,7 +220,7 @@ const addCustomData = (customData: CustomData) => {
 
 const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
   curSession.customData = updater(curSession.customData);
-  if (GlobalOptions.enableNative) {
+  if (canEnableNative) {
     Rg4rn.setCustomData(clone(curSession.customData));
   }
 };
@@ -213,7 +235,7 @@ const recordBreadcrumb = (message: string, details?: BreadcrumbOption) => {
     timestamp: new Date().getTime()
   };
   curSession.breadcrumbs.push(breadcrumb);
-  if (GlobalOptions.enableNative) {
+  if (canEnableNative) {
     Rg4rn.recordBreadcrumb(breadcrumb);
   }
 };
@@ -257,8 +279,8 @@ const processUnhandledError = async (error: Error, isFatal?: boolean) => {
     return;
   }
 
-  if (GlobalOptions.enableNative) {
-    if (hasReportingServiceRunning) {
+  if (canEnableNative) {
+    if (hasCrashReportingServiceRunning) {
       Rg4rn.sendCrashReport(JSON.stringify(payload), GlobalOptions.apiKey);
     } else {
       await sendReport(payload, GlobalOptions.apiKey);
