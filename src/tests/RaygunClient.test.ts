@@ -15,11 +15,13 @@ jest.mock('react-native', () => ({
       setCustomData: jest.fn(),
       recordBreadcrumb: jest.fn(),
       hasInitialized: jest.fn().mockResolvedValue(false),
-      getEnvironmentInfo: jest.fn().mockResolvedValue({})
+      getEnvironmentInfo: jest.fn().mockResolvedValue({}),
+      hasCrashReportingServiceRunning: jest.fn().mockResolvedValue(true),
+      hasRUMPostServiceRunning: jest.fn()
     }
   },
   Platform: {
-    OS: 'ios'
+    OS: ''
   }
 }));
 
@@ -70,7 +72,25 @@ describe('RaygunClient Initialization', () => {
     expect(sendCachedReports).toBeCalledWith('someKey');
   });
 
+  test('should pass RUM options to native side when enabled', async () => {
+    Rg4rn.hasRUMPostServiceRunning.mockImplementation(async () => true);
+    Platform.OS = 'android';
+    await RaygunClient.init({
+      apiKey: 'someKey',
+      enableRUM: true
+    });
+    expect(Rg4rn.init).toHaveBeenLastCalledWith({
+      apiKey: 'someKey',
+      version: '',
+      enableRUM: true,
+      enableNetworkMonitoring: true,
+      ignoreURLs: []
+    });
+  });
+
   test('should not pass unnecessary options to native side', async () => {
+    Rg4rn.hasRUMPostServiceRunning.mockImplementation(async () => true);
+    Platform.OS = 'ios';
     await RaygunClient.init({
       apiKey: 'someKey',
       enableNative: true
@@ -79,6 +99,55 @@ describe('RaygunClient Initialization', () => {
       apiKey: 'someKey',
       version: ''
     });
+  });
+
+  test('should throws when RUM is enabled but post service not configured on Android', async () => {
+    Rg4rn.hasRUMPostServiceRunning.mockImplementation(() => false);
+    Platform.OS = 'android';
+    try {
+      await RaygunClient.init({
+        apiKey: 'someKey',
+        enableRUM: true
+      });
+    } catch (error) {
+      expect(error).toEqual(
+        Error(
+          'RUMPostService not detected, Please config the RUMPostService in AndroidManifest.xml'
+        )
+      );
+    }
+  });
+
+  test('should NOT throws when RUM is enabled and Platform is iOS', async () => {
+    Rg4rn.hasRUMPostServiceRunning.mockImplementation(() => false);
+    Platform.OS = 'ios';
+    await RaygunClient.init({
+      apiKey: 'someKey',
+      enableRUM: true
+    });
+    expect(Rg4rn.init).toBeCalledWith({
+      apiKey: 'someKey',
+      enableRUM: true,
+      enableNetworkMonitoring: true,
+      ignoreURLs: [],
+      version: ''
+    });
+  });
+
+  test('should NOT throws when Native SDK is not detected', async () => {
+    Platform.OS = 'android';
+    NativeModules.Rg4rn.init = undefined;
+    try {
+      await RaygunClient.init({
+        apiKey: 'someKey',
+        enableRUM: true
+      });
+    } catch (error) {
+      expect(error).toEqual(
+        Error('Can not enable RUM as native sdk not configured properly')
+      );
+    }
+    NativeModules.Rg4rn.init = jest.fn();
   });
 
   test('should not initialize native side and sendCachedReport from JS side when not enableNative', async () => {

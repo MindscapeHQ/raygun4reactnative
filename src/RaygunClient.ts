@@ -58,7 +58,7 @@ let hasCrashReportingServiceRunning = false;
 
 const init = async (options: RaygunClientOptions) => {
   GlobalOptions = Object.assign(
-    { enableNative: true, enableNetworkMonitoring: true, ignoreURLs: [] },
+    options.enableRUM ? { enableNetworkMonitoring: true, ignoreURLs: [] } : { enableNative: true },
     options
   );
   const alreadyInitialized = await Rg4rn.hasInitialized();
@@ -68,29 +68,23 @@ const init = async (options: RaygunClientOptions) => {
   }
 
   canEnableNative =
-    (GlobalOptions.enableNative || GlobalOptions.enableRUM) &&
-    Rg4rn &&
-    typeof Rg4rn.init === 'function';
+    (GlobalOptions.enableNative || GlobalOptions.enableRUM) && Rg4rn && typeof Rg4rn.init === 'function';
 
-  hasCrashReportingServiceRunning =
-    Platform.OS !== 'android' ||
-    (await Rg4rn.hasCrashReportingServiceRunning());
+  hasCrashReportingServiceRunning = Platform.OS !== 'android' || (await Rg4rn.hasCrashReportingServiceRunning());
 
   if (GlobalOptions.enableRUM) {
-    const hasRUMPostService = await Rg4rn.hasRUMPostServiceRunning();
-    if (!hasRUMPostService) {
-      throw Error(
-        'RUMPostService not detected, Please config the RUMPostService in AndroidManifest.xml'
-      );
-    }
     if (!canEnableNative) {
       throw Error('Can not enable RUM as native sdk not configured properly');
+    }
+    const hasRUMPostService = Platform.OS !== 'android' || (await Rg4rn.hasRUMPostServiceRunning());
+    if (!hasRUMPostService) {
+      throw Error('RUMPostService not detected, Please config the RUMPostService in AndroidManifest.xml');
     }
   }
 
   // Enable native side crash reporting
   if (canEnableNative) {
-    const { onBeforeSend, version: appVersion, ...rest } = GlobalOptions;
+    const { onBeforeSend, enableNative, version: appVersion, ...rest } = GlobalOptions;
     Rg4rn.init({ ...rest, version: appVersion || '' });
   }
 
@@ -100,6 +94,7 @@ const init = async (options: RaygunClientOptions) => {
     await processUnhandledError(error, isFatal);
     prevHandler && prevHandler(error, isFatal);
   });
+
   const rejectionTracking = require('promise/setimmediate/rejection-tracking');
   rejectionTracking.disable();
   rejectionTracking.enable({
@@ -112,12 +107,9 @@ const init = async (options: RaygunClientOptions) => {
   return true;
 };
 
-const internalTrace = new RegExp(
-  'ReactNativeRenderer-dev\\.js$|MessageQueue\\.js$|native\\scode'
-);
+const internalTrace = new RegExp('ReactNativeRenderer-dev\\.js$|MessageQueue\\.js$|native\\scode');
 
-const filterOutReactFrames = (frame: StackFrame): boolean =>
-  !!frame.file && !frame.file.match(internalTrace);
+const filterOutReactFrames = (frame: StackFrame): boolean => !!frame.file && !frame.file.match(internalTrace);
 
 /**
  * Remove the '(address at' suffix added by stacktrace-parser which used by React
@@ -148,24 +140,20 @@ const generatePayload = async (
 ): Promise<CrashReportPayload> => {
   const { breadcrumbs, tags, user, customData } = session;
   const environmentDetails =
-    Platform.OS === 'android'
-      ? Rg4rn.getEnvironmentInfo && (await Rg4rn.getEnvironmentInfo())
-      : {};
+    Platform.OS === 'android' ? Rg4rn.getEnvironmentInfo && (await Rg4rn.getEnvironmentInfo()) : {};
   return {
     OccurredOn: new Date(),
     Details: {
       Error: {
         ClassName: error?.name || '',
         Message: error?.message || '',
-        StackTrace: stackFrames.map(
-          ({ file, methodName, lineNumber, column }) => ({
-            FileName: file,
-            MethodName: methodName || '[anonymous]',
-            LineNumber: lineNumber,
-            ColumnNumber: column,
-            ClassName: `line ${lineNumber}, column ${column}`
-          })
-        ),
+        StackTrace: stackFrames.map(({ file, methodName, lineNumber, column }) => ({
+          FileName: file,
+          MethodName: methodName || '[anonymous]',
+          LineNumber: lineNumber,
+          ColumnNumber: column,
+          ClassName: `line ${lineNumber}, column ${column}`
+        })),
         StackString: error?.toString() || ''
       },
       Environment: {
@@ -244,8 +232,7 @@ const clearSession = () => {
   curSession = getCleanSession();
 };
 
-const processUnhandledRejection = (id: number, error: any) =>
-  processUnhandledError(error, false);
+const processUnhandledRejection = (id: number, error: any) => processUnhandledError(error, false);
 
 const processUnhandledError = async (error: Error, isFatal?: boolean) => {
   if (!error || !error.stack) {
@@ -260,9 +247,7 @@ const processUnhandledError = async (error: Error, isFatal?: boolean) => {
     ? await symbolicateStackTrace(stackFrame)
     : { stack: cleanFilePath(stackFrame) };
 
-  const stack =
-    cleanedStackFrames.stack ||
-    [].filter(filterOutReactFrames).map(noAddressAt);
+  const stack = cleanedStackFrames.stack || [].filter(filterOutReactFrames).map(noAddressAt);
 
   if (isFatal) {
     curSession.tags.add('Fatal');
@@ -270,10 +255,7 @@ const processUnhandledError = async (error: Error, isFatal?: boolean) => {
 
   const payload = await generatePayload(error, stack, curSession);
   const { onBeforeSend } = GlobalOptions;
-  const shouldSkip =
-    onBeforeSend &&
-    typeof onBeforeSend === 'function' &&
-    !onBeforeSend(Object.freeze(payload));
+  const shouldSkip = onBeforeSend && typeof onBeforeSend === 'function' && !onBeforeSend(Object.freeze(payload));
 
   if (shouldSkip) {
     return;
@@ -284,9 +266,7 @@ const processUnhandledError = async (error: Error, isFatal?: boolean) => {
       Rg4rn.sendCrashReport(JSON.stringify(payload), GlobalOptions.apiKey);
     } else {
       await sendReport(payload, GlobalOptions.apiKey);
-      console.warn(
-        'CrashReporting Service not detected, please check the AndroidManifest.xml configuration'
-      );
+      console.warn('CrashReporting Service not detected, please check the AndroidManifest.xml configuration');
     }
   } else {
     await sendReport(payload, GlobalOptions.apiKey);
