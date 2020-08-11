@@ -153,12 +153,14 @@ public class Rg4rnModule extends ReactContextBaseJavaModule implements Lifecycle
             Log.i("init", "Already initialized");
             return;
         }
+        Log.i("init", ""+options.hasKey("enableRUM"));
         String apiKey = options.getString("apiKey");
         String version = options.getString("version");
-        boolean enableRUM = options.getBoolean("enableRUM");
+        Boolean enableRUM = options.getBoolean("enableRUM");
         RaygunClient.init(this.reactContext, apiKey, version);
         Log.i("init", "version:" + version);
         initialized = true;
+        this.lifecycleCallback = lifecycleCallback;
         RaygunClient.setOnBeforeSend(new OnBeforeSendHandler());
         if (enableRUM && lifecycleCallback != null) {
             Log.i("RUM", ""+enableRUM);
