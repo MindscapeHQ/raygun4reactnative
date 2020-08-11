@@ -12,7 +12,8 @@ import {
   BreadcrumbOption,
   Breadcrumb
 } from './types';
-import { sendReport, sendCachedReports } from './transport';
+import { setupRealtimeUserMonitoring } from './realtime-user-monitor';
+import { sendCrashReport, sendCachedReports } from './transport';
 
 const { Rg4rn } = NativeModules;
 const SOURCE_MAP_PREFIX = 'file://reactnative.local/';
@@ -54,38 +55,44 @@ interface StackTrace {
 let curSession = getCleanSession();
 let GlobalOptions: RaygunClientOptions;
 let canEnableNative = false;
-let hasCrashReportingServiceRunning = false;
 
 const init = async (options: RaygunClientOptions) => {
   GlobalOptions = Object.assign(
-    options.enableRUM ? { enableNetworkMonitoring: true, ignoreURLs: [] } : { enableNative: true },
+    { enableNetworkMonitoring: true, enableNative: true, enableRUM: false, ignoreURLs: [], version: '', apiKey: '' },
     options
   );
-  const alreadyInitialized = await Rg4rn.hasInitialized();
+
+  canEnableNative =
+    (GlobalOptions.enableNative || GlobalOptions.enableRUM) && Rg4rn && typeof Rg4rn.init === 'function';
+
+  const alreadyInitialized = canEnableNative && (await Rg4rn.hasInitialized());
   if (alreadyInitialized) {
     console.log('Already initialized');
     return false;
   }
 
-  canEnableNative =
-    (GlobalOptions.enableNative || GlobalOptions.enableRUM) && Rg4rn && typeof Rg4rn.init === 'function';
-
-  hasCrashReportingServiceRunning = Platform.OS !== 'android' || (await Rg4rn.hasCrashReportingServiceRunning());
-
   if (GlobalOptions.enableRUM) {
     if (!canEnableNative) {
       throw Error('Can not enable RUM as native sdk not configured properly');
-    }
-    const hasRUMPostService = Platform.OS !== 'android' || (await Rg4rn.hasRUMPostServiceRunning());
-    if (!hasRUMPostService) {
-      throw Error('RUMPostService not detected, Please config the RUMPostService in AndroidManifest.xml');
     }
   }
 
   // Enable native side crash reporting
   if (canEnableNative) {
-    const { onBeforeSend, enableNative, version: appVersion, ...rest } = GlobalOptions;
-    Rg4rn.init({ ...rest, version: appVersion || '' });
+    const {
+      onBeforeSend,
+      enableNative,
+      version: appVersion,
+      enableRUM,
+      ignoreURLs,
+      enableNetworkMonitoring,
+      apiKey,
+      ...rest
+    } = GlobalOptions;
+    Rg4rn.init(
+      { ...rest, apiKey, version: appVersion || '' },
+      enableRUM ? setupRealtimeUserMonitoring(enableNetworkMonitoring, ignoreURLs, curSession, apiKey) : null
+    );
   }
 
   const prevHandler = ErrorUtils.getGlobalHandler();
@@ -101,7 +108,7 @@ const init = async (options: RaygunClientOptions) => {
     allRejections: true,
     onUnhandled: processUnhandledRejection
   });
-  if (!hasCrashReportingServiceRunning || !canEnableNative) {
+  if (!canEnableNative) {
     setTimeout(() => sendCachedReports(GlobalOptions.apiKey), 10);
   }
   return true;
@@ -232,6 +239,10 @@ const clearSession = () => {
   curSession = getCleanSession();
 };
 
+const sendNetworkTimingEvent = async (name: string, duration: number) => {};
+
+const rotateRUMSession = async () => {};
+
 const processUnhandledRejection = (id: number, error: any) => processUnhandledError(error, false);
 
 const processUnhandledError = async (error: Error, isFatal?: boolean) => {
@@ -262,14 +273,9 @@ const processUnhandledError = async (error: Error, isFatal?: boolean) => {
   }
 
   if (canEnableNative) {
-    if (hasCrashReportingServiceRunning) {
-      Rg4rn.sendCrashReport(JSON.stringify(payload), GlobalOptions.apiKey);
-    } else {
-      await sendReport(payload, GlobalOptions.apiKey);
-      console.warn('CrashReporting Service not detected, please check the AndroidManifest.xml configuration');
-    }
+    Rg4rn.sendCrashReport(JSON.stringify(payload), GlobalOptions.apiKey);
   } else {
-    await sendReport(payload, GlobalOptions.apiKey);
+    await sendCrashReport(payload, GlobalOptions.apiKey);
   }
 };
 

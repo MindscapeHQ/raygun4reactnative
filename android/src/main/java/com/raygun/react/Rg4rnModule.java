@@ -1,11 +1,13 @@
 package com.raygun.react;
 
 import android.app.Activity;
+import android.app.Application;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 
 import com.facebook.react.bridge.Callback;
+import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
@@ -18,6 +20,7 @@ import com.raygun.raygun4android.messages.crashreporting.RaygunMessage;
 import com.raygun.raygun4android.messages.shared.RaygunUserInfo;
 import com.raygun.raygun4android.services.CrashReportingPostService;
 
+import android.os.SystemClock;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.os.Build;
@@ -31,19 +34,27 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.Arguments;
 import com.raygun.raygun4android.services.RUMPostService;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.concurrent.ExecutionException;
+import java.util.Map;
 
-public class Rg4rnModule extends ReactContextBaseJavaModule {
+public class Rg4rnModule extends ReactContextBaseJavaModule implements LifecycleEventListener {
 
     private static ReactApplicationContext reactContext;
     private boolean initialized = false;
+    private Callback lifecycleCallback = null;
+    private long startedTime;
 
-    public Rg4rnModule(ReactApplicationContext context) {
+    private static final String ON_RESUME = "ON_RESUME";
+    private static final String ON_PAUSE = "ON_PAUSE";
+    private static final String ON_DESTROY = "ON_DESTROY";
+    private static final String ON_START = "ON_START";
+
+    public Rg4rnModule(ReactApplicationContext context, long startedAt) {
         super(context);
         reactContext = context;
+        startedTime = startedAt;
     }
+
 
     @Override
     public String getName() {
@@ -70,7 +81,7 @@ public class Rg4rnModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    private void hasRUMPostServiceRunning(Promise promise) {
+    private void attachActivityMonitor(Promise promise) {
         ActivityManager manager = (ActivityManager)reactContext.getSystemService(Context.ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
             if (RUMPostService.class.getName().equals(service.service.getClassName())) {
@@ -124,8 +135,24 @@ public class Rg4rnModule extends ReactContextBaseJavaModule {
         promise.resolve(map);
     }
 
+    @Override
+    public Map<String, Object> getConstants() {
+        final Map<String, Object> constants = new HashMap<>();
+        constants.put(ON_DESTROY, ON_DESTROY);
+        constants.put(ON_PAUSE, ON_PAUSE);
+        constants.put(ON_RESUME, ON_RESUME);
+        constants.put(ON_START, ON_START);
+        constants.put("osVersion", Build.VERSION.RELEASE);
+        constants.put("platform", String.format("%s %s", Build.MANUFACTURER, Build.MODEL));
+        return constants;
+    }
+
     @ReactMethod
-    public void init(ReadableMap options) {
+    public void init(ReadableMap options, Callback lifecycleCallback) {
+        if (initialized) {
+            Log.i("init", "Already initialized");
+            return;
+        }
         String apiKey = options.getString("apiKey");
         String version = options.getString("version");
         boolean enableRUM = options.getBoolean("enableRUM");
@@ -135,11 +162,46 @@ public class Rg4rnModule extends ReactContextBaseJavaModule {
         Log.i("init", "version:" + version);
         initialized = true;
         RaygunClient.setOnBeforeSend(new OnBeforeSendHandler());
-        if (enableRUM) {
+        if (enableRUM && lifecycleCallback != null) {
             Log.i("Enable RUM", "network monitoring:" + enableNetworkMonitoring + "ignoreURLs:" + urls.toString());
-            RaygunClient.enableRUM(getCurrentActivity(), enableNetworkMonitoring);
-            RaygunClient.ignoreURLs(urls);
+            reportStartUpTime();
+            reactContext.addLifecycleEventListener(this);
+//            RaygunClient.enableRUM(getCurrentActivity(), enableNetworkMonitoring);
+//            RaygunClient.ignoreURLs(urls);
         }
+    }
+
+    private void reportStartUpTime() {
+        long ms = SystemClock.uptimeMillis() - startedTime;
+        WritableMap payload = Arguments.createMap();
+        payload.putString("name", getActivityName());
+        payload.putInt("startupTimeUsed", (int) ms);
+        this.lifecycleCallback.invoke(ON_START, payload);
+    }
+
+    private String getActivityName() {
+        return reactContext.getCurrentActivity().getClass().getSimpleName();
+    }
+
+    @Override
+    public void onHostResume() {
+        WritableMap payload = Arguments.createMap();
+        payload.putString("name", getActivityName());
+        this.lifecycleCallback.invoke(ON_RESUME, getActivityName(), payload);
+    }
+
+    @Override
+    public void onHostPause() {
+        WritableMap payload = Arguments.createMap();
+        payload.putString("name", getActivityName());
+        this.lifecycleCallback.invoke(ON_PAUSE, payload);
+    }
+
+    @Override
+    public void onHostDestroy() {
+        WritableMap payload = Arguments.createMap();
+        payload.putString("name", getActivityName());
+        this.lifecycleCallback.invoke(ON_DESTROY, payload);
     }
 
     @ReactMethod

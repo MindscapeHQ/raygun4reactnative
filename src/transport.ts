@@ -1,11 +1,12 @@
 import AsyncStorage from '@react-native-community/async-storage';
 import { CrashReportPayload, BeforeSendHandler } from './types';
 
-const RAYGUN_ENDPOINT_CP = 'https://api.raygun.com/entries';
+const RAYGUN_CRASH_REPORT_ENDPOINT = 'https://api.raygun.com/entries';
+const RAYGUN_RUM_ENDPOINT = 'https://api.raygun.io/events';
 const RAYGUN_STORAGE_KEY = '@__RaygunCrashReports__';
 
-const sendReport = async (report: CrashReportPayload, apiKey: string) => {
-  return fetch(RAYGUN_ENDPOINT_CP + '?apiKey=' + encodeURIComponent(apiKey), {
+const sendCrashReport = async (report: CrashReportPayload, apiKey: string) => {
+  return fetch(RAYGUN_CRASH_REPORT_ENDPOINT + '?apiKey=' + encodeURIComponent(apiKey), {
     method: 'POST',
     mode: 'cors',
     headers: {
@@ -14,7 +15,17 @@ const sendReport = async (report: CrashReportPayload, apiKey: string) => {
     body: JSON.stringify(report)
   }).catch(err => {
     console.log(err);
-    return cacheReport(report);
+    return cacheCrashReport(report);
+  });
+};
+
+const sendRUMPayload = async (event: Record<string, any>, apiKey: string) => {
+  return fetch(RAYGUN_RUM_ENDPOINT, {
+    method: 'POST',
+    headers: { 'X-ApiKey': apiKey },
+    body: JSON.stringify({ eventData: [event] })
+  }).catch(err => {
+    console.log(err);
   });
 };
 
@@ -27,12 +38,10 @@ const sendCachedReports = async (apiKey: string) => {
     console.log('Parsing saved error report failed:', err);
     reports = [];
   }
-  return Promise.all(
-    reports.map((report: CrashReportPayload) => sendReport(report, apiKey))
-  );
+  return Promise.all(reports.map((report: CrashReportPayload) => sendCrashReport(report, apiKey)));
 };
 
-const cacheReport = async (report: CrashReportPayload) => {
+const cacheCrashReport = async (report: CrashReportPayload) => {
   const reportsRaw = await AsyncStorage.getItem(RAYGUN_STORAGE_KEY);
   let reports;
   try {
@@ -43,10 +52,7 @@ const cacheReport = async (report: CrashReportPayload) => {
   }
 
   const latestReports = reports.concat(report).slice(-100);
-  return AsyncStorage.setItem(
-    RAYGUN_STORAGE_KEY,
-    JSON.stringify(latestReports)
-  );
+  return AsyncStorage.setItem(RAYGUN_STORAGE_KEY, JSON.stringify(latestReports));
 };
 
-export { sendReport, sendCachedReports };
+export { sendCrashReport, sendCachedReports, sendRUMPayload };

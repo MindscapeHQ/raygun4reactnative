@@ -1,9 +1,5 @@
 import { CrashReportPayload, Breadcrumb, BreadcrumbOption } from '../types';
-import {
-  internalStackFrames,
-  stackFramesWithAddress,
-  fullStackFrames
-} from './fixture/errors';
+import { internalStackFrames, stackFramesWithAddress, fullStackFrames } from './fixture/errors';
 import { sendCachedReports, sendReport } from '../transport';
 
 jest.mock('react-native', () => ({
@@ -97,25 +93,11 @@ describe('RaygunClient Initialization', () => {
     });
     expect(Rg4rn.init).toHaveBeenLastCalledWith({
       apiKey: 'someKey',
-      version: ''
+      version: '',
+      enableRUM: false,
+      enableNetworkMonitoring: true,
+      ignoreURLs: []
     });
-  });
-
-  test('should throws when RUM is enabled but post service not configured on Android', async () => {
-    Rg4rn.hasRUMPostServiceRunning.mockImplementation(() => false);
-    Platform.OS = 'android';
-    try {
-      await RaygunClient.init({
-        apiKey: 'someKey',
-        enableRUM: true
-      });
-    } catch (error) {
-      expect(error).toEqual(
-        Error(
-          'RUMPostService not detected, Please config the RUMPostService in AndroidManifest.xml'
-        )
-      );
-    }
   });
 
   test('should NOT throws when RUM is enabled and Platform is iOS', async () => {
@@ -143,11 +125,26 @@ describe('RaygunClient Initialization', () => {
         enableRUM: true
       });
     } catch (error) {
-      expect(error).toEqual(
-        Error('Can not enable RUM as native sdk not configured properly')
-      );
+      expect(error).toEqual(Error('Can not enable RUM as native sdk not configured properly'));
     }
     NativeModules.Rg4rn.init = jest.fn();
+  });
+
+  test('should NOT automatic turn on network monitoring if user specifically turn it off', async () => {
+    Rg4rn.hasRUMPostServiceRunning.mockImplementation(() => false);
+    Platform.OS = 'ios';
+    await RaygunClient.init({
+      apiKey: 'someKey',
+      enableRUM: true,
+      enableNetworkMonitoring: false
+    });
+    expect(Rg4rn.init).toBeCalledWith({
+      apiKey: 'someKey',
+      enableRUM: true,
+      enableNetworkMonitoring: false,
+      ignoreURLs: [],
+      version: ''
+    });
   });
 
   test('should not initialize native side and sendCachedReport from JS side when not enableNative', async () => {
@@ -239,23 +236,12 @@ describe('RaygunClient functions', () => {
 
 describe('Error process function', () => {
   test('should filter out react frames', async () => {
-    const restFrames = (internalStackFrames as StackFrame[]).filter(
-      RaygunClient.filterOutReactFrames
-    );
-    expect(restFrames).toEqual([
-      internalStackFrames[0],
-      internalStackFrames[5]
-    ]);
+    const restFrames = (internalStackFrames as StackFrame[]).filter(RaygunClient.filterOutReactFrames);
+    expect(restFrames).toEqual([internalStackFrames[0], internalStackFrames[5]]);
   });
   test('should filter out "addressAt" ', async () => {
-    const restFrames = (stackFramesWithAddress as StackFrame[]).map(
-      RaygunClient.noAddressAt
-    );
-    expect(restFrames).toEqual([
-      { methodName: 'calls' },
-      { methodName: 'calls' },
-      { methodName: 'calls' }
-    ]);
+    const restFrames = (stackFramesWithAddress as StackFrame[]).map(RaygunClient.noAddressAt);
+    expect(restFrames).toEqual([{ methodName: 'calls' }, { methodName: 'calls' }, { methodName: 'calls' }]);
   });
 
   test('should generate Crash Report payload', async () => {
@@ -275,11 +261,7 @@ describe('Error process function', () => {
       customData: { key: 'val' },
       breadcrumbs: [breadcrumb]
     };
-    const payload = await RaygunClient.generatePayload(
-      error,
-      fullStackFrames,
-      session
-    );
+    const payload = await RaygunClient.generatePayload(error, fullStackFrames, session);
     expect(payload).toEqual({
       OccurredOn: expect.any(Date),
       Details: {

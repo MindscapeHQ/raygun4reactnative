@@ -24,6 +24,18 @@ export interface CustomData {
 
 export type BreadcrumbOption = Omit<Breadcrumb, 'message' | 'timestamp'>;
 
+export type NetworkTimingCallback = (name: string, sendTime: number, duration: number) => void;
+
+export type LifecycleHandler = (session: Session, payload: Record<string, any>, apiKey: string) => void;
+
+export enum RUMEvents {
+  SessionStart = 'session_start',
+  SessionEnd = 'session_end',
+  EventTiming = 'mobile_event_timing',
+  AppLoaded = 'p',
+  NetworkCall = 'n'
+}
+
 interface Environment {
   UtcOffset: number;
   Cpu?: string;
@@ -82,6 +94,34 @@ export interface CrashReportPayload {
     Breadcrumbs?: Breadcrumb[];
     Version: string;
   };
+}
+
+interface TimingMessage {
+  type: 'p' | 'n';
+  duration: number;
+}
+
+interface RUMData {
+  name: string;
+  timing: TimingMessage;
+}
+
+enum RUMEventTypes {
+  SessionStart = 'session_start',
+  SessionEnd = 'session_end',
+  Timing = 'mobile_event_timing'
+}
+
+export interface RUMEventPayload {
+  timestamp: Date;
+  sessionId: string;
+  eventType: RUMEventTypes;
+  user: User;
+  version: string;
+  os: string;
+  osVersion: string;
+  platform: string;
+  data: [RUMData];
 }
 
 export type BeforeSendHandler = (payload: CrashReportPayload) => boolean;
