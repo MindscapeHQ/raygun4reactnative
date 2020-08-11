@@ -1,7 +1,7 @@
 {
   "name": "@sundayempire/raygun4reactnative",
   "title": "Raygun4reactnative",
-  "version": "1.0.0-beta-10",
+  "version": "1.0.0-beta-11",
   "description": "Raygun React Native SDK",
   "main": "dist/index.js",
   "typescript": {
