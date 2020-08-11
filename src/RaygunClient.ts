@@ -90,7 +90,7 @@ const init = async (options: RaygunClientOptions) => {
       ...rest
     } = GlobalOptions;
     Rg4rn.init(
-      { ...rest, apiKey, version: appVersion || '' },
+      { ...rest, apiKey, version: appVersion || '', enableRUM },
       enableRUM ? setupRealtimeUserMonitoring(enableNetworkMonitoring, ignoreURLs, curSession, apiKey) : null
     );
   }

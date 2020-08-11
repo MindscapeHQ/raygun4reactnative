@@ -82,7 +82,8 @@ describe('RaygunClient Initialization', () => {
     expect(Rg4rn.init).toHaveBeenLastCalledWith(
       {
         apiKey: 'someKey',
-        version: ''
+        version: '',
+        enableRUM: true
       },
       expect.any(Function)
     );
@@ -98,7 +99,8 @@ describe('RaygunClient Initialization', () => {
     expect(Rg4rn.init).toHaveBeenLastCalledWith(
       {
         apiKey: 'someKey',
-        version: ''
+        version: '',
+        enableRUM: false
       },
       null
     );
@@ -114,7 +116,8 @@ describe('RaygunClient Initialization', () => {
     expect(Rg4rn.init).toBeCalledWith(
       {
         apiKey: 'someKey',
-        version: ''
+        version: '',
+        enableRUM: true
       },
       expect.any(Function)
     );
@@ -145,7 +148,8 @@ describe('RaygunClient Initialization', () => {
     expect(Rg4rn.init).toBeCalledWith(
       {
         apiKey: 'someKey',
-        version: ''
+        version: '',
+        enableRUM: true
       },
       expect.any(Function)
     );
