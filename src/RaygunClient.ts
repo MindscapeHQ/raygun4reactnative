@@ -239,10 +239,6 @@ const clearSession = () => {
   curSession = getCleanSession();
 };
 
-const sendNetworkTimingEvent = async (name: string, duration: number) => {};
-
-const rotateRUMSession = async () => {};
-
 const processUnhandledRejection = (id: number, error: any) => processUnhandledError(error, false);
 
 const processUnhandledError = async (error: Error, isFatal?: boolean) => {

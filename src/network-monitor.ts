@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { NetworkTimingCallback } from './types';
-
-const XHRInterceptor = require('react-native/Libraries/Network/XHRInterceptor');
+//@ts-ignore
+import XHRInterceptor from 'react-native/Libraries/Network/XHRInterceptor';
 
 interface RequestMeta {
   name: string;

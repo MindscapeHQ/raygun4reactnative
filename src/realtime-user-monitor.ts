@@ -4,7 +4,6 @@ import { setupNetworkMonitoring } from './network-monitor';
 import { NativeModules, Platform } from 'react-native';
 const { version: clientVersion } = require('../package.json');
 import { sendRUMPayload } from './transport';
-import { timeStamp } from 'console';
 const { Rg4rn } = NativeModules;
 
 const { osVersion, platform } = Rg4rn;
