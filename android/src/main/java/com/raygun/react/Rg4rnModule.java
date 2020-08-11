@@ -156,18 +156,14 @@ public class Rg4rnModule extends ReactContextBaseJavaModule implements Lifecycle
         String apiKey = options.getString("apiKey");
         String version = options.getString("version");
         boolean enableRUM = options.getBoolean("enableRUM");
-        boolean enableNetworkMonitoring = options.getBoolean("enableNetworkMonitoring");
-        String[] urls = options.getArray("ignoreURLs").toArrayList().toArray(new String[0]);
         RaygunClient.init(this.reactContext, apiKey, version);
         Log.i("init", "version:" + version);
         initialized = true;
         RaygunClient.setOnBeforeSend(new OnBeforeSendHandler());
         if (enableRUM && lifecycleCallback != null) {
-            Log.i("Enable RUM", "network monitoring:" + enableNetworkMonitoring + "ignoreURLs:" + urls.toString());
+            Log.i("RUM", ""+enableRUM);
             reportStartUpTime();
             reactContext.addLifecycleEventListener(this);
-//            RaygunClient.enableRUM(getCurrentActivity(), enableNetworkMonitoring);
-//            RaygunClient.ignoreURLs(urls);
         }
     }
 
