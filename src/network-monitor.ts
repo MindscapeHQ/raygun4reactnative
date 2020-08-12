@@ -1,8 +1,7 @@
-import { v4 as uuidv4 } from 'uuid';
 import { NetworkTimingCallback } from './types';
 //@ts-ignore
 import XHRInterceptor from 'react-native/Libraries/Network/XHRInterceptor';
-
+import { getDeviceBasedId } from './utils';
 interface RequestMeta {
   name: string;
   sendTime?: number;
@@ -25,8 +24,9 @@ const handleRequestOpen = (ignoreURLs: string[]) => (
   if (shouldIgnore(url, ignoreURLs)) {
     return;
   }
-  xhr._id_ = uuidv4();
-  requests.set('_id_', { name: `${method} ${url}` });
+  const id = getDeviceBasedId();
+  xhr._id_ = id;
+  requests.set(id, { name: `${method} ${url}` });
 };
 
 const handleRequestSend = (data: string, xhr: any) => {

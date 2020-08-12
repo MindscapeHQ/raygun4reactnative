@@ -22,7 +22,7 @@ const sendCrashReport = async (report: CrashReportPayload, apiKey: string) => {
 const sendRUMPayload = async (event: Record<string, any>, apiKey: string) => {
   return fetch(RAYGUN_RUM_ENDPOINT, {
     method: 'POST',
-    headers: { 'X-ApiKey': apiKey },
+    headers: { 'X-ApiKey': apiKey, 'Content-Type': 'application/json' },
     body: JSON.stringify({ eventData: [event] })
   }).catch(err => {
     console.log(err);

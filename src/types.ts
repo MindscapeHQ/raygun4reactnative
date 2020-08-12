@@ -26,8 +26,6 @@ export type BreadcrumbOption = Omit<Breadcrumb, 'message' | 'timestamp'>;
 
 export type NetworkTimingCallback = (name: string, sendTime: number, duration: number) => void;
 
-export type LifecycleHandler = (session: Session, payload: Record<string, any>, apiKey: string) => void;
-
 export enum RUMEvents {
   SessionStart = 'session_start',
   SessionEnd = 'session_end',

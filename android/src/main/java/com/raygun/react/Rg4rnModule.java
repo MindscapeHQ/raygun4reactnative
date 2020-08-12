@@ -1,16 +1,17 @@
 package com.raygun.react;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Application;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 
-import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.raygun.raygun4android.CrashReportingOnBeforeSend;
 import com.raygun.raygun4android.RaygunClient;
 import com.raygun.raygun4android.messages.crashreporting.RaygunBreadcrumbLevel;
@@ -21,6 +22,7 @@ import com.raygun.raygun4android.messages.shared.RaygunUserInfo;
 import com.raygun.raygun4android.services.CrashReportingPostService;
 
 import android.os.SystemClock;
+import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.os.Build;
@@ -34,20 +36,23 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.Arguments;
 import com.raygun.raygun4android.services.RUMPostService;
 
+import static android.provider.Settings.Secure.getString;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.annotation.Nullable;
 
 public class Rg4rnModule extends ReactContextBaseJavaModule implements LifecycleEventListener {
 
     private static ReactApplicationContext reactContext;
     private boolean initialized = false;
-    private Callback lifecycleCallback = null;
     private long startedTime;
 
     private static final String ON_RESUME = "ON_RESUME";
     private static final String ON_PAUSE = "ON_PAUSE";
     private static final String ON_DESTROY = "ON_DESTROY";
     private static final String ON_START = "ON_START";
+    private static final String DEVICE_ID = "DEVICE_ID";
 
     public Rg4rnModule(ReactApplicationContext context, long startedAt) {
         super(context);
@@ -144,62 +149,66 @@ public class Rg4rnModule extends ReactContextBaseJavaModule implements Lifecycle
         constants.put(ON_START, ON_START);
         constants.put("osVersion", Build.VERSION.RELEASE);
         constants.put("platform", String.format("%s %s", Build.MANUFACTURER, Build.MODEL));
+        constants.put(DEVICE_ID, getUniqueIdSync());
         return constants;
     }
 
+    @SuppressLint("HardwareIds")
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    public String getUniqueIdSync() {
+        return getString(getReactApplicationContext().getContentResolver(), Settings.Secure.ANDROID_ID);
+    }
+
     @ReactMethod
-    public void init(ReadableMap options, Callback lifecycleCallback) {
+    public void init(ReadableMap options) {
+        Log.i("init", options.toString());
         if (initialized) {
             Log.i("init", "Already initialized");
             return;
         }
-        Log.i("init", ""+options.hasKey("enableRUM"));
         String apiKey = options.getString("apiKey");
         String version = options.getString("version");
         Boolean enableRUM = options.getBoolean("enableRUM");
         RaygunClient.init(this.reactContext, apiKey, version);
-        Log.i("init", "version:" + version);
         initialized = true;
-        this.lifecycleCallback = lifecycleCallback;
         RaygunClient.setOnBeforeSend(new OnBeforeSendHandler());
-        if (enableRUM && lifecycleCallback != null) {
-            Log.i("RUM", ""+enableRUM);
-            reportStartUpTime();
+        if (enableRUM) {
             reactContext.addLifecycleEventListener(this);
+            long ms = SystemClock.uptimeMillis() - startedTime;
+            WritableMap payload = Arguments.createMap();
+            payload.putString("name", getActivityName());
+            payload.putInt("startupTimeUsed", (int) ms);
+            sendJSEvent(ON_START, payload);
         }
-    }
-
-    private void reportStartUpTime() {
-        long ms = SystemClock.uptimeMillis() - startedTime;
-        WritableMap payload = Arguments.createMap();
-        payload.putString("name", getActivityName());
-        payload.putInt("startupTimeUsed", (int) ms);
-        this.lifecycleCallback.invoke(ON_START, payload);
     }
 
     private String getActivityName() {
         return reactContext.getCurrentActivity().getClass().getSimpleName();
     }
 
+    private void sendJSEvent(String eventType, @Nullable WritableMap payload) {
+        reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(eventType, payload);
+    }
+
     @Override
     public void onHostResume() {
         WritableMap payload = Arguments.createMap();
         payload.putString("name", getActivityName());
-        this.lifecycleCallback.invoke(ON_RESUME, getActivityName(), payload);
+        this.sendJSEvent(ON_RESUME, payload);
     }
 
     @Override
     public void onHostPause() {
         WritableMap payload = Arguments.createMap();
         payload.putString("name", getActivityName());
-        this.lifecycleCallback.invoke(ON_PAUSE, payload);
+        this.sendJSEvent(ON_PAUSE, payload);
     }
 
     @Override
     public void onHostDestroy() {
         WritableMap payload = Arguments.createMap();
         payload.putString("name", getActivityName());
-        this.lifecycleCallback.invoke(ON_DESTROY, payload);
+        this.sendJSEvent(ON_DESTROY, payload);
     }
 
     @ReactMethod

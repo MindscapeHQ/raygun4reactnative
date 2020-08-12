@@ -1,6 +1,6 @@
-import { v4 as uuidv4 } from 'uuid';
 import { NativeModules, Platform } from 'react-native';
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
+import { getDeviceBasedId, filterOutReactFrames, cleanFilePath, noAddressAt } from './utils';
 //@ts-ignore
 const { version: clientVersion } = require('../package.json');
 import {
@@ -16,8 +16,6 @@ import { setupRealtimeUserMonitoring } from './realtime-user-monitor';
 import { sendCrashReport, sendCachedReports } from './transport';
 
 const { Rg4rn } = NativeModules;
-const SOURCE_MAP_PREFIX = 'file://reactnative.local/';
-const devicePathPattern = /^(.*@)?.*\/[^\.]+(\.app|CodePush)\/?(.*)/;
 
 const clone = <T>(object: T): T => JSON.parse(JSON.stringify(object));
 
@@ -26,7 +24,7 @@ const getCleanSession = (): Session => ({
   customData: {},
   breadcrumbs: [],
   user: {
-    identifier: 'anonymous'
+    identifier: `anonymous-${Rg4rn.DEVICE_ID}`
   }
 });
 
@@ -55,6 +53,8 @@ interface StackTrace {
 let curSession = getCleanSession();
 let GlobalOptions: RaygunClientOptions;
 let canEnableNative = false;
+
+const getCurrentUser = () => curSession.user;
 
 const init = async (options: RaygunClientOptions) => {
   GlobalOptions = Object.assign(
@@ -89,10 +89,9 @@ const init = async (options: RaygunClientOptions) => {
       apiKey,
       ...rest
     } = GlobalOptions;
-    Rg4rn.init(
-      { ...rest, apiKey, enableRUM, version: appVersion || '' },
-      enableRUM ? setupRealtimeUserMonitoring(enableNetworkMonitoring, ignoreURLs, curSession, apiKey) : null
-    );
+    console.log('enableRUM', enableRUM);
+    Rg4rn.init({ apiKey, enableRUM, version: appVersion || '' });
+    enableRUM && setupRealtimeUserMonitoring(getCurrentUser, apiKey, enableNetworkMonitoring, ignoreURLs);
   }
 
   const prevHandler = ErrorUtils.getGlobalHandler();
@@ -113,32 +112,6 @@ const init = async (options: RaygunClientOptions) => {
   }
   return true;
 };
-
-const internalTrace = new RegExp('ReactNativeRenderer-dev\\.js$|MessageQueue\\.js$|native\\scode');
-
-const filterOutReactFrames = (frame: StackFrame): boolean => !!frame.file && !frame.file.match(internalTrace);
-
-/**
- * Remove the '(address at' suffix added by stacktrace-parser which used by React
- * @param frame StackFrame
- */
-const noAddressAt = ({ methodName, ...rest }: StackFrame): StackFrame => {
-  const pos = methodName.indexOf('(address at');
-  return {
-    ...rest,
-    methodName: pos > -1 ? methodName.slice(0, pos).trim() : methodName
-  };
-};
-
-const cleanFilePath = (frames: StackFrame[]): StackFrame[] =>
-  frames.map(frame => {
-    const result = devicePathPattern.exec(frame.file);
-    if (result) {
-      const [_, __, ___, fileName] = result;
-      return { ...frame, file: SOURCE_MAP_PREFIX + fileName };
-    }
-    return frame;
-  });
 
 const generatePayload = async (
   error: Error,
@@ -198,7 +171,7 @@ const setUser = (user: User | string) => {
             identifier: user
           }
         : {
-            identifier: uuidv4(),
+            identifier: getDeviceBasedId(),
             isAnonymous: true
           }
       : user

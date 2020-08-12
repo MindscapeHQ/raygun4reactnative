@@ -20,6 +20,10 @@ jest.mock('react-native', () => ({
       hasRUMPostServiceRunning: jest.fn()
     }
   },
+  NativeEventEmitter: jest.fn(() => ({
+    addListener: jest.fn(),
+    removeAllListeners: jest.fn()
+  })),
   Platform: {
     OS: ''
   }
@@ -79,14 +83,11 @@ describe('RaygunClient Initialization', () => {
       apiKey: 'someKey',
       enableRUM: true
     });
-    expect(Rg4rn.init).toHaveBeenLastCalledWith(
-      {
-        apiKey: 'someKey',
-        version: '',
-        enableRUM: true
-      },
-      expect.any(Function)
-    );
+    expect(Rg4rn.init).toHaveBeenLastCalledWith({
+      apiKey: 'someKey',
+      version: '',
+      enableRUM: true
+    });
   });
 
   test('should not pass unnecessary options to native side', async () => {
@@ -96,14 +97,11 @@ describe('RaygunClient Initialization', () => {
       apiKey: 'someKey',
       enableNative: true
     });
-    expect(Rg4rn.init).toHaveBeenLastCalledWith(
-      {
-        apiKey: 'someKey',
-        version: '',
-        enableRUM: false
-      },
-      null
-    );
+    expect(Rg4rn.init).toHaveBeenLastCalledWith({
+      apiKey: 'someKey',
+      version: '',
+      enableRUM: false
+    });
   });
 
   test('should NOT throws when RUM is enabled and Platform is iOS', async () => {
@@ -113,14 +111,11 @@ describe('RaygunClient Initialization', () => {
       apiKey: 'someKey',
       enableRUM: true
     });
-    expect(Rg4rn.init).toBeCalledWith(
-      {
-        apiKey: 'someKey',
-        version: '',
-        enableRUM: true
-      },
-      expect.any(Function)
-    );
+    expect(Rg4rn.init).toBeCalledWith({
+      apiKey: 'someKey',
+      version: '',
+      enableRUM: true
+    });
   });
 
   test('should NOT throws when Native SDK is not detected', async () => {
@@ -145,14 +140,11 @@ describe('RaygunClient Initialization', () => {
       enableRUM: true,
       enableNetworkMonitoring: false
     });
-    expect(Rg4rn.init).toBeCalledWith(
-      {
-        apiKey: 'someKey',
-        version: '',
-        enableRUM: true
-      },
-      expect.any(Function)
-    );
+    expect(Rg4rn.init).toBeCalledWith({
+      apiKey: 'someKey',
+      version: '',
+      enableRUM: true
+    });
   });
 
   test('should not initialize native side and sendCachedReport from JS side when not enableNative', async () => {
