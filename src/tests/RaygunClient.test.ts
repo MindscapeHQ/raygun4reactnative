@@ -1,4 +1,4 @@
-import { CrashReportPayload, Breadcrumb, BreadcrumbOption } from '../types';
+import { Breadcrumb, BreadcrumbOption } from '../types';
 import { internalStackFrames, stackFramesWithAddress, fullStackFrames } from './fixture/errors';
 import { sendCachedReports, sendCrashReport } from '../transport';
 
@@ -16,8 +16,7 @@ jest.mock('react-native', () => ({
       recordBreadcrumb: jest.fn(),
       hasInitialized: jest.fn().mockResolvedValue(false),
       getEnvironmentInfo: jest.fn().mockResolvedValue({}),
-      hasCrashReportingServiceRunning: jest.fn().mockResolvedValue(true),
-      hasRUMPostServiceRunning: jest.fn()
+      hasCrashReportingServiceRunning: jest.fn().mockResolvedValue(true)
     }
   },
   NativeEventEmitter: jest.fn(() => ({
@@ -77,7 +76,6 @@ describe('RaygunClient Initialization', () => {
   });
 
   test('should pass RUM options to native side when enabled', async () => {
-    Rg4rn.hasRUMPostServiceRunning.mockImplementation(async () => true);
     Platform.OS = 'android';
     await RaygunClient.init({
       apiKey: 'someKey',
@@ -91,7 +89,6 @@ describe('RaygunClient Initialization', () => {
   });
 
   test('should not pass unnecessary options to native side', async () => {
-    Rg4rn.hasRUMPostServiceRunning.mockImplementation(async () => true);
     Platform.OS = 'ios';
     await RaygunClient.init({
       apiKey: 'someKey',
@@ -105,7 +102,6 @@ describe('RaygunClient Initialization', () => {
   });
 
   test('should NOT throws when RUM is enabled and Platform is iOS', async () => {
-    Rg4rn.hasRUMPostServiceRunning.mockImplementation(() => false);
     Platform.OS = 'ios';
     await RaygunClient.init({
       apiKey: 'someKey',
@@ -133,7 +129,6 @@ describe('RaygunClient Initialization', () => {
   });
 
   test('should NOT automatic turn on network monitoring if user specifically turn it off', async () => {
-    Rg4rn.hasRUMPostServiceRunning.mockImplementation(() => false);
     Platform.OS = 'ios';
     await RaygunClient.init({
       apiKey: 'someKey',

@@ -21,6 +21,7 @@ import com.raygun.raygun4android.messages.crashreporting.RaygunMessage;
 import com.raygun.raygun4android.messages.shared.RaygunUserInfo;
 import com.raygun.raygun4android.services.CrashReportingPostService;
 
+import android.content.SharedPreferences;
 import android.os.SystemClock;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
@@ -29,12 +30,17 @@ import android.os.Build;
 import android.app.ActivityManager;
 import android.view.WindowManager;
 
+import androidx.annotation.RequiresApi;
+
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.Arguments;
 import com.raygun.raygun4android.services.RUMPostService;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import static android.provider.Settings.Secure.getString;
 import java.util.HashMap;
@@ -53,6 +59,7 @@ public class Rg4rnModule extends ReactContextBaseJavaModule implements Lifecycle
     private static final String ON_DESTROY = "ON_DESTROY";
     private static final String ON_START = "ON_START";
     private static final String DEVICE_ID = "DEVICE_ID";
+    private static final String STORAGE_KEY = "__RAYGUN_CRASH_REPORT__";
 
     public Rg4rnModule(ReactApplicationContext context, long startedAt) {
         super(context);
@@ -270,6 +277,33 @@ public class Rg4rnModule extends ReactContextBaseJavaModule implements Lifecycle
                 .build();
 
         RaygunClient.recordBreadcrumb(breadcrumbMessage);
+    }
+
+    @ReactMethod
+    public void loadCrashReports(Promise promise) {
+        SharedPreferences preferences = reactContext.getSharedPreferences(STORAGE_KEY, Context.MODE_PRIVATE);
+        String reportsJson = preferences.getString("reports", "[]");
+        promise.resolve(reportsJson);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    @ReactMethod
+    public void saveCrashReport(String report, Promise promise) {
+        Log.d("Save Report", report);
+        SharedPreferences preferences = reactContext.getSharedPreferences(STORAGE_KEY, Context.MODE_PRIVATE);
+        String reportsJson = preferences.getString("reports", "[]");
+        try {
+            JSONArray reports = new JSONArray(reportsJson);
+            if (reports.length() >= 10) {
+                reports.remove(0);
+            }
+            reports.put(new JSONObject(report));
+            preferences.edit().putString(STORAGE_KEY, reports.toString()).commit();
+            promise.resolve(null);
+        } catch (Exception e) {
+            Log.e("Save Report Error", e.getMessage());
+            promise.reject(e);
+        }
     }
 
     private class OnBeforeSendHandler implements CrashReportingOnBeforeSend {
