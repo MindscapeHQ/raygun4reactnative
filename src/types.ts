@@ -127,7 +127,7 @@ export type BeforeSendHandler = (payload: CrashReportPayload) => boolean;
 export interface RaygunClientOptions {
   apiKey: string;
   version?: string;
-  enableNative?: boolean;
+  enableNativeCrashReporting?: boolean;
   onBeforeSend?: BeforeSendHandler;
   enableRUM?: boolean;
   enableNetworkMonitoring?: boolean;

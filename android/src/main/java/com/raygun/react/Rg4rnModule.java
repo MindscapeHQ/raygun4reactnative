@@ -298,7 +298,7 @@ public class Rg4rnModule extends ReactContextBaseJavaModule implements Lifecycle
                 reports.remove(0);
             }
             reports.put(new JSONObject(report));
-            preferences.edit().putString(STORAGE_KEY, reports.toString()).commit();
+            preferences.edit().putString("reports", reports.toString()).commit();
             promise.resolve(null);
         } catch (Exception e) {
             Log.e("Save Report Error", e.getMessage());

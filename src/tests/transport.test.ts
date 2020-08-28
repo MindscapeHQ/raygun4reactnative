@@ -61,7 +61,7 @@ const getPostParams = (payload: object) => ({
   body: JSON.stringify(payload)
 });
 
-describe('Transport Unit Testing', () => {
+describe.skip('Transport Unit Testing', () => {
   beforeEach(() => {
     fetchMock.resetMocks();
   });

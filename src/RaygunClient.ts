@@ -52,18 +52,24 @@ interface StackTrace {
 
 let curSession = getCleanSession();
 let GlobalOptions: RaygunClientOptions;
-let canEnableNative = false;
 
 const getCurrentUser = () => curSession.user;
 
 const init = async (options: RaygunClientOptions) => {
   GlobalOptions = Object.assign(
-    { enableNetworkMonitoring: true, enableNative: true, enableRUM: false, ignoreURLs: [], version: '', apiKey: '' },
+    {
+      enableNetworkMonitoring: true,
+      enableNativeCrashReporting: true,
+      enableRUM: false,
+      ignoreURLs: [],
+      version: '',
+      apiKey: ''
+    },
     options
   );
 
-  canEnableNative =
-    (GlobalOptions.enableNative || GlobalOptions.enableRUM) && Rg4rn && typeof Rg4rn.init === 'function';
+  const canEnableNative =
+    (GlobalOptions.enableNativeCrashReporting || GlobalOptions.enableRUM) && Rg4rn && typeof Rg4rn.init === 'function';
 
   const alreadyInitialized = canEnableNative && (await Rg4rn.hasInitialized());
   if (alreadyInitialized) {
@@ -79,16 +85,7 @@ const init = async (options: RaygunClientOptions) => {
 
   // Enable native side crash reporting
   if (canEnableNative) {
-    const {
-      onBeforeSend,
-      enableNative,
-      version: appVersion,
-      enableRUM,
-      ignoreURLs,
-      enableNetworkMonitoring,
-      apiKey,
-      ...rest
-    } = GlobalOptions;
+    const { version: appVersion, enableRUM, ignoreURLs, enableNetworkMonitoring, apiKey } = GlobalOptions;
     Rg4rn.init({ apiKey, enableRUM, version: appVersion || '' });
     enableRUM && setupRealtimeUserMonitoring(getCurrentUser, apiKey, enableNetworkMonitoring, ignoreURLs);
   }
@@ -156,7 +153,7 @@ const addTag = (...tags: string[]) => {
   tags.forEach(tag => {
     curSession.tags.add(tag);
   });
-  if (canEnableNative) {
+  if (GlobalOptions.enableNativeCrashReporting) {
     Rg4rn.setTags([...curSession.tags]);
   }
 };
@@ -175,7 +172,7 @@ const setUser = (user: User | string) => {
           }
       : user
   );
-  if (canEnableNative) {
+  if (GlobalOptions.enableNativeCrashReporting) {
     Rg4rn.setUser((curSession.user = userObj));
   }
 };
@@ -187,7 +184,7 @@ const addCustomData = (customData: CustomData) => {
 
 const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
   curSession.customData = updater(curSession.customData);
-  if (canEnableNative) {
+  if (GlobalOptions.enableNativeCrashReporting) {
     Rg4rn.setCustomData(clone(curSession.customData));
   }
 };
@@ -202,7 +199,7 @@ const recordBreadcrumb = (message: string, details?: BreadcrumbOption) => {
     timestamp: new Date().getTime()
   };
   curSession.breadcrumbs.push(breadcrumb);
-  if (canEnableNative) {
+  if (GlobalOptions.enableNativeCrashReporting) {
     Rg4rn.recordBreadcrumb(breadcrumb);
   }
 };
@@ -239,10 +236,12 @@ const processUnhandledError = async (error: Error, isFatal?: boolean) => {
   if (shouldSkip) {
     return;
   }
-
-  if (canEnableNative) {
+  console.log('enableNativeCrashReporting', GlobalOptions.enableNativeCrashReporting);
+  if (GlobalOptions.enableNativeCrashReporting) {
+    console.log('Send crash report via Native');
     Rg4rn.sendCrashReport(JSON.stringify(payload), GlobalOptions.apiKey);
   } else {
+    console.log('Send crash report via JS');
     await sendCrashReport(payload, GlobalOptions.apiKey);
   }
 };
