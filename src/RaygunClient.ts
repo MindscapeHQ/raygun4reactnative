@@ -87,7 +87,9 @@ const init = async (options: RaygunClientOptions) => {
   if (canEnableNative) {
     const { version: appVersion, enableRUM, ignoreURLs, enableNetworkMonitoring, apiKey } = GlobalOptions;
     Rg4rn.init({ apiKey, enableRUM, version: appVersion || '' });
-    enableRUM && setupRealtimeUserMonitoring(getCurrentUser, apiKey, enableNetworkMonitoring, ignoreURLs);
+    enableRUM &&
+      Platform.OS === 'android' &&
+      setupRealtimeUserMonitoring(getCurrentUser, apiKey, enableNetworkMonitoring, ignoreURLs);
   }
 
   const prevHandler = ErrorUtils.getGlobalHandler();
@@ -115,8 +117,7 @@ const generatePayload = async (
   session: Session
 ): Promise<CrashReportPayload> => {
   const { breadcrumbs, tags, user, customData } = session;
-  const environmentDetails =
-    Platform.OS === 'android' ? Rg4rn.getEnvironmentInfo && (await Rg4rn.getEnvironmentInfo()) : {};
+  const environmentDetails = (Rg4rn.getEnvironmentInfo && (await Rg4rn.getEnvironmentInfo())) || {};
   return {
     OccurredOn: new Date(),
     Details: {

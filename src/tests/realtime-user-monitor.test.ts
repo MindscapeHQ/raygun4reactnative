@@ -25,7 +25,6 @@ jest.mock('react-native', () => ({
       recordBreadcrumb: jest.fn(),
       hasInitialized: jest.fn().mockResolvedValue(false),
       getEnvironmentInfo: jest.fn().mockResolvedValue({}),
-      hasCrashReportingServiceRunning: jest.fn().mockResolvedValue(true),
       osVersion: 'osVersion',
       platform: 'platform',
       DEVICE_ID: 'DEVICE_ID'

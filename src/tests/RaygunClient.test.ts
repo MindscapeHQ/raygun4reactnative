@@ -15,8 +15,7 @@ jest.mock('react-native', () => ({
       setCustomData: jest.fn(),
       recordBreadcrumb: jest.fn(),
       hasInitialized: jest.fn().mockResolvedValue(false),
-      getEnvironmentInfo: jest.fn().mockResolvedValue({}),
-      hasCrashReportingServiceRunning: jest.fn().mockResolvedValue(true)
+      getEnvironmentInfo: jest.fn().mockResolvedValue({})
     }
   },
   NativeEventEmitter: jest.fn(() => ({

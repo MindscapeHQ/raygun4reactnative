@@ -1,8 +1,6 @@
 package com.raygun.react;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.app.Application;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -76,20 +74,6 @@ public class Rg4rnModule extends ReactContextBaseJavaModule implements Lifecycle
     @ReactMethod
     public void hasInitialized(Promise promise) {
         promise.resolve(initialized);
-    }
-
-    @ReactMethod
-    private void hasCrashReportingServiceRunning(Promise promise) {
-        ActivityManager manager = (ActivityManager)reactContext.getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (CrashReportingPostService.class.getName().equals(service.service.getClassName())) {
-                Log.i("CrashReportingService","is running");
-                promise.resolve(true);
-                return;
-            }
-        }
-        Log.i("CrashReportingService","is not running");
-        promise.resolve(false);
     }
 
     @ReactMethod
