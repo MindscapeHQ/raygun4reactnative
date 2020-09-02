@@ -22,7 +22,7 @@ Pod::Spec.new do |s|
   s.requires_arc = true
 
   s.dependency "React"
-  s.dependency "raygun4apple", '~> 1.4.1-beta'
+  s.dependency "raygun4apple", '~> 1.4.1'
 
 end
 

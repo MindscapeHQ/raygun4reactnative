@@ -138,8 +138,6 @@ public class Rg4rnModule extends ReactContextBaseJavaModule implements Lifecycle
         constants.put(ON_PAUSE, ON_PAUSE);
         constants.put(ON_RESUME, ON_RESUME);
         constants.put(ON_START, ON_START);
-        constants.put("osVersion", Build.VERSION.RELEASE);
-        constants.put("platform", String.format("%s %s", Build.MANUFACTURER, Build.MODEL));
         constants.put(DEVICE_ID, getUniqueIdSync());
         return constants;
     }

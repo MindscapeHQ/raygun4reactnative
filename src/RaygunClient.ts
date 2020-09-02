@@ -135,6 +135,7 @@ const generatePayload = async (
       },
       Environment: {
         UtcOffset: new Date().getTimezoneOffset() / 60.0,
+        JailBroken: false,
         ...environmentDetails
       },
       Client: {

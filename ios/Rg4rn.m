@@ -12,6 +12,7 @@
 #endif
 
 #import <raygun4apple/raygun4apple_iOS.h>
+#import <raygun4apple/RaygunCrashReportConverter.h>
 
 #if TARGET_OS_IOS || TARGET_OS_TV
 #import <UIKit/UIKit.h>
@@ -25,7 +26,6 @@ static uint32_t ksdl_imageNamed(const char* const imageName, bool exactMatch)
     if(imageName != NULL)
     {
         const uint32_t imageCount = _dyld_image_count();
-
         for(uint32_t iImg = 0; iImg < imageCount; iImg++)
         {
             const char* name = _dyld_get_image_name(iImg);
@@ -102,8 +102,15 @@ BOOL hasInitialized = FALSE;
 }
 
 - (NSDictionary<NSString *, id> *) constantsToExport {
-    return @{@"nativeClientAvailable": @YES, @"nativeTransport": @YES};
+    NSUUID *uuid = [NSUUID UUID];
+#if TARGET_OS_IOS || TARGET_OS_TV
+    UIDevice *currentDevice = [UIDevice currentDevice];
+    return @{ @"DEVICE_ID": currentDevice.identifierForVendor };
+#else
+    return @{ @"DEVICE_ID": [uuid UUIDString] };
+#endif
 }
+
 
 - (NSString *) getKernelVersion {
     size_t size;
@@ -145,30 +152,29 @@ RCT_EXPORT_METHOD(init:(NSDictionary *)options)
 RCT_EXPORT_METHOD(getEnvironmentInfo:(RCTPromiseResolveBlock)resolve onError:(RCTPromiseRejectBlock)reject) {
     NSMutableDictionary* environment = [[NSMutableDictionary alloc] init];
     NSUInteger processorCount = [[NSProcessInfo processInfo] processorCount];
-    [environment setValue:[NSString stringWithFormat: @"%ld", processorCount] forKey: @"processorCount"];
-    
+    [environment setValue:@(processorCount) forKey: @"ProcessorCount"];
 #if TARGET_OS_IOS || TARGET_OS_TV
     UIDevice *currentDevice = [UIDevice currentDevice];
     NSString *osVersion = [NSString stringWithFormat:@"%@ %@", currentDevice.systemName, currentDevice.systemVersion];
-    [environment setValue:osVersion forKey: @"osVersion"];
-    [environment setValue:currentDevice.model forKey: @"model"];
+    [environment setValue:osVersion forKey: @"OSVersion"];
+    [environment setValue:currentDevice.model forKey: @"DeviceName"];
     CGRect screenBounds = [UIScreen mainScreen].bounds;
-    [environment setValue:@(screenBounds.size.width) forKey: @"windowsBoundWidth"];
-    [environment setValue:@(screenBounds.size.height) forKey: @"windowsBoundHeight"];
-    [environment setValue:@([UIScreen mainScreen].scale) forKey: @"resolutionScale"];
+    [environment setValue:@(screenBounds.size.width) forKey: @"WindowsBoundWidth"];
+    [environment setValue:@(screenBounds.size.height) forKey: @"WindowsBoundHeight"];
+    [environment setValue:@([UIScreen mainScreen].scale) forKey: @"ResolutionScale"];
 #else
     NSRect frame = [[NSApplication sharedApplication].mainWindow frame];
-    [environment setValue:@(frame.size.width) forKey: @"windowsBoundWidth"];
-    [environment setValue:@(frame.size.height) forKey: @"windowsBoundHeight"];
-    [environment setValue:@([NSScreen mainScreen].backingScaleFactor) forKey: @"resolutionScale"];
+    [environment setValue:@(frame.size.width) forKey: @"WindowsBoundWidth"];
+    [environment setValue:@(frame.size.height) forKey: @"WindowsBoundHeight"];
+    [environment setValue:@([NSScreen mainScreen].backingScaleFactor) forKey: @"ResolutionScale"];
 #endif
     NSLocale *locale = [NSLocale currentLocale];
     NSString *localeStr = [locale displayNameForKey:NSLocaleIdentifier value: locale.localeIdentifier];
-    [environment setValue:localeStr forKey: @"locale"];
-    [environment setValue:[self getKernelVersion] forKey:@"kernelVersion"];
-    [environment setValue:[NSString stringWithFormat:@"%lld", getFreeMemory()] forKey: @"memoryFree"];
-    [environment setValue:[NSString stringWithFormat:@"%lld", getMemorySize()] forKey: @"memorySize"];
-    [environment setValue:[NSNumber numberWithBool: isJailbroken()] forKey: @"jailBroken"];
+    [environment setValue:localeStr forKey: @"Locale"];
+    [environment setValue:[self getKernelVersion] forKey:@"KernelVersion"];
+    [environment setValue:@(getFreeMemory()) forKey: @"AvailablePhysicalMemory"];
+    [environment setValue:@(getMemorySize()) forKey: @"TotalPhysicalMemory"];
+    [environment setValue:[NSNumber numberWithBool: isJailbroken()] forKey: @"JailBroken"];
     resolve(environment);
 }
 
@@ -199,36 +205,83 @@ RCT_EXPORT_METHOD(setUser:(NSDictionary *) user) {
 RCT_EXPORT_METHOD(sendCrashReport:(NSString *)jsonString withApiKey:(NSString *) apiKey)
 {
     RCTLogInfo(@"Shouldn't send iOS exception via native side");
-    return;
-//    NSError *parsingError;
-//    NSData *jsonData = [jsonString dataUsingEncoding:NSUTF8StringEncoding];
-//    id jsonObject = [NSJSONSerialization JSONObjectWithData:jsonData options:0 error:&parsingError];
-//
-//    if (parsingError) {
-//        RCTLogError(@"Parsing JSON CrashReport error: %@", parsingError);
-//        return;
-//    }
-//    if ([jsonObject isKindOfClass:[NSDictionary class]]) {
-//        NSDictionary *report = (NSDictionary *)jsonObject;
-//        RaygunMessageDetails *details = [[RaygunMessageDetails alloc] init];
-//        NSString *occurredOn = report[@"OccurredOn"];
-//        NSDictionary *detailObj = report[@"Details"];
-//        NSDictionary *error = detailObj[@"Error"];
-//        details.error = detailObj[@"Error"];
-//        details.client = detailObj[@"Client"];
-//        details.environment = detailObj[@"Environment"];
-//        details.customData = detailObj[@"UserCustomData"];
-//        details.tags = detailObj[@"Tags"];
-//        details.user = detailObj[@"User"];
-//        details.breadcrumbs = detailObj[@"Breadcrumbs"];
-//        details.version = detailObj[@"Version"];
-//        RaygunMessage *message = [[RaygunMessage alloc]initWithTimestamp:occurredOn withDetails:details];
-//        RCTLogInfo(@"OccurredOn %@", occurredOn);
-//        RCTLogInfo(@"RaygunMessageDetail %@", details);
-//        [RaygunClient.sharedInstance sendMessage: [[RaygunMessage alloc]convertReportToMessage: report]];
-//        return;
-//    }
-//    RCTLogError(@"Invalid JSON structure %@", jsonString);
+    NSError *parsingError = nil;
+    NSData *jsonData = [jsonString dataUsingEncoding:NSUTF8StringEncoding];
+    NSDictionary *report = [NSJSONSerialization JSONObjectWithData:jsonData options:0 error: &parsingError];
+    
+    if (parsingError) {
+        RCTLogError(@"Parsing JSON CrashReport error: %@", parsingError);
+        return;
+    }
+    
+    NSString *occurredOn  = report[@"OccurredOn"];
+    RaygunMessageDetails *details = [self buildMessageDetails: report[@"Details"]];
+    RaygunMessage *message = [[RaygunMessage alloc] initWithTimestamp:occurredOn withDetails:details];
+    
+    RCTLogInfo(@"RaygunMessageDetail %@", details);
+    [RaygunClient.sharedInstance sendMessage: message];
+}
+
+- (RaygunMessageDetails *) buildMessageDetails: (NSDictionary *) errorDetails {
+    RaygunMessageDetails *details = [[RaygunMessageDetails alloc] init];
+    details.version = errorDetails[@"Version"];
+    details.client = [[RaygunClientMessage alloc] initWithName:errorDetails[@"Client"][@"Name"] withVersion: errorDetails[@"Client"][@"Version"] withUrl:@"https://github.com/mindscapehq/raygun4reactnative"];
+    details.environment = [self buildEnvironmentMessage:errorDetails[@"Environment"]];
+    details.error = [self buildErrorMessage:errorDetails[@"Error"]];
+#if TARGET_OS_IOS || TARGET_OS_TV
+    details.machineName = [UIDevice currentDevice].name;
+#else
+    details.machineName = [[NSHost currentHost] localizedName];
+#endif
+    details.breadcrumbs = [self buildBreadcrumbs:errorDetails[@"Breadcrumbs"]];
+    details.customData = errorDetails[@"UserCustomData"];
+    details.tags = errorDetails[@"Tags"];
+    details.user = [self buildUserInfo:errorDetails[@"User"]];
+    return details;
+}
+
+- (RaygunErrorMessage *) buildErrorMessage: (NSDictionary *)error {
+    NSArray *stacks = error[@"StackTrace"];
+    RaygunErrorMessage *message = [[RaygunErrorMessage alloc] init:error[@"ClassName"] withMessage:error[@"Message"] withSignalName:@"Unknown" withSignalCode:@"Unknown" withStackTrace:stacks];
+    return message;
+}
+
+- (RaygunEnvironmentMessage *) buildEnvironmentMessage: (NSDictionary *) environment {
+    RaygunEnvironmentMessage *env = [[RaygunEnvironmentMessage alloc] init];
+    env.oSVersion = environment[@"OSVersion"];
+    env.locale = environment[@"Locale"];
+    env.windowsBoundWidth = environment[@"WindowsBoundWidth"];
+    env.windowsBoundHeight = environment[@"WindowsBoundHeight"];
+    env.resolutionScale = environment[@"ResolutionScale"];
+    env.utcOffset = environment[@"UtcOffset"];
+    env.cpu = environment[@"Cpu"];
+    env.processorCount = environment[@"ProcessorCount"];
+    env.model = environment[@"DeviceName"];
+    env.kernelVersion = environment[@"KernelVersion"];
+    env.memorySize = environment[@"TotalPhysicalMemory"];
+    env.memoryFree = environment[@"AvailablePhysicalMemory"];
+    env.jailBroken = [environment[@"JailBroken"] boolValue];
+    return env;
+}
+
+- (NSArray<RaygunBreadcrumb *> *)buildBreadcrumbs:(NSArray *)breadcumbs {
+    NSMutableArray *reportBreadcrumbs = [NSMutableArray array];
+    if (breadcumbs != nil) {
+        for (NSDictionary *crumb in breadcumbs) {
+            [reportBreadcrumbs addObject:[RaygunBreadcrumb breadcrumbWithInformation:crumb]];
+        }
+    }
+    
+    return reportBreadcrumbs;
+}
+
+- (RaygunUserInformation *) buildUserInfo: (NSDictionary *) userInfo {
+    return [[RaygunUserInformation alloc] initWithIdentifier:userInfo[@"identifier"]
+          withEmail:userInfo[@"email"]
+       withFullName:userInfo[@"fullName"]
+      withFirstName:userInfo[@"firstName"]
+    withIsAnonymous:[userInfo[@"isAnonymous"] boolValue]
+           withUuid:userInfo[@"uuid"]];
 }
 
 @end

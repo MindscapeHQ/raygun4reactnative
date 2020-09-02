@@ -44,6 +44,7 @@ interface Environment {
   WindowsBoundWidth?: number;
   WindowsBoundHeight?: number;
   CurrentOrientation?: string;
+  ResolutionScale?: number;
   Locale?: string;
   TotalPhysicalMemory?: number;
   AvailablePhysicalMemory?: number;
@@ -51,9 +52,11 @@ interface Environment {
   AvailableVirtualMemory?: number;
   DiskSpaceFree?: number;
   DeviceName?: string;
+  KernelVersion?: string;
   Brand?: string;
   Board?: string;
   DeviceCode?: string;
+  JailBroken?: boolean;
 }
 
 export interface Breadcrumb {

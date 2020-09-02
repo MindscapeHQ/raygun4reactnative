@@ -1,5 +1,6 @@
 import { NativeModules } from 'react-native';
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
+import { CrashReportPayload } from './types';
 const { Rg4rn } = NativeModules;
 
 const SOURCE_MAP_PREFIX = 'file://reactnative.local/';
