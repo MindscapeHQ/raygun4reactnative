@@ -43,7 +43,6 @@ import org.json.JSONObject;
 import static android.provider.Settings.Secure.getString;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.annotation.Nullable;
 
 public class Rg4rnModule extends ReactContextBaseJavaModule implements LifecycleEventListener {

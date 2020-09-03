@@ -86,10 +86,10 @@ const init = async (options: RaygunClientOptions) => {
   // Enable native side crash reporting
   if (canEnableNative) {
     const { version: appVersion, enableRUM, ignoreURLs, enableNetworkMonitoring, apiKey } = GlobalOptions;
-    Rg4rn.init({ apiKey, enableRUM, version: appVersion || '' });
-    enableRUM &&
-      Platform.OS === 'android' &&
+    if (enableRUM) {
       setupRealtimeUserMonitoring(getCurrentUser, apiKey, enableNetworkMonitoring, ignoreURLs);
+    }
+    Rg4rn.init({ apiKey, enableRUM, version: appVersion || '' });
   }
 
   const prevHandler = ErrorUtils.getGlobalHandler();

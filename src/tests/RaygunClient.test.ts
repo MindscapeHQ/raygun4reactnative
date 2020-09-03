@@ -259,6 +259,7 @@ describe('Error process function', () => {
       OccurredOn: expect.any(Date),
       Details: {
         Environment: {
+          JailBroken: false,
           UtcOffset: -12
         },
         Error: {

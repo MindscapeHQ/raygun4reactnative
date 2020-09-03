@@ -4,6 +4,8 @@
 #import <mach/mach.h>
 #include <mach-o/dyld.h>
 #include <sys/sysctl.h>
+#import <QuartzCore/QuartzCore.h>
+#include <math.h>
 
 #if __has_include(<React/RCTConvert.h>)
 #import <React/RCTConvert.h>
@@ -95,22 +97,59 @@ static uint64_t getMemorySize(void) {
 
 @implementation Rg4rn
 
+static CFTimeInterval startedAt;
+
 BOOL hasInitialized = FALSE;
+NSString *viewName = @"RCTView";
+NSString *onStart = @"ON_START";
+NSString *onPause = @"ON_PAUSE";
+NSString *onResume = @"ON_RESUME";
+NSString *onDestroy = @"ON_DESTROY";
+
++ (void)initialize {
+    startedAt = processStartTime();
+}
+
+static CFTimeInterval processStartTime() {
+    size_t len = 4;
+    int mib[len];
+    struct kinfo_proc kp;
+    
+    sysctlnametomib("kern.proc.pid", mib, &len);
+    mib[3] = getpid();
+    len = sizeof(kp);
+    sysctl(mib, 4, &kp, &len, NULL, 0);
+    
+    struct timeval startTime = kp.kp_proc.p_un.__p_starttime;
+    
+    CFTimeInterval absoluteTimeToRelativeTime =  CACurrentMediaTime() - [NSDate date].timeIntervalSince1970;
+    return startTime.tv_sec + startTime.tv_usec / 1e6 + absoluteTimeToRelativeTime;
+}
+
+- (NSArray<NSString *> *)supportedEvents
+{
+  return @[onStart, onPause, onResume, onDestroy];
+}
 
 + (BOOL) requiresMainQueueSetup {
     return YES;
 }
 
 - (NSDictionary<NSString *, id> *) constantsToExport {
-    NSUUID *uuid = [NSUUID UUID];
+    NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
 #if TARGET_OS_IOS || TARGET_OS_TV
     UIDevice *currentDevice = [UIDevice currentDevice];
-    return @{ @"DEVICE_ID": currentDevice.identifierForVendor };
+    [dict setValue:currentDevice.identifierForVendor forKey: @"DEVICE_ID"];
 #else
-    return @{ @"DEVICE_ID": [uuid UUIDString] };
+    NSUUID *uuid = [NSUUID UUID];
+    [dict setValue:[uuid UUIDString] forKey: @"DEVICE_ID"];
 #endif
+    [dict setValue: onStart forKey: onStart];
+    [dict setValue: onPause forKey: onPause];
+    [dict setValue: onResume forKey: onResume];
+    [dict setValue: onDestroy forKey: onDestroy];
+    return dict;
 }
-
 
 - (NSString *) getKernelVersion {
     size_t size;
@@ -131,7 +170,6 @@ RCT_EXPORT_METHOD(init:(NSDictionary *)options)
     NSString *apiKey = [options objectForKey:@"apiKey"];
     BOOL enableNativeCrashReporting = [RCTConvert BOOL:[options objectForKey:@"enableNativeCrashReporting"]];
     BOOL enableRUM = [RCTConvert BOOL:[options objectForKey:@"enableRUM"]];
-    BOOL enableNetworkMonitoring = [RCTConvert BOOL:[options objectForKey:@"enableNetworkMonitoring"]];
 
     RCTLogInfo(apiKey, enableNativeCrashReporting, options);
     for (id key in options) {
@@ -142,13 +180,37 @@ RCT_EXPORT_METHOD(init:(NSDictionary *)options)
         [RaygunClient.sharedInstance enableCrashReporting];
     }
     if (enableRUM) {
-        [RaygunClient.sharedInstance enableRealUserMonitoring];
-        if (enableNetworkMonitoring) {
-            [RaygunClient.sharedInstance enableNetworkPerformanceMonitoring];
-        }
+        [self enableRUM];
     }
     hasInitialized = YES;
 }
+
+- (void) enableRUM {
+#if TARGET_OS_IOS || TARGET_OS_TV
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillEnterForeground) name:UIApplicationWillEnterForegroundNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidEnterBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate) name:UIApplicationWillTerminateNotification object:nil];
+#else
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillEnterForeground) name:NSApplicationWillBecomeActiveNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidEnterBackground) name:NSApplicationDidResignActiveNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate) name:NSApplicationWillTerminateNotification object:nil];
+#endif
+    NSNumber *used = @(CACurrentMediaTime() - startedAt);
+    [self sendEventWithName:onStart body:@{@"startupTimeUsed": used, @"name": viewName}];
+}
+
+- (void)applicationWillEnterForeground {
+    [self sendEventWithName: onResume body:@{@"name": viewName}];
+}
+
+- (void)applicationDidEnterBackground {
+    [self sendEventWithName: onPause body:@{@"name": viewName}];
+}
+
+- (void)applicationWillTerminate {
+    [self sendEventWithName: onDestroy body:@{@"name": viewName}];
+}
+
 RCT_EXPORT_METHOD(getEnvironmentInfo:(RCTPromiseResolveBlock)resolve onError:(RCTPromiseRejectBlock)reject) {
     NSMutableDictionary* environment = [[NSMutableDictionary alloc] init];
     NSUInteger processorCount = [[NSProcessInfo processInfo] processorCount];

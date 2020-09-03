@@ -83,6 +83,7 @@ export const setupRealtimeUserMonitoring = (
   if (enableNetworkMonitoring) {
     setupNetworkMonitoring(ignoredUrls.concat('api.raygun.io'), sendNetworkTimingEvent(rumSession, apiKey));
   }
+
   const eventEmitter = new NativeEventEmitter(Rg4rn);
   eventEmitter.addListener(Rg4rn.ON_START, reportStartupTime(getCurrentUser, apiKey));
   eventEmitter.addListener(Rg4rn.ON_PAUSE, markLastActiveTime);
