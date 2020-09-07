@@ -48,7 +48,10 @@ const getCurrentUser = jest.fn(() => currentUser);
 describe('Setup user monitoring', () => {
   test('Should correctly setup listeners when enableNetworkMonitoring is on', () => {
     setupRealtimeUserMonitoring(getCurrentUser, 'apiKey', true, []);
-    expect(setupNetworkMonitoring).toBeCalledWith(['api.raygun.io'], expect.any(Function));
+    expect(setupNetworkMonitoring).toBeCalledWith(
+      ['api.raygun.io', 'localhost:8081/symbolicate'],
+      expect.any(Function)
+    );
     expect(addListener).toBeCalledTimes(4);
   });
 

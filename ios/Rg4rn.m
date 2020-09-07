@@ -6,7 +6,7 @@
 #include <sys/sysctl.h>
 #import <QuartzCore/QuartzCore.h>
 #include <math.h>
-
+#import <sys/utsname.h>
 #if __has_include(<React/RCTConvert.h>)
 #import <React/RCTConvert.h>
 #else
@@ -135,6 +135,12 @@ static CFTimeInterval processStartTime() {
     return YES;
 }
 
+- (NSString *)platform {
+    struct utsname systemInfo;
+    uname(&systemInfo);
+    return @(systemInfo.machine);
+}
+
 - (NSDictionary<NSString *, id> *) constantsToExport {
     NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
 #if TARGET_OS_IOS || TARGET_OS_TV
@@ -148,18 +154,21 @@ static CFTimeInterval processStartTime() {
     [dict setValue: onPause forKey: onPause];
     [dict setValue: onResume forKey: onResume];
     [dict setValue: onDestroy forKey: onDestroy];
+    [dict setValue: [self getVersion: "kern.osversion"] forKey:@"osVersion"];
+    [dict setValue: [self platform] forKey:@"platform"];
     return dict;
 }
 
-- (NSString *) getKernelVersion {
+- (NSString *) getVersion:(char*) name {
     size_t size;
-    sysctlbyname("kern.version", NULL, &size, NULL, 0);
-    char *kerVersion = malloc(size);
-    sysctlbyname("kern.version", kerVersion, &size, NULL, 0);
-    NSString *kernelVersion = [NSString stringWithCString: kerVersion encoding:NSUTF8StringEncoding];
-    free(kerVersion);
-    return kernelVersion;
+    sysctlbyname(name, NULL, &size, NULL, 0);
+    char *version = malloc(size);
+    sysctlbyname(name, version, &size, NULL, 0);
+    NSString *nsVersion = [NSString stringWithCString: version encoding:NSUTF8StringEncoding];
+    free(version);
+    return nsVersion;
 }
+
 
 
 RCT_EXPORT_MODULE()
@@ -215,6 +224,7 @@ RCT_EXPORT_METHOD(getEnvironmentInfo:(RCTPromiseResolveBlock)resolve onError:(RC
     NSMutableDictionary* environment = [[NSMutableDictionary alloc] init];
     NSUInteger processorCount = [[NSProcessInfo processInfo] processorCount];
     [environment setValue:@(processorCount) forKey: @"ProcessorCount"];
+    [environment setValue:[self getVersion: "kern.osversion"] forKey: @"OSVersion"];
 #if TARGET_OS_IOS || TARGET_OS_TV
     UIDevice *currentDevice = [UIDevice currentDevice];
     NSString *osVersion = [NSString stringWithFormat:@"%@ %@", currentDevice.systemName, currentDevice.systemVersion];
@@ -233,7 +243,7 @@ RCT_EXPORT_METHOD(getEnvironmentInfo:(RCTPromiseResolveBlock)resolve onError:(RC
     NSLocale *locale = [NSLocale currentLocale];
     NSString *localeStr = [locale displayNameForKey:NSLocaleIdentifier value: locale.localeIdentifier];
     [environment setValue:localeStr forKey: @"Locale"];
-    [environment setValue:[self getKernelVersion] forKey:@"KernelVersion"];
+    [environment setValue:[self getVersion: "kern.version"] forKey:@"KernelVersion"];
     [environment setValue:@(getFreeMemory()) forKey: @"AvailablePhysicalMemory"];
     [environment setValue:@(getMemorySize()) forKey: @"TotalPhysicalMemory"];
     [environment setValue:[NSNumber numberWithBool: isJailbroken()] forKey: @"JailBroken"];

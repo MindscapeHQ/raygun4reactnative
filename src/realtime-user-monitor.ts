@@ -81,7 +81,10 @@ export const setupRealtimeUserMonitoring = (
 ) => {
   const rumSession = { lastActiveAt: Date.now(), getCurrentUser };
   if (enableNetworkMonitoring) {
-    setupNetworkMonitoring(ignoredUrls.concat('api.raygun.io'), sendNetworkTimingEvent(rumSession, apiKey));
+    setupNetworkMonitoring(
+      ignoredUrls.concat('api.raygun.io', 'localhost:8081/symbolicate'),
+      sendNetworkTimingEvent(rumSession, apiKey)
+    );
   }
 
   const eventEmitter = new NativeEventEmitter(Rg4rn);
