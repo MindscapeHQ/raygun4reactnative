@@ -30,7 +30,7 @@ export enum RUMEvents {
   SessionStart = 'session_start',
   SessionEnd = 'session_end',
   EventTiming = 'mobile_event_timing',
-  AppLoaded = 'p',
+  ActivityLoaded = 'p',
   NetworkCall = 'n'
 }
 

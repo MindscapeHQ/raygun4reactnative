@@ -100,7 +100,7 @@ static uint64_t getMemorySize(void) {
 static CFTimeInterval startedAt;
 
 BOOL hasInitialized = FALSE;
-NSString *viewName = @"RCTView";
+NSString *viewName = @"RCTRootView";
 NSString *onStart = @"ON_START";
 NSString *onPause = @"ON_PAUSE";
 NSString *onResume = @"ON_RESUME";
@@ -205,7 +205,7 @@ RCT_EXPORT_METHOD(init:(NSDictionary *)options)
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate) name:NSApplicationWillTerminateNotification object:nil];
 #endif
     NSNumber *used = @(CACurrentMediaTime() - startedAt);
-    [self sendEventWithName:onStart body:@{@"startupTimeUsed": used, @"name": viewName}];
+    [self sendEventWithName:onStart body:@{@"duration": used, @"name": viewName}];
 }
 
 - (void)applicationWillEnterForeground {

@@ -96,7 +96,7 @@ describe('Send RUM events', () => {
         osVersion: 'osVersion',
         platform: 'platform',
         user: currentUser,
-        data: JSON.stringify([{ name: 'MainActivity', timing: { type: RUMEvents.AppLoaded, duration: 1000 } }])
+        data: JSON.stringify([{ name: 'MainActivity', timing: { type: RUMEvents.ActivityLoaded, duration: 1000 } }])
       },
       'apiKey'
     );

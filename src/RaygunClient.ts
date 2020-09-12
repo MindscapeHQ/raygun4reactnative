@@ -10,9 +10,10 @@ import {
   CustomData,
   RaygunClientOptions,
   BreadcrumbOption,
-  Breadcrumb
+  Breadcrumb,
+  RUMEvents
 } from './types';
-import { setupRealtimeUserMonitoring } from './realtime-user-monitor';
+import { sendCustomRUMEvent, setupRealtimeUserMonitoring } from './realtime-user-monitor';
 import { sendCrashReport, sendCachedReports } from './transport';
 
 const { Rg4rn } = NativeModules;
@@ -151,6 +152,18 @@ const generatePayload = async (
   };
 };
 
+const sendRUMTimingEvent = (
+  eventType: RUMEvents.ActivityLoaded | RUMEvents.NetworkCall,
+  name: string,
+  timeUsedInMs: number
+) => {
+  if (!GlobalOptions.enableRUM) {
+    console.warn('RUM is not enabled, please enable to use the sendRUMTimingEvent() function');
+    return;
+  }
+  sendCustomRUMEvent(getCurrentUser, GlobalOptions.apiKey, eventType, name, timeUsedInMs);
+};
+
 const addTag = (...tags: string[]) => {
   tags.forEach(tag => {
     curSession.tags.add(tag);
@@ -258,5 +271,6 @@ export {
   recordBreadcrumb,
   filterOutReactFrames,
   noAddressAt,
-  generatePayload
+  generatePayload,
+  sendRUMTimingEvent
 };

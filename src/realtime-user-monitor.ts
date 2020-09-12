@@ -8,10 +8,7 @@ const { Rg4rn } = NativeModules;
 
 const { osVersion, platform } = Rg4rn;
 
-interface RUMSession {
-  lastActiveAt: number;
-  getCurrentUser: () => User;
-}
+const defaultURLIgnoreList = ['api.raygun.io', 'localhost:8081/symbolicate'];
 
 const SessionRotateThreshold = 30 * 60 * 100;
 
@@ -19,12 +16,12 @@ let lastActiveAt = Date.now();
 let curRUMSessionId: any = null;
 
 const reportStartupTime = (getCurrentUser: () => User, apiKey: string) => async (payload: Record<string, any>) => {
-  const { startupTimeUsed, name } = payload;
+  const { duration, name } = payload;
   if (!curRUMSessionId) {
     curRUMSessionId = getDeviceBasedId();
     await sendRUMEvent(RUMEvents.SessionStart, getCurrentUser(), {}, curRUMSessionId, apiKey);
   }
-  const data = { name, timing: { type: RUMEvents.AppLoaded, duration: startupTimeUsed } };
+  const data = { name, timing: { type: RUMEvents.ActivityLoaded, duration } };
   return sendRUMEvent(RUMEvents.EventTiming, getCurrentUser(), data, curRUMSessionId, apiKey);
 };
 
@@ -41,13 +38,13 @@ const rotateRUMSession = (getCurrentUser: () => User, apiKey: string) => async (
   }
 };
 
-const sendNetworkTimingEvent = (session: RUMSession, apiKey: string) => (
+const sendNetworkTimingEvent = (getCurrentUser: () => User, apiKey: string) => (
   name: string,
   sendTime: number,
   duration: number
 ): void => {
   const data = { name, timing: { type: RUMEvents.NetworkCall, duration } };
-  sendRUMEvent(RUMEvents.EventTiming, session.getCurrentUser(), data, curRUMSessionId, apiKey, sendTime);
+  sendRUMEvent(RUMEvents.EventTiming, getCurrentUser(), data, curRUMSessionId, apiKey, sendTime);
 };
 
 const sendRUMEvent = async (
@@ -79,12 +76,8 @@ export const setupRealtimeUserMonitoring = (
   enableNetworkMonitoring = true,
   ignoredUrls = [] as string[]
 ) => {
-  const rumSession = { lastActiveAt: Date.now(), getCurrentUser };
   if (enableNetworkMonitoring) {
-    setupNetworkMonitoring(
-      ignoredUrls.concat('api.raygun.io', 'localhost:8081/symbolicate'),
-      sendNetworkTimingEvent(rumSession, apiKey)
-    );
+    setupNetworkMonitoring(ignoredUrls.concat(defaultURLIgnoreList), sendNetworkTimingEvent(getCurrentUser, apiKey));
   }
 
   const eventEmitter = new NativeEventEmitter(Rg4rn);
@@ -97,4 +90,22 @@ export const setupRealtimeUserMonitoring = (
     eventEmitter.removeAllListeners(Rg4rn.ON_RESUME);
     eventEmitter.removeAllListeners(Rg4rn.ON_DESTROY);
   });
+};
+
+export const sendCustomRUMEvent = (
+  getCurrentUser: () => User,
+  apiKey: string,
+  eventType: RUMEvents.ActivityLoaded | RUMEvents.NetworkCall,
+  name: string,
+  duration: number
+) => {
+  if (eventType === RUMEvents.ActivityLoaded) {
+    reportStartupTime(getCurrentUser, apiKey)({ name, duration });
+    return;
+  }
+  if (eventType === RUMEvents.NetworkCall) {
+    sendNetworkTimingEvent(getCurrentUser, apiKey)(name, Date.now() - duration, duration);
+    return;
+  }
+  console.warn('Unknown RUM event type:', eventType);
 };

@@ -167,7 +167,7 @@ public class Rg4rnModule extends ReactContextBaseJavaModule implements Lifecycle
             long ms = SystemClock.uptimeMillis() - startedTime;
             WritableMap payload = Arguments.createMap();
             payload.putString("name", getActivityName());
-            payload.putInt("startupTimeUsed", (int) ms);
+            payload.putInt("duration", (int) ms);
             sendJSEvent(ON_START, payload);
         }
     }
