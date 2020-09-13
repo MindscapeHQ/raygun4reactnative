@@ -100,11 +100,13 @@ static uint64_t getMemorySize(void) {
 static CFTimeInterval startedAt;
 
 BOOL hasInitialized = FALSE;
-NSString *viewName = @"RCTRootView";
+NSString *viewName = @"RCTView";
 NSString *onStart = @"ON_START";
 NSString *onPause = @"ON_PAUSE";
 NSString *onResume = @"ON_RESUME";
 NSString *onDestroy = @"ON_DESTROY";
+
+NSString *defaultsKey = @"__RAYGUN_CRASH_REPORTS__";
 
 + (void)initialize {
     startedAt = processStartTime();
@@ -205,7 +207,7 @@ RCT_EXPORT_METHOD(init:(NSDictionary *)options)
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate) name:NSApplicationWillTerminateNotification object:nil];
 #endif
     NSNumber *used = @(CACurrentMediaTime() - startedAt);
-    [self sendEventWithName:onStart body:@{@"duration": used, @"name": viewName}];
+    [self sendEventWithName:onStart body:@{@"startupTimeUsed": used, @"name": viewName}];
 }
 
 - (void)applicationWillEnterForeground {
@@ -250,8 +252,8 @@ RCT_EXPORT_METHOD(getEnvironmentInfo:(RCTPromiseResolveBlock)resolve onError:(RC
     resolve(environment);
 }
 
-RCT_EXPORT_METHOD(hasInitialized:(RCTPromiseResolveBlock)resolver orNot:(RCTPromiseRejectBlock)reject) {
-    resolver([NSNumber numberWithBool:hasInitialized]);
+RCT_EXPORT_METHOD(hasInitialized:(RCTPromiseResolveBlock)resolve orNot:(RCTPromiseRejectBlock)reject) {
+    resolve([NSNumber numberWithBool:hasInitialized]);
 }
 
 RCT_EXPORT_METHOD(setTags:(NSArray *) tags) {
@@ -273,6 +275,61 @@ RCT_EXPORT_METHOD(setUser:(NSDictionary *) user) {
     [RaygunClient.sharedInstance setUserInformation: userInfo];
 }
 
+- (NSError *)saveReportsArray:(NSArray*)reports {
+    NSError *jsonSerializeError;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:reports options: NSJSONWritingFragmentsAllowed error: &jsonSerializeError];
+    if (jsonSerializeError){
+        return jsonSerializeError;
+    }
+    [[NSUserDefaults standardUserDefaults] setObject:jsonData forKey: defaultsKey];
+    return nil;
+}
+
+RCT_EXPORT_METHOD(loadCrashReports:(RCTPromiseResolveBlock)resolve onError:(RCTPromiseRejectBlock)reject) {
+    NSString *rawReports = [[NSUserDefaults standardUserDefaults] stringForKey:defaultsKey];
+    if (rawReports) {
+        resolve(rawReports);
+        return;
+    }
+    resolve(@"[]");
+}
+
+RCT_EXPORT_METHOD(saveCrashReport:(NSString *)jsonString withResolver: (RCTPromiseResolveBlock)resolve rejecter: (RCTPromiseRejectBlock)reject)
+{
+    NSError *jsonParseError;
+    NSError *jsonSerializeError;
+    NSDictionary *report = [NSJSONSerialization JSONObjectWithData:[jsonString dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableContainers error:&jsonParseError];
+    if (jsonParseError) {
+        reject(@"Parsing JSON error", [jsonParseError localizedDescription], jsonParseError);
+        return;
+    }
+    
+    NSString *rawReports = [[NSUserDefaults standardUserDefaults] stringForKey:defaultsKey];
+    if (rawReports) {
+        NSArray *reports = [NSJSONSerialization JSONObjectWithData:[rawReports dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableContainers error:&jsonParseError];
+        if (jsonParseError) {
+            reject(@"Error parsing saved reports", [jsonParseError localizedDescription], jsonParseError);
+            return;
+        }
+        
+        NSArray *newReports = sizeof(reports) >= 10 ? [[reports subarrayWithRange: NSMakeRange(1, 9)] arrayByAddingObject: report] : [reports arrayByAddingObject:report];
+        NSError *error = [self saveReportsArray:newReports];
+        if (error) {
+            reject(@"Serialize JSON error", [jsonSerializeError localizedDescription], jsonSerializeError);
+            return;
+        }
+        resolve([[NSNumber alloc] initWithUnsignedLong:sizeof(newReports)]);
+        
+    } else {
+        NSArray *newReports = [[NSArray alloc] initWithObjects:report, nil];
+        NSError *error = [self saveReportsArray:newReports];
+        if (error) {
+            reject(@"Serialize JSON error", [jsonSerializeError localizedDescription], jsonSerializeError);
+            return;
+        }
+        resolve([[NSNumber alloc] initWithInt:1]);
+    }
+}
 
 RCT_EXPORT_METHOD(sendCrashReport:(NSString *)jsonString withApiKey:(NSString *) apiKey)
 {

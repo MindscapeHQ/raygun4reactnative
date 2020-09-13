@@ -69,7 +69,7 @@ describe('Send RUM events', () => {
   test('Should correctly send out payload from onStart event', async () => {
     setupRealtimeUserMonitoring(getCurrentUser, 'apiKey', true, []);
     const onStartHandler = addListener.mock.calls[0][1] as (payload: Record<string, any>) => void;
-    await onStartHandler({ startupTimeUsed: 1000, name: 'MainActivity' });
+    await onStartHandler({ duration: 1000, name: 'MainActivity' });
     expect(sendRUMPayload).toHaveBeenNthCalledWith(
       1,
       {

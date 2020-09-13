@@ -15,7 +15,7 @@
     "build:ci": "npm ci && npm run test && tsc -p ./ && npm pack && aws s3 cp . s3://$S3_BUCKET_ID/ --recursive --exclude '*' --include '*.tgz'",
     "build": "tsc -p ./",
     "build-watch": "tsc -p ./ -w",
-    "test": "jest "
+    "test": "jest -i"
   },
   "repository": {
     "type": "git",

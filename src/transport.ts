@@ -1,8 +1,7 @@
-import { saveCrashReport, loadCrashReports } from './storage';
+import { saveCrashReport, loadCachedReports } from './storage';
 import { CrashReportPayload } from './types';
-import { report } from 'process';
 
-const RAYGUN_CRASH_REPORT_ENDPOINT = 'https://api.raygun.co/entries';
+const RAYGUN_CRASH_REPORT_ENDPOINT = 'https://api.raygun.com/entries';
 const RAYGUN_RUM_ENDPOINT = 'https://api.raygun.io/events';
 
 const sendCrashReport = async (report: CrashReportPayload, apiKey: string, isRetry?: boolean) => {
@@ -14,9 +13,13 @@ const sendCrashReport = async (report: CrashReportPayload, apiKey: string, isRet
     },
     body: JSON.stringify(report)
   }).catch(err => {
-    console.log(err);
-    console.log('Cache report when it failed to send');
-    return isRetry && saveCrashReport(report);
+    console.error(err);
+    console.debug('Cache report when it failed to send', isRetry);
+    if (isRetry) {
+      console.debug('Skip cache saved reports');
+      return;
+    }
+    return saveCrashReport(report);
   });
 };
 
@@ -31,9 +34,9 @@ const sendRUMPayload = async (event: Record<string, any>, apiKey: string) => {
 };
 
 const sendCachedReports = async (apiKey: string) => {
-  const reports = await loadCrashReports();
-  console.log('Load all cached report', JSON.stringify(reports));
-  return Promise.all(reports.map(report => sendCrashReport(report, apiKey, false)));
+  const reports = await loadCachedReports();
+  console.log('Load all cached report', reports);
+  return Promise.all(reports.map(report => sendCrashReport(report, apiKey, true)));
 };
 
 export { sendCrashReport, sendCachedReports, sendRUMPayload };
