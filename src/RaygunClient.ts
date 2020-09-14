@@ -1,7 +1,8 @@
-import { v4 as uuidv4 } from 'uuid';
 import { NativeModules, Platform } from 'react-native';
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
-
+import { getDeviceBasedId, filterOutReactFrames, cleanFilePath, noAddressAt } from './utils';
+//@ts-ignore
+const { version: clientVersion } = require('../package.json');
 import {
   User,
   Session,
@@ -9,20 +10,22 @@ import {
   CustomData,
   RaygunClientOptions,
   BreadcrumbOption,
-  Breadcrumb
+  Breadcrumb,
+  RUMEvents
 } from './types';
-import { sendReport, sendCachedReports } from './transport';
+import { sendCustomRUMEvent, setupRealtimeUserMonitoring } from './realtime-user-monitor';
+import { sendCrashReport, sendCachedReports } from './transport';
 
 const { Rg4rn } = NativeModules;
-const SOURCE_MAP_PREFIX = 'file://reactnative.local/';
-const devicePathPattern = /^(.*@)?.*\/[^\.]+(\.app|CodePush)\/?(.*)/;
+
+const clone = <T>(object: T): T => JSON.parse(JSON.stringify(object));
 
 const getCleanSession = (): Session => ({
   tags: new Set(['React Native']),
   customData: {},
   breadcrumbs: [],
   user: {
-    identifier: 'anonymous'
+    identifier: `anonymous-${Rg4rn.DEVICE_ID}`
   }
 });
 
@@ -48,80 +51,66 @@ interface StackTrace {
   stack: StackFrame[];
 }
 
-const curSession = getCleanSession();
-
+let curSession = getCleanSession();
 let GlobalOptions: RaygunClientOptions;
 
-const init = (options: RaygunClientOptions) => {
-  GlobalOptions = Object.assign({ enableNative: true }, options);
+const getCurrentUser = () => curSession.user;
 
-  return Rg4rn.hasInitialized().then((initialized: boolean) => {
-    if (initialized) {
-      console.log('Already initialized');
-      return;
-    }
+const init = async (options: RaygunClientOptions) => {
+  GlobalOptions = Object.assign(
+    {
+      enableNetworkMonitoring: true,
+      enableNativeCrashReporting: true,
+      enableRUM: false,
+      ignoreURLs: [],
+      version: '',
+      apiKey: ''
+    },
+    options
+  );
 
-    // Enable native side crash reporting
-    if (
-      GlobalOptions.enableNative &&
-      Rg4rn &&
-      typeof Rg4rn.init === 'function'
-    ) {
-      const { enableNative, onBeforeSend, version, ...rest } = GlobalOptions;
-      const resolvedVersion = version || '';
-      Rg4rn.init({ ...rest, version: resolvedVersion });
-    }
+  const canEnableNative =
+    (GlobalOptions.enableNativeCrashReporting || GlobalOptions.enableRUM) && Rg4rn && typeof Rg4rn.init === 'function';
 
-    const prevHandler = ErrorUtils.getGlobalHandler();
-    ErrorUtils.setGlobalHandler(async (error: Error, isFatal?: boolean) => {
-      // TODO: doing RN side error reporting for now, will migrate to Rg4rn.sendMessage once raygun4apple is ready.
-      await processUnhandledError(error, isFatal);
-      prevHandler && prevHandler(error, isFatal);
-    });
-    const rejectionTracking = require('promise/setimmediate/rejection-tracking');
-    rejectionTracking.disable();
-    rejectionTracking.enable({
-      allRejections: true,
-      onUnhandled: processUnhandledRejection
-    });
-    if (!GlobalOptions.enableNative) {
-      setTimeout(
-        () =>
-          sendCachedReports(GlobalOptions.apiKey, GlobalOptions.onBeforeSend),
-        10
-      );
+  const alreadyInitialized = canEnableNative && (await Rg4rn.hasInitialized());
+  if (alreadyInitialized) {
+    console.log('Already initialized');
+    return false;
+  }
+
+  if (GlobalOptions.enableRUM) {
+    if (!canEnableNative) {
+      throw Error('Can not enable RUM as native sdk not configured properly');
     }
+  }
+
+  // Enable native side crash reporting
+  if (canEnableNative) {
+    const { version: appVersion, enableRUM, ignoreURLs, enableNetworkMonitoring, apiKey } = GlobalOptions;
+    if (enableRUM) {
+      setupRealtimeUserMonitoring(getCurrentUser, apiKey, enableNetworkMonitoring, ignoreURLs);
+    }
+    Rg4rn.init({ apiKey, enableRUM, version: appVersion || '' });
+  }
+
+  const prevHandler = ErrorUtils.getGlobalHandler();
+  ErrorUtils.setGlobalHandler(async (error: Error, isFatal?: boolean) => {
+    // TODO: doing RN side error reporting for now, will migrate to Rg4rn.sendMessage once raygun4apple is ready.
+    await processUnhandledError(error, isFatal);
+    prevHandler && prevHandler(error, isFatal);
   });
-};
 
-const internalTrace = new RegExp(
-  'ReactNativeRenderer-dev\\.js$|MessageQueue\\.js$|native\\scode'
-);
-
-const filterOutReactFrames = (frame: StackFrame): boolean =>
-  !!frame.file && !frame.file.match(internalTrace);
-
-/**
- * Remove the '(address at' suffix added by stacktrace-parser which used by React
- * @param frame StackFrame
- */
-const noAddressAt = ({ methodName, ...rest }: StackFrame): StackFrame => {
-  const pos = methodName.indexOf('(address at');
-  return {
-    ...rest,
-    methodName: pos > -1 ? methodName.slice(0, pos).trim() : methodName
-  };
-};
-
-const cleanFilePath = (frames: StackFrame[]): StackFrame[] =>
-  frames.map(frame => {
-    const result = devicePathPattern.exec(frame.file);
-    if (result) {
-      const [_, __, ___, fileName] = result;
-      return { ...frame, file: SOURCE_MAP_PREFIX + fileName };
-    }
-    return frame;
+  const rejectionTracking = require('promise/setimmediate/rejection-tracking');
+  rejectionTracking.disable();
+  rejectionTracking.enable({
+    allRejections: true,
+    onUnhandled: processUnhandledRejection
   });
+  if (!canEnableNative) {
+    setTimeout(() => sendCachedReports(GlobalOptions.apiKey), 10);
+  }
+  return true;
+};
 
 const generatePayload = async (
   error: Error,
@@ -129,32 +118,30 @@ const generatePayload = async (
   session: Session
 ): Promise<CrashReportPayload> => {
   const { breadcrumbs, tags, user, customData } = session;
-  const environmentDetails =
-    Platform.OS === 'android' ? await Rg4rn.getEnvironmentInfo() : {};
+  const environmentDetails = (Rg4rn.getEnvironmentInfo && (await Rg4rn.getEnvironmentInfo())) || {};
   return {
     OccurredOn: new Date(),
     Details: {
       Error: {
         ClassName: error?.name || '',
         Message: error?.message || '',
-        StackTrace: stackFrames.map(
-          ({ file, methodName, lineNumber, column }) => ({
-            FileName: file,
-            MethodName: methodName || '[anonymous]',
-            LineNumber: lineNumber,
-            ColumnNumber: column,
-            ClassName: `line ${lineNumber}, column ${column}`
-          })
-        ),
+        StackTrace: stackFrames.map(({ file, methodName, lineNumber, column }) => ({
+          FileName: file,
+          MethodName: methodName || '[anonymous]',
+          LineNumber: lineNumber,
+          ColumnNumber: column,
+          ClassName: `line ${lineNumber}, column ${column}`
+        })),
         StackString: error?.toString() || ''
       },
       Environment: {
         UtcOffset: new Date().getTimezoneOffset() / 60.0,
+        JailBroken: false,
         ...environmentDetails
       },
       Client: {
         Name: `raygun4reactnative.${Platform.OS}`,
-        Version: '{{VERSION}}'
+        Version: clientVersion
       },
       UserCustomData: customData,
       Tags: [...tags],
@@ -165,11 +152,23 @@ const generatePayload = async (
   };
 };
 
+const sendRUMTimingEvent = (
+  eventType: RUMEvents.ActivityLoaded | RUMEvents.NetworkCall,
+  name: string,
+  timeUsedInMs: number
+) => {
+  if (!GlobalOptions.enableRUM) {
+    console.warn('RUM is not enabled, please enable to use the sendRUMTimingEvent() function');
+    return;
+  }
+  sendCustomRUMEvent(getCurrentUser, GlobalOptions.apiKey, eventType, name, timeUsedInMs);
+};
+
 const addTag = (...tags: string[]) => {
   tags.forEach(tag => {
     curSession.tags.add(tag);
   });
-  if (GlobalOptions.enableNative) {
+  if (GlobalOptions.enableNativeCrashReporting) {
     Rg4rn.setTags([...curSession.tags]);
   }
 };
@@ -183,25 +182,25 @@ const setUser = (user: User | string) => {
             identifier: user
           }
         : {
-            identifier: uuidv4(),
+            identifier: getDeviceBasedId(),
             isAnonymous: true
           }
       : user
   );
-  if (GlobalOptions.enableNative) {
+  if (GlobalOptions.enableNativeCrashReporting) {
     Rg4rn.setUser((curSession.user = userObj));
   }
 };
 
 const addCustomData = (customData: CustomData) => {
-  Object.assign(curSession.customData, customData);
-  Rg4rn.setCustomData(curSession.customData);
+  curSession.customData = Object.assign({}, curSession.customData, customData);
+  Rg4rn.setCustomData(clone(curSession.customData));
 };
 
 const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
   curSession.customData = updater(curSession.customData);
-  if (GlobalOptions.enableNative) {
-    Rg4rn.setCustomData(curSession.customData);
+  if (GlobalOptions.enableNativeCrashReporting) {
+    Rg4rn.setCustomData(clone(curSession.customData));
   }
 };
 
@@ -215,30 +214,16 @@ const recordBreadcrumb = (message: string, details?: BreadcrumbOption) => {
     timestamp: new Date().getTime()
   };
   curSession.breadcrumbs.push(breadcrumb);
-  if (GlobalOptions.enableNative) {
+  if (GlobalOptions.enableNativeCrashReporting) {
     Rg4rn.recordBreadcrumb(breadcrumb);
   }
 };
 
 const clearSession = () => {
-  Object.assign(curSession, getCleanSession());
+  curSession = getCleanSession();
 };
 
-// const remoteLog = (
-//   body: string | object,
-//   options?: Record<string, any> | undefined
-// ): Promise<any> =>
-//   fetch('http://localhost:4000/report', {
-//     method: 'POST',
-//     mode: 'cors',
-//     ...options,
-//     body: typeof body === 'object' ? JSON.stringify(body) : body,
-//     ...(typeof body === 'object' && {
-//       headers: { 'Content-Type': 'application/json' }
-//     })
-//   });
-const processUnhandledRejection = (id: number, error: any) =>
-  processUnhandledError(error, false);
+const processUnhandledRejection = (id: number, error: any) => processUnhandledError(error, false);
 
 const processUnhandledError = async (error: Error, isFatal?: boolean) => {
   if (!error || !error.stack) {
@@ -253,19 +238,26 @@ const processUnhandledError = async (error: Error, isFatal?: boolean) => {
     ? await symbolicateStackTrace(stackFrame)
     : { stack: cleanFilePath(stackFrame) };
 
-  const stack =
-    cleanedStackFrames.stack ||
-    [].filter(filterOutReactFrames).map(noAddressAt);
+  const stack = cleanedStackFrames.stack || [].filter(filterOutReactFrames).map(noAddressAt);
 
   if (isFatal) {
     curSession.tags.add('Fatal');
   }
 
   const payload = await generatePayload(error, stack, curSession);
-  if (GlobalOptions.enableNative) {
+  const { onBeforeSend } = GlobalOptions;
+  const shouldSkip = onBeforeSend && typeof onBeforeSend === 'function' && !onBeforeSend(Object.freeze(payload));
+
+  if (shouldSkip) {
+    return;
+  }
+  console.log('enableNativeCrashReporting', GlobalOptions.enableNativeCrashReporting);
+  if (GlobalOptions.enableNativeCrashReporting) {
+    console.log('Send crash report via Native');
     Rg4rn.sendCrashReport(JSON.stringify(payload), GlobalOptions.apiKey);
   } else {
-    await sendReport(payload, GlobalOptions.apiKey, GlobalOptions.onBeforeSend);
+    console.log('Send crash report via JS');
+    await sendCrashReport(payload, GlobalOptions.apiKey);
   }
 };
 
@@ -279,5 +271,6 @@ export {
   recordBreadcrumb,
   filterOutReactFrames,
   noAddressAt,
-  generatePayload
+  generatePayload,
+  sendRUMTimingEvent
 };

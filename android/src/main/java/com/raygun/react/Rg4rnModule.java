@@ -1,49 +1,69 @@
 package com.raygun.react;
 
+import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 
-import com.facebook.react.bridge.Callback;
+import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.raygun.raygun4android.CrashReportingOnBeforeSend;
 import com.raygun.raygun4android.RaygunClient;
 import com.raygun.raygun4android.messages.crashreporting.RaygunBreadcrumbLevel;
 import com.raygun.raygun4android.messages.crashreporting.RaygunBreadcrumbMessage;
-import com.raygun.raygun4android.messages.crashreporting.RaygunEnvironmentMessage;
 import com.raygun.raygun4android.messages.crashreporting.RaygunErrorMessage;
 import com.raygun.raygun4android.messages.crashreporting.RaygunMessage;
-import com.raygun.raygun4android.messages.crashreporting.RaygunMessageDetails;
 import com.raygun.raygun4android.messages.shared.RaygunUserInfo;
 import com.raygun.raygun4android.services.CrashReportingPostService;
 
+import android.content.SharedPreferences;
+import android.os.SystemClock;
+import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.os.Build;
 import android.app.ActivityManager;
 import android.view.WindowManager;
 
+import androidx.annotation.RequiresApi;
+
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.Arguments;
+import com.raygun.raygun4android.services.RUMPostService;
 
-import java.util.ArrayList;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import static android.provider.Settings.Secure.getString;
 import java.util.HashMap;
-import java.util.concurrent.ExecutionException;
+import java.util.Map;
+import javax.annotation.Nullable;
 
-public class Rg4rnModule extends ReactContextBaseJavaModule {
+public class Rg4rnModule extends ReactContextBaseJavaModule implements LifecycleEventListener {
 
     private static ReactApplicationContext reactContext;
     private boolean initialized = false;
+    private long startedTime;
 
-    public Rg4rnModule(ReactApplicationContext context) {
+    private static final String ON_RESUME = "ON_RESUME";
+    private static final String ON_PAUSE = "ON_PAUSE";
+    private static final String ON_DESTROY = "ON_DESTROY";
+    private static final String ON_START = "ON_START";
+    private static final String DEVICE_ID = "DEVICE_ID";
+    private static final String STORAGE_KEY = "__RAYGUN_CRASH_REPORT__";
+
+    public Rg4rnModule(ReactApplicationContext context, long startedAt) {
         super(context);
         reactContext = context;
+        startedTime = startedAt;
     }
+
 
     @Override
     public String getName() {
@@ -53,6 +73,20 @@ public class Rg4rnModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void hasInitialized(Promise promise) {
         promise.resolve(initialized);
+    }
+
+    @ReactMethod
+    private void attachActivityMonitor(Promise promise) {
+        ActivityManager manager = (ActivityManager)reactContext.getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (RUMPostService.class.getName().equals(service.service.getClassName())) {
+                Log.i("RUMPostService","is running");
+                promise.resolve(true);
+                return;
+            }
+        }
+        Log.i("RUMPostService","is not running");
+        promise.resolve(false);
     }
 
     @ReactMethod
@@ -82,8 +116,6 @@ public class Rg4rnModule extends ReactContextBaseJavaModule {
             ActivityManager.MemoryInfo mi = new ActivityManager.MemoryInfo();
             ActivityManager am = (ActivityManager) this.reactContext.getSystemService(Context.ACTIVITY_SERVICE);
             am.getMemoryInfo(mi);
-
-
             map.putInt("ProcessorCount", Runtime.getRuntime().availableProcessors());
             map.putString("OSVersion", Build.VERSION.RELEASE);
             map.putString("OSSDKVersion", Integer.toString(Build.VERSION.SDK_INT));
@@ -91,26 +123,82 @@ public class Rg4rnModule extends ReactContextBaseJavaModule {
             map.putInt("WindowsBoundHeight", metrics.heightPixels);
             map.putString("CurrentOrientation", currentOrientation);
             map.putString("Locale", this.reactContext.getResources().getConfiguration().locale.toString());
-            // map.putDouble("TotalPhysicalMemory", env.totalPhysicalMemory);
             map.putDouble("AvailablePhysicalMemory", mi.availMem / 0x100000);
-            // map.putDouble("TotalVirtualMemory", env.totalVirtualMemory);
-            // map.putDouble("AvailableVirtualMemory", env.availableVirtualMemory);
-            // map.putDouble("DiskSpaceFree", env.diskSpaceFree);
-
         }catch (Exception e) {
-            Log.e("Environment", "Retireve Environment Info Error", e);
+            Log.e("Environment", "Retrieve Environment Info Error", e);
         }
         promise.resolve(map);
     }
 
+    @Override
+    public Map<String, Object> getConstants() {
+        final Map<String, Object> constants = new HashMap<>();
+        constants.put(ON_DESTROY, ON_DESTROY);
+        constants.put(ON_PAUSE, ON_PAUSE);
+        constants.put(ON_RESUME, ON_RESUME);
+        constants.put(ON_START, ON_START);
+        constants.put(DEVICE_ID, getUniqueIdSync());
+        constants.put("osVersion", Build.VERSION.RELEASE);
+        constants.put("platform", Build.MODEL);
+        return constants;
+    }
+
+    @SuppressLint("HardwareIds")
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    public String getUniqueIdSync() {
+        return getString(getReactApplicationContext().getContentResolver(), Settings.Secure.ANDROID_ID);
+    }
+
     @ReactMethod
     public void init(ReadableMap options) {
+        Log.i("init", options.toString());
+        if (initialized) {
+            Log.i("init", "Already initialized");
+            return;
+        }
         String apiKey = options.getString("apiKey");
         String version = options.getString("version");
+        Boolean enableRUM = options.getBoolean("enableRUM");
         RaygunClient.init(this.reactContext, apiKey, version);
-        Log.i("init", "version:" + version);
         initialized = true;
         RaygunClient.setOnBeforeSend(new OnBeforeSendHandler());
+        if (enableRUM) {
+            reactContext.addLifecycleEventListener(this);
+            long ms = SystemClock.uptimeMillis() - startedTime;
+            WritableMap payload = Arguments.createMap();
+            payload.putString("name", getActivityName());
+            payload.putInt("duration", (int) ms);
+            sendJSEvent(ON_START, payload);
+        }
+    }
+
+    private String getActivityName() {
+        return reactContext.getCurrentActivity().getClass().getSimpleName();
+    }
+
+    private void sendJSEvent(String eventType, @Nullable WritableMap payload) {
+        reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(eventType, payload);
+    }
+
+    @Override
+    public void onHostResume() {
+        WritableMap payload = Arguments.createMap();
+        payload.putString("name", getActivityName());
+        this.sendJSEvent(ON_RESUME, payload);
+    }
+
+    @Override
+    public void onHostPause() {
+        WritableMap payload = Arguments.createMap();
+        payload.putString("name", getActivityName());
+        this.sendJSEvent(ON_PAUSE, payload);
+    }
+
+    @Override
+    public void onHostDestroy() {
+        WritableMap payload = Arguments.createMap();
+        payload.putString("name", getActivityName());
+        this.sendJSEvent(ON_DESTROY, payload);
     }
 
     @ReactMethod
@@ -172,6 +260,33 @@ public class Rg4rnModule extends ReactContextBaseJavaModule {
                 .build();
 
         RaygunClient.recordBreadcrumb(breadcrumbMessage);
+    }
+
+    @ReactMethod
+    public void loadCrashReports(Promise promise) {
+        SharedPreferences preferences = reactContext.getSharedPreferences(STORAGE_KEY, Context.MODE_PRIVATE);
+        String reportsJson = preferences.getString("reports", "[]");
+        promise.resolve(reportsJson);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    @ReactMethod
+    public void saveCrashReport(String report, Promise promise) {
+        Log.d("Save Report", report);
+        SharedPreferences preferences = reactContext.getSharedPreferences(STORAGE_KEY, Context.MODE_PRIVATE);
+        String reportsJson = preferences.getString("reports", "[]");
+        try {
+            JSONArray reports = new JSONArray(reportsJson);
+            if (reports.length() >= 10) {
+                reports.remove(0);
+            }
+            reports.put(new JSONObject(report));
+            preferences.edit().putString("reports", reports.toString()).commit();
+            promise.resolve(null);
+        } catch (Exception e) {
+            Log.e("Save Report Error", e.getMessage());
+            promise.reject(e);
+        }
     }
 
     private class OnBeforeSendHandler implements CrashReportingOnBeforeSend {

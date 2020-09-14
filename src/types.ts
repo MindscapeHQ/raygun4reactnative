@@ -24,6 +24,16 @@ export interface CustomData {
 
 export type BreadcrumbOption = Omit<Breadcrumb, 'message' | 'timestamp'>;
 
+export type NetworkTimingCallback = (name: string, sendTime: number, duration: number) => void;
+
+export enum RUMEvents {
+  SessionStart = 'session_start',
+  SessionEnd = 'session_end',
+  EventTiming = 'mobile_event_timing',
+  ActivityLoaded = 'p',
+  NetworkCall = 'n'
+}
+
 interface Environment {
   UtcOffset: number;
   Cpu?: string;
@@ -34,6 +44,7 @@ interface Environment {
   WindowsBoundWidth?: number;
   WindowsBoundHeight?: number;
   CurrentOrientation?: string;
+  ResolutionScale?: number;
   Locale?: string;
   TotalPhysicalMemory?: number;
   AvailablePhysicalMemory?: number;
@@ -41,9 +52,11 @@ interface Environment {
   AvailableVirtualMemory?: number;
   DiskSpaceFree?: number;
   DeviceName?: string;
+  KernelVersion?: string;
   Brand?: string;
   Board?: string;
   DeviceCode?: string;
+  JailBroken?: boolean;
 }
 
 export interface Breadcrumb {
@@ -84,15 +97,44 @@ export interface CrashReportPayload {
   };
 }
 
-export type BeforeSendHandler = (
-  payload: CrashReportPayload
-) => CrashReportPayload;
+interface TimingMessage {
+  type: 'p' | 'n';
+  duration: number;
+}
+
+interface RUMData {
+  name: string;
+  timing: TimingMessage;
+}
+
+enum RUMEventTypes {
+  SessionStart = 'session_start',
+  SessionEnd = 'session_end',
+  Timing = 'mobile_event_timing'
+}
+
+export interface RUMEventPayload {
+  timestamp: Date;
+  sessionId: string;
+  eventType: RUMEventTypes;
+  user: User;
+  version: string;
+  os: string;
+  osVersion: string;
+  platform: string;
+  data: [RUMData];
+}
+
+export type BeforeSendHandler = (payload: CrashReportPayload) => boolean;
 
 export interface RaygunClientOptions {
   apiKey: string;
   version?: string;
-  enableNative?: boolean;
+  enableNativeCrashReporting?: boolean;
   onBeforeSend?: BeforeSendHandler;
+  enableRUM?: boolean;
+  enableNetworkMonitoring?: boolean;
+  ignoreURLs?: string[];
 }
 
 declare global {
