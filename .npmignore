@@ -1,5 +1,6 @@
 src/
 coverage/
+android/libs/
 android/.idea/
 android/build/
 android/android.iml
