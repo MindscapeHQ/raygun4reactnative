@@ -21,6 +21,7 @@ yarn add @sundayempire/raygun4reactnative
 ```
 
 ### Additional step - iOS
+
 Since our SDK supports native crashes, we need to link the SDK to your native projects.
 
 ```sh
@@ -30,17 +31,23 @@ npx pod-install ios
 ```
 
 ### Additional step - Android
+
 #### **android/app/src/main/AndroidManifest.xml**
-Modify the app's **android/app/src/main/AndroidManifest.xml** to include the folling line to enable the background Crash Reporting Service
+
+Modify the app's **android/app/src/main/AndroidManifest.xml** to include the following line to enable the background Crash Reporting Service
+
 ```
 <application ...>
     ...
-    <service android:name="com.raygun.raygun4android.services.CrashReportingPostService" android:exported="false" android:permission="android.permission.BIND_JOB_SERVICE" android:process=":crashreportingpostservice" />
+    <service
+        android:name="com.raygun.raygun4android.services.CrashReportingPostService"
+        android:exported="false"
+        android:permission="android.permission.BIND_JOB_SERVICE"
+        android:process=":crashreportingpostservice"
+    />
     ...
 </application>
 ```
-
-
 
 ### How to use it:
 
@@ -48,11 +55,11 @@ Modify the app's **android/app/src/main/AndroidManifest.xml** to include the fol
 import RaygunClient from 'raygun4reactnative';
 
 RaygunClient.init({
-//RaygunClientOptions
- apiKey: YOUR_RAYGUN_APIKEY,
- version: YOUR_APP_VERSION,
- enableNativeCrashReporting: true,
- enableRUM: true,
- onBeforeSend: null 
+  //RaygunClientOptions
+  apiKey: YOUR_RAYGUN_APIKEY,
+  version: YOUR_APP_VERSION,
+  enableNativeCrashReporting: true,
+  enableRUM: true,
+  onBeforeSend: null
 });
 ```
