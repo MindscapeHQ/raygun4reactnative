@@ -207,7 +207,7 @@ RCT_EXPORT_METHOD(init:(NSDictionary *)options)
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate) name:NSApplicationWillTerminateNotification object:nil];
 #endif
     NSNumber *used = @(CACurrentMediaTime() - startedAt);
-    [self sendEventWithName:onStart body:@{@"startupTimeUsed": used, @"name": viewName}];
+    [self sendEventWithName:onStart body:@{@"duration": used, @"name": viewName}];
 }
 
 - (void)applicationWillEnterForeground {
