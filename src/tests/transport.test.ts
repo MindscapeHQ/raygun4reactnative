@@ -1,11 +1,25 @@
 import fetchMock from 'jest-fetch-mock';
-import AsyncStorage from '@react-native-community/async-storage';
-import { sendReport, sendCachedReports } from '../transport';
+import { sendCrashReport, sendCachedReports } from '../transport';
 import { CrashReportPayload } from '../types';
+import { NativeModules } from 'react-native';
 
-jest.mock('@react-native-community/async-storage');
-const asyncSetItem = AsyncStorage.setItem as jest.Mock<any>;
-const asyncGetItem = AsyncStorage.getItem as jest.Mock<any>;
+const { Rg4rn } = NativeModules;
+
+jest.mock('react-native', () => ({
+  NativeModules: {
+    Rg4rn: {
+      saveCrashReport: jest.fn(),
+      loadCrashReports: jest.fn()
+    }
+  },
+  NativeEventEmitter: jest.fn(() => ({
+    addListener: jest.fn(),
+    removeAllListeners: jest.fn()
+  })),
+  Platform: {
+    OS: ''
+  }
+}));
 
 const baseCrashReport: CrashReportPayload = {
   OccurredOn: new Date(),
@@ -39,7 +53,6 @@ const baseCrashReport: CrashReportPayload = {
 
 const API_KEY = 'someApiKey';
 const URL = 'https://api.raygun.com/entries?apiKey=';
-const storageKey = '@__RaygunCrashReports__';
 
 const getPostParams = (payload: object) => ({
   method: 'POST',
@@ -50,23 +63,31 @@ const getPostParams = (payload: object) => ({
   body: JSON.stringify(payload)
 });
 
+const reportsCache: string[] = [];
+
 describe('Transport Unit Testing', () => {
+  const mockLoadCrashReports = Rg4rn.loadCrashReports as jest.Mock;
+  const mockSaveCrashReport = Rg4rn.saveCrashReport as jest.Mock;
+  mockSaveCrashReport.mockImplementation(async report => {
+    reportsCache.push(JSON.parse(report));
+  });
+  mockLoadCrashReports.mockImplementation(async () => {
+    return JSON.stringify(reportsCache);
+  });
+
   beforeEach(() => {
-    fetchMock.resetMocks();
+    fetchMock.mockClear();
   });
 
   test('sendReport should send out the correct content', async () => {
     fetchMock.mockResponseOnce('');
-    await sendReport(baseCrashReport, API_KEY);
-
-    expect(fetchMock.mock.calls[0]).toMatchObject([
-      URL + API_KEY,
-      getPostParams(baseCrashReport)
-    ]);
+    await sendCrashReport(baseCrashReport, API_KEY);
+    expect(fetchMock.mock.calls[0]).toMatchObject([URL + API_KEY, getPostParams(baseCrashReport)]);
   });
 
   test('sendCachedReports should re-send all cached reports', async () => {
     fetchMock.mockReject();
+
     const crA = {
       ...baseCrashReport,
       OccurredOn: new Date('2020-01-01T00:00:00.0Z')
@@ -75,34 +96,22 @@ describe('Transport Unit Testing', () => {
       ...baseCrashReport,
       OccurredOn: new Date('2020-01-02T00:00:00.0Z')
     };
-    await sendReport(baseCrashReport, API_KEY);
-    expect(asyncSetItem).toBeCalledWith(
-      storageKey,
-      JSON.stringify([baseCrashReport])
-    );
-    asyncGetItem.mockReturnValueOnce(JSON.stringify([baseCrashReport]));
-    await sendReport(crA, API_KEY + 'A');
-    asyncGetItem.mockReturnValueOnce(JSON.stringify([baseCrashReport, crA]));
-    await sendReport(crB, API_KEY + 'B');
-    asyncGetItem.mockReturnValueOnce(
-      JSON.stringify([baseCrashReport, crA, crB])
-    );
-    fetchMock.resetMocks();
+    await sendCrashReport(baseCrashReport, API_KEY);
+    await sendCrashReport(crA, API_KEY);
+    await sendCrashReport(crB, API_KEY);
+    expect(Rg4rn.saveCrashReport).toBeCalledTimes(3);
+    expect(fetchMock.mock.calls[0]).toMatchObject([URL + API_KEY, getPostParams(baseCrashReport)]);
+    expect(fetchMock.mock.calls[1]).toMatchObject([URL + API_KEY, getPostParams(crA)]);
+    expect(fetchMock.mock.calls[2]).toMatchObject([URL + API_KEY, getPostParams(crB)]);
+    mockSaveCrashReport.mockClear();
+    fetchMock.mockClear();
 
-    fetchMock.mockResponse('');
     await sendCachedReports(API_KEY);
-    expect(fetchMock.mock.calls[0]).toMatchObject([
-      URL + API_KEY,
-      getPostParams(baseCrashReport)
-    ]);
-    expect(fetchMock.mock.calls[1]).toMatchObject([
-      URL + API_KEY,
-      getPostParams(crA)
-    ]);
-
-    expect(fetchMock.mock.calls[2]).toMatchObject([
-      URL + API_KEY,
-      getPostParams(crB)
-    ]);
+    fetchMock.mockResponse('');
+    expect(mockLoadCrashReports).toBeCalledTimes(1);
+    expect(fetchMock.mock.calls[0]).toMatchObject([URL + API_KEY, getPostParams(baseCrashReport)]);
+    expect(fetchMock.mock.calls[1]).toMatchObject([URL + API_KEY, getPostParams(crA)]);
+    expect(fetchMock.mock.calls[2]).toMatchObject([URL + API_KEY, getPostParams(crB)]);
+    expect(mockSaveCrashReport).not.toBeCalled();
   });
 });

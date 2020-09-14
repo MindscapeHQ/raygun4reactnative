@@ -1,11 +1,11 @@
-import AsyncStorage from '@react-native-community/async-storage';
-import { CrashReportPayload, BeforeSendHandler } from './types';
+import { saveCrashReport, loadCachedReports } from './storage';
+import { CrashReportPayload } from './types';
 
-const RAYGUN_ENDPOINT_CP = 'https://api.raygun.com/entries';
-const RAYGUN_STORAGE_KEY = '@__RaygunCrashReports__';
+const RAYGUN_CRASH_REPORT_ENDPOINT = 'https://api.raygun.com/entries';
+const RAYGUN_RUM_ENDPOINT = 'https://api.raygun.io/events';
 
-const sendReport = async (report: CrashReportPayload, apiKey: string) => {
-  return fetch(RAYGUN_ENDPOINT_CP + '?apiKey=' + encodeURIComponent(apiKey), {
+const sendCrashReport = async (report: CrashReportPayload, apiKey: string, isRetry?: boolean) => {
+  return fetch(RAYGUN_CRASH_REPORT_ENDPOINT + '?apiKey=' + encodeURIComponent(apiKey), {
     method: 'POST',
     mode: 'cors',
     headers: {
@@ -13,40 +13,30 @@ const sendReport = async (report: CrashReportPayload, apiKey: string) => {
     },
     body: JSON.stringify(report)
   }).catch(err => {
+    console.error(err);
+    console.debug('Cache report when it failed to send', isRetry);
+    if (isRetry) {
+      console.debug('Skip cache saved reports');
+      return;
+    }
+    return saveCrashReport(report);
+  });
+};
+
+const sendRUMPayload = async (event: Record<string, any>, apiKey: string) => {
+  return fetch(RAYGUN_RUM_ENDPOINT, {
+    method: 'POST',
+    headers: { 'X-ApiKey': apiKey, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ eventData: [event] })
+  }).catch(err => {
     console.log(err);
-    return cacheReport(report);
   });
 };
 
 const sendCachedReports = async (apiKey: string) => {
-  const reportsRaw = await AsyncStorage.getItem(RAYGUN_STORAGE_KEY);
-  let reports;
-  try {
-    reports = reportsRaw ? JSON.parse(reportsRaw) : [];
-  } catch (err) {
-    console.log('Parsing saved error report failed:', err);
-    reports = [];
-  }
-  return Promise.all(
-    reports.map((report: CrashReportPayload) => sendReport(report, apiKey))
-  );
+  const reports = await loadCachedReports();
+  console.log('Load all cached report', reports);
+  return Promise.all(reports.map(report => sendCrashReport(report, apiKey, true)));
 };
 
-const cacheReport = async (report: CrashReportPayload) => {
-  const reportsRaw = await AsyncStorage.getItem(RAYGUN_STORAGE_KEY);
-  let reports;
-  try {
-    reports = reportsRaw ? JSON.parse(reportsRaw) : [];
-  } catch (err) {
-    console.log(err);
-    reports = [];
-  }
-
-  const latestReports = reports.concat(report).slice(-100);
-  return AsyncStorage.setItem(
-    RAYGUN_STORAGE_KEY,
-    JSON.stringify(latestReports)
-  );
-};
-
-export { sendReport, sendCachedReports };
+export { sendCrashReport, sendCachedReports, sendRUMPayload };
