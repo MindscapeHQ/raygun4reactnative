@@ -31,18 +31,12 @@ import {Header, Colors} from 'react-native/Libraries/NewAppScreen';
 declare const global: {HermesInternal: null | {}};
 
 import RaygunClient from '@sundayempire/raygun4reactnative';
-// import {CrashReportPayload} from '@sundayempire/raygun4reactnative/dist/types';
+
 RaygunClient.init({
-  apiKey: 't2IwCSF44QbvhJLwDKL7Kw',
-  version: 'version',
+  apiKey: '', // YOUR APIKEY
+  version: '', // YOUR APP VERSION
   enableNativeCrashReporting: true,
   enableRUM: true,
-  // onBeforeSend: (report: CrashReportPayload): boolean => {
-  //   if (report) {
-  //     console.log('Before send callback, error report:', report);
-  //   }
-  //   return true;
-  // },
 });
 
 const App = () => {
