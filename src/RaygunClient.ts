@@ -1,6 +1,6 @@
 import { NativeModules, Platform } from 'react-native';
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
-import { getDeviceBasedId, filterOutReactFrames, cleanFilePath, noAddressAt } from './utils';
+import { getDeviceBasedId, filterOutReactFrames, cleanFilePath, noAddressAt, log, warn } from './utils';
 //@ts-ignore
 const { version: clientVersion } = require('../package.json');
 import {
@@ -74,7 +74,7 @@ const init = async (options: RaygunClientOptions) => {
 
   const alreadyInitialized = canEnableNative && (await Rg4rn.hasInitialized());
   if (alreadyInitialized) {
-    console.log('Already initialized');
+    log('Already initialized');
     return false;
   }
 
@@ -95,7 +95,6 @@ const init = async (options: RaygunClientOptions) => {
 
   const prevHandler = ErrorUtils.getGlobalHandler();
   ErrorUtils.setGlobalHandler(async (error: Error, isFatal?: boolean) => {
-    // TODO: doing RN side error reporting for now, will migrate to Rg4rn.sendMessage once raygun4apple is ready.
     await processUnhandledError(error, isFatal);
     prevHandler && prevHandler(error, isFatal);
   });
@@ -158,7 +157,7 @@ const sendRUMTimingEvent = (
   timeUsedInMs: number
 ) => {
   if (!GlobalOptions.enableRUM) {
-    console.warn('RUM is not enabled, please enable to use the sendRUMTimingEvent() function');
+    warn('RUM is not enabled, please enable to use the sendRUMTimingEvent() function');
     return;
   }
   sendCustomRUMEvent(getCurrentUser, GlobalOptions.apiKey, eventType, name, timeUsedInMs);
@@ -227,7 +226,7 @@ const processUnhandledRejection = (id: number, error: any) => processUnhandledEr
 
 const processUnhandledError = async (error: Error, isFatal?: boolean) => {
   if (!error || !error.stack) {
-    console.log('Unrecognized error occurred');
+    warn('Unrecognized error occurred');
     return;
   }
   /** Following two module came from react flow source code, so we require here to prevent TS transpile it */
@@ -246,19 +245,20 @@ const processUnhandledError = async (error: Error, isFatal?: boolean) => {
 
   const payload = await generatePayload(error, stack, curSession);
   const { onBeforeSend } = GlobalOptions;
-  const shouldSkip = onBeforeSend && typeof onBeforeSend === 'function' && !onBeforeSend(Object.freeze(payload));
+  const modifiedPayload = onBeforeSend && typeof onBeforeSend === 'function' && onBeforeSend(Object.freeze(payload));
 
-  if (shouldSkip) {
+  if (!modifiedPayload) {
     return;
   }
-  console.log('enableNativeCrashReporting', GlobalOptions.enableNativeCrashReporting);
+
   if (GlobalOptions.enableNativeCrashReporting) {
-    console.log('Send crash report via Native');
-    Rg4rn.sendCrashReport(JSON.stringify(payload), GlobalOptions.apiKey);
-  } else {
-    console.log('Send crash report via JS');
-    await sendCrashReport(payload, GlobalOptions.apiKey);
+    log('Send crash report via Native');
+    Rg4rn.sendCrashReport(JSON.stringify(modifiedPayload), GlobalOptions.apiKey);
+    return;
   }
+
+  log('Send crash report via JS');
+  sendCrashReport(modifiedPayload, GlobalOptions.apiKey);
 };
 
 export {

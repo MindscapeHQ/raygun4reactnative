@@ -1,8 +1,8 @@
 import { saveCrashReport, loadCachedReports } from './storage';
 import { CrashReportPayload } from './types';
 
-const RAYGUN_CRASH_REPORT_ENDPOINT = 'https://api.raygun.com/entries';
-const RAYGUN_RUM_ENDPOINT = 'https://api.raygun.io/events';
+const RAYGUN_CRASH_REPORT_ENDPOINT = process.env.RAYGUN_CRASH_REPORT_ENDPOINT || 'https://api.raygun.com/entries';
+const RAYGUN_RUM_ENDPOINT = process.env.RAYGUN_RUM_ENDPOINT || 'https://api.raygun.com/events';
 
 const sendCrashReport = async (report: CrashReportPayload, apiKey: string, isRetry?: boolean) => {
   return fetch(RAYGUN_CRASH_REPORT_ENDPOINT + '?apiKey=' + encodeURIComponent(apiKey), {
