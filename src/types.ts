@@ -135,6 +135,8 @@ export interface RaygunClientOptions {
   enableRUM?: boolean;
   enableNetworkMonitoring?: boolean;
   ignoreURLs?: string[];
+  customCrashReportingEndpoint?: string;
+  customRUMEndpoint?: string;
 }
 
 declare global {

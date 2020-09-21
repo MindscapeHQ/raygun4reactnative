@@ -106,7 +106,7 @@ const init = async (options: RaygunClientOptions) => {
     onUnhandled: processUnhandledRejection
   });
   if (!canEnableNative) {
-    setTimeout(() => sendCachedReports(GlobalOptions.apiKey), 10);
+    setTimeout(() => sendCachedReports(GlobalOptions.apiKey, GlobalOptions.customCrashReportingEndpoint), 10);
   }
   return true;
 };
@@ -160,7 +160,14 @@ const sendRUMTimingEvent = (
     warn('RUM is not enabled, please enable to use the sendRUMTimingEvent() function');
     return;
   }
-  sendCustomRUMEvent(getCurrentUser, GlobalOptions.apiKey, eventType, name, timeUsedInMs);
+  sendCustomRUMEvent(
+    getCurrentUser,
+    GlobalOptions.apiKey,
+    eventType,
+    name,
+    timeUsedInMs,
+    GlobalOptions.customRUMEndpoint
+  );
 };
 
 const addTag = (...tags: string[]) => {
@@ -258,7 +265,7 @@ const processUnhandledError = async (error: Error, isFatal?: boolean) => {
   }
 
   log('Send crash report via JS');
-  sendCrashReport(modifiedPayload, GlobalOptions.apiKey);
+  sendCrashReport(modifiedPayload, GlobalOptions.apiKey, GlobalOptions.customCrashReportingEndpoint);
 };
 
 export {
