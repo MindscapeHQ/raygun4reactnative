@@ -34,17 +34,15 @@ export const cleanFilePath = (frames: StackFrame[]): StackFrame[] =>
     return frame;
   });
 
-export const log = (...args: any[]) => {
+const getLogger = (output: (...args: any[]) => void) => (...args: any[]) => {
   if (process.env.DEBUG) {
-    console.log(args);
+    output(args);
   }
   return;
 };
 
-export const warn = (...args: any[]) => {
-  console.warn(args);
-};
+export const log = getLogger(console.log);
 
-export const error = (...args: any[]) => {
-  console.error(...args);
-};
+export const warn = getLogger(console.warn);
+
+export const error = getLogger(console.error);
