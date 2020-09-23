@@ -1,6 +1,5 @@
 import { NativeModules } from 'react-native';
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
-import { CrashReportPayload } from './types';
 const { Rg4rn } = NativeModules;
 
 const SOURCE_MAP_PREFIX = 'file://reactnative.local/';
@@ -34,3 +33,16 @@ export const cleanFilePath = (frames: StackFrame[]): StackFrame[] =>
     }
     return frame;
   });
+
+const getLogger = (output: (...args: any[]) => void) => (...args: any[]) => {
+  if (process.env.DEBUG) {
+    output(args);
+  }
+  return;
+};
+
+export const log = getLogger(console.log);
+
+export const warn = getLogger(console.warn);
+
+export const error = getLogger(console.error);

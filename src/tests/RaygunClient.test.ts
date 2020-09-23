@@ -71,7 +71,7 @@ describe('RaygunClient Initialization', () => {
     expect(Rg4rn.init).not.toBeCalled();
     jest.runAllTimers();
     expect(sendCachedReports).toBeCalledTimes(1);
-    expect(sendCachedReports).toBeCalledWith('someKey');
+    expect(sendCachedReports).toBeCalledWith('someKey', undefined);
   });
 
   test('should pass RUM options to native side when enabled', async () => {
@@ -149,7 +149,7 @@ describe('RaygunClient Initialization', () => {
     jest.runAllTimers();
     expect(Rg4rn.init).not.toBeCalled();
     expect(sendCachedReports).toBeCalledTimes(1);
-    expect(sendCachedReports).toBeCalledWith('someKey');
+    expect(sendCachedReports).toBeCalledWith('someKey', undefined);
   });
 });
 

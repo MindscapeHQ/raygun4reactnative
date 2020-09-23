@@ -1,7 +1,8 @@
 import { NativeModules } from 'react-native';
-const { Rg4rn } = NativeModules;
-
 import { CrashReportPayload } from './types';
+import { error } from './utils';
+
+const { Rg4rn } = NativeModules;
 
 export const saveCrashReport = async (report: CrashReportPayload): Promise<null> =>
   Rg4rn.saveCrashReport(JSON.stringify(report));
@@ -11,7 +12,7 @@ export const loadCachedReports = async (): Promise<CrashReportPayload[]> =>
     try {
       return JSON.parse(reportsJson).filter(Boolean);
     } catch (err) {
-      console.error(err);
+      error(err);
       return [];
     }
   });

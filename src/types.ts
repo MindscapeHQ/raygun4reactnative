@@ -125,7 +125,7 @@ export interface RUMEventPayload {
   data: [RUMData];
 }
 
-export type BeforeSendHandler = (payload: CrashReportPayload) => boolean;
+export type BeforeSendHandler = (payload: CrashReportPayload) => CrashReportPayload;
 
 export interface RaygunClientOptions {
   apiKey: string;
@@ -135,6 +135,8 @@ export interface RaygunClientOptions {
   enableRUM?: boolean;
   enableNetworkMonitoring?: boolean;
   ignoreURLs?: string[];
+  customCrashReportingEndpoint?: string;
+  customRUMEndpoint?: string;
 }
 
 declare global {
