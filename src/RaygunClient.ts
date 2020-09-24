@@ -25,7 +25,7 @@ const getCleanSession = (): Session => ({
   customData: {},
   breadcrumbs: [],
   user: {
-    identifier: `anonymous-${Rg4rn.DEVICE_ID}`
+    identifier: `anonymous-${getDeviceBasedId()}`
   }
 });
 
@@ -61,7 +61,7 @@ const init = async (options: RaygunClientOptions) => {
     {
       enableNetworkMonitoring: true,
       enableNativeCrashReporting: true,
-      enableRUM: false,
+      enableRUM: true,
       ignoreURLs: [],
       version: '',
       apiKey: ''
@@ -187,10 +187,7 @@ const setUser = (user: User | string) => {
         ? {
             identifier: user
           }
-        : {
-            identifier: getDeviceBasedId(),
-            isAnonymous: true
-          }
+        : curSession.user
       : user
   );
   if (GlobalOptions.enableNativeCrashReporting) {
