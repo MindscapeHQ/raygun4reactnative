@@ -189,7 +189,6 @@ const App = () => {
             <View
               style={{
                 width: '45%',
-
                 marginBottom: 15
               }}>
               <Button
@@ -203,7 +202,6 @@ const App = () => {
             <View
               style={{
                 width: '45%',
-
                 marginBottom: 15
               }}>
               <Button
@@ -212,6 +210,19 @@ const App = () => {
                 accessibilityLabel="makeNetworkCallBtn"
                 onPress={() => makeNetworkCall()}
                 title="Make network call"
+              />
+            </View>
+            <View
+              style={{
+                width: '45%',
+                marginBottom: 15
+              }}>
+              <Button
+                color="green"
+                testID="clearSessionBtn"
+                accessibilityLabel="clearSessionBtn"
+                onPress={() => RaygunClient.clearSession()}
+                title="Clear Session"
               />
             </View>
           </View>
