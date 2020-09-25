@@ -9,26 +9,13 @@
  */
 
 import React from 'react';
-import {
-  SafeAreaView,
-  StyleSheet,
-  ScrollView,
-  View,
-  StatusBar,
-  Button,
-} from 'react-native';
+import { SafeAreaView, StyleSheet, ScrollView, View, StatusBar, Button } from 'react-native';
 
-import {
-  throwUndefinedError,
-  throwCustomError,
-  promiseRejection,
-  reInitialize,
-  makeNetworkCall,
-} from './helper';
+import { throwUndefinedError, throwCustomError, promiseRejection, reInitialize, makeNetworkCall } from './helper';
 
-import {Header, Colors} from 'react-native/Libraries/NewAppScreen';
+import { Header, Colors } from 'react-native/Libraries/NewAppScreen';
 
-declare const global: {HermesInternal: null | {}};
+declare const global: { HermesInternal: null | {} };
 
 import RaygunClient from '@sundayempire/raygun4reactnative';
 
@@ -36,7 +23,7 @@ RaygunClient.init({
   apiKey: '', // YOUR APIKEY
   version: '', // YOUR APP VERSION
   enableNativeCrashReporting: true,
-  enableRUM: true,
+  enableRUM: true
 });
 
 const App = () => {
@@ -44,9 +31,7 @@ const App = () => {
     <>
       <StatusBar barStyle="dark-content" />
       <SafeAreaView>
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          style={styles.scrollView}>
+        <ScrollView contentInsetAdjustmentBehavior="automatic" style={styles.scrollView}>
           <Header />
 
           <View
@@ -56,13 +41,13 @@ const App = () => {
               flexWrap: 'wrap',
               justifyContent: 'space-around',
               margin: 20,
-              height: '100%',
+              height: '100%'
             }}>
             <View
               style={{
                 width: '45%',
                 backgroundColor: 'skyblue',
-                marginBottom: 15,
+                marginBottom: 15
               }}>
               <Button
                 testID="triggerUndefinedErrorBtn"
@@ -75,7 +60,7 @@ const App = () => {
               style={{
                 width: '45%',
                 backgroundColor: 'skyblue',
-                marginBottom: 15,
+                marginBottom: 15
               }}>
               <Button
                 testID="triggerCustomErrorBtn"
@@ -88,7 +73,7 @@ const App = () => {
               style={{
                 width: '45%',
                 backgroundColor: 'skyblue',
-                marginBottom: 15,
+                marginBottom: 15
               }}>
               <Button
                 testID="triggerPromiseRejectionBtn"
@@ -101,22 +86,20 @@ const App = () => {
               style={{
                 width: '45%',
 
-                marginBottom: 15,
+                marginBottom: 15
               }}>
               <Button
                 color="green"
                 testID="addTagsBtn"
                 accessibilityLabel="addTagsBtn"
-                onPress={() =>
-                  RaygunClient.addTag(`${new Date().toISOString()}`)
-                }
+                onPress={() => RaygunClient.addTag(`${new Date().toISOString()}`)}
                 title="Add DateString as Tags"
               />
             </View>
             <View
               style={{
                 width: '45%',
-                marginBottom: 15,
+                marginBottom: 15
               }}>
               <Button
                 color="green"
@@ -129,7 +112,7 @@ const App = () => {
             <View
               style={{
                 width: '45%',
-                marginBottom: 15,
+                marginBottom: 15
               }}>
               <Button
                 color="green"
@@ -142,7 +125,7 @@ const App = () => {
                     email: 'user@email.com',
                     firstName: 'first name',
                     fullName: 'full name',
-                    uuid: 'uuid',
+                    uuid: 'uuid'
                   })
                 }
                 title="Set User Object"
@@ -151,17 +134,17 @@ const App = () => {
             <View
               style={{
                 width: '45%',
-                marginBottom: 15,
+                marginBottom: 15
               }}>
               <Button
                 color="green"
                 testID="replaceCustomDataBtn"
                 accessibilityLabel="replaceCustomDataBtn"
                 onPress={() =>
-                  RaygunClient.updateCustomData((data) => {
+                  RaygunClient.updateCustomData(data => {
                     console.log('Existing customData', data);
                     return {
-                      replaceAllData: true,
+                      replaceAllData: true
                     };
                   })
                 }
@@ -171,7 +154,7 @@ const App = () => {
             <View
               style={{
                 width: '45%',
-                marginBottom: 15,
+                marginBottom: 15
               }}>
               <Button
                 color="green"
@@ -179,7 +162,7 @@ const App = () => {
                 accessibilityLabel="addCustomDataBtn"
                 onPress={() =>
                   RaygunClient.addCustomData({
-                    [Date.now()]: `Random: ${Math.random() * 1000}`,
+                    [Date.now()]: `Random: ${Math.random() * 1000}`
                   })
                 }
                 title="Add Random Custom Data"
@@ -188,7 +171,7 @@ const App = () => {
             <View
               style={{
                 width: '45%',
-                marginBottom: 15,
+                marginBottom: 15
               }}>
               <Button
                 color="green"
@@ -197,7 +180,7 @@ const App = () => {
                 onPress={() =>
                   RaygunClient.recordBreadcrumb('Breadcrumb Message', {
                     category: 'Simulation',
-                    level: 'debug',
+                    level: 'debug'
                   })
                 }
                 title="Add Simple Breadcrumbs Data"
@@ -207,7 +190,7 @@ const App = () => {
               style={{
                 width: '45%',
 
-                marginBottom: 15,
+                marginBottom: 15
               }}>
               <Button
                 color="green"
@@ -221,7 +204,7 @@ const App = () => {
               style={{
                 width: '45%',
 
-                marginBottom: 15,
+                marginBottom: 15
               }}>
               <Button
                 color="green"
@@ -240,32 +223,32 @@ const App = () => {
 
 const styles = StyleSheet.create({
   scrollView: {
-    backgroundColor: Colors.lighter,
+    backgroundColor: Colors.lighter
   },
   engine: {
     position: 'absolute',
-    right: 0,
+    right: 0
   },
   body: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.white
   },
   sectionContainer: {
     marginTop: 32,
-    paddingHorizontal: 24,
+    paddingHorizontal: 24
   },
   sectionTitle: {
     fontSize: 24,
     fontWeight: '600',
-    color: Colors.black,
+    color: Colors.black
   },
   sectionDescription: {
     marginTop: 8,
     fontSize: 18,
     fontWeight: '400',
-    color: Colors.dark,
+    color: Colors.dark
   },
   highlight: {
-    fontWeight: '700',
+    fontWeight: '700'
   },
   footer: {
     color: Colors.dark,
@@ -273,8 +256,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     padding: 4,
     paddingRight: 12,
-    textAlign: 'right',
-  },
+    textAlign: 'right'
+  }
 });
 
 export default App;

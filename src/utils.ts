@@ -35,7 +35,7 @@ export const cleanFilePath = (frames: StackFrame[]): StackFrame[] =>
   });
 
 const getLogger = (output: (...args: any[]) => void) => (...args: any[]) => {
-  if (process.env.DEBUG) {
+  if (__DEV__) {
     output(args);
   }
   return;
