@@ -69,27 +69,21 @@ const init = async (options: RaygunClientOptions) => {
     options
   );
 
-  const canEnableNative =
-    (GlobalOptions.enableNativeCrashReporting || GlobalOptions.enableRUM) && Rg4rn && typeof Rg4rn.init === 'function';
+  const useNativeCR = GlobalOptions.enableNativeCrashReporting && Rg4rn && typeof Rg4rn.init === 'function';
 
-  const alreadyInitialized = canEnableNative && (await Rg4rn.hasInitialized());
+  const alreadyInitialized = useNativeCR && (await Rg4rn.hasInitialized());
   if (alreadyInitialized) {
     log('Already initialized');
     return false;
   }
 
-  if (GlobalOptions.enableRUM) {
-    if (!canEnableNative) {
-      throw Error('Can not enable RUM as native sdk not configured properly');
-    }
+  const { version: appVersion, enableRUM, ignoreURLs, enableNetworkMonitoring, apiKey } = GlobalOptions;
+
+  if (enableRUM) {
+    setupRealtimeUserMonitoring(getCurrentUser, apiKey, enableNetworkMonitoring, ignoreURLs);
   }
 
-  // Enable native side crash reporting
-  if (canEnableNative) {
-    const { version: appVersion, enableRUM, ignoreURLs, enableNetworkMonitoring, apiKey } = GlobalOptions;
-    if (enableRUM) {
-      setupRealtimeUserMonitoring(getCurrentUser, apiKey, enableNetworkMonitoring, ignoreURLs);
-    }
+  if (useNativeCR || enableRUM) {
     Rg4rn.init({ apiKey, enableRUM, version: appVersion || '' });
   }
 
@@ -105,7 +99,7 @@ const init = async (options: RaygunClientOptions) => {
     allRejections: true,
     onUnhandled: processUnhandledRejection
   });
-  if (!canEnableNative) {
+  if (!useNativeCR) {
     setTimeout(() => sendCachedReports(GlobalOptions.apiKey, GlobalOptions.customCrashReportingEndpoint), 10);
   }
   return true;
@@ -187,17 +181,23 @@ const setUser = (user: User | string) => {
         ? {
             identifier: user
           }
-        : curSession.user
+        : {
+            identifier: `anonymous-${getDeviceBasedId()}`,
+            isAnonymous: true
+          }
       : user
   );
+  curSession.user = userObj;
   if (GlobalOptions.enableNativeCrashReporting) {
-    Rg4rn.setUser((curSession.user = userObj));
+    Rg4rn.setUser(userObj);
   }
 };
 
 const addCustomData = (customData: CustomData) => {
   curSession.customData = Object.assign({}, curSession.customData, customData);
-  Rg4rn.setCustomData(clone(curSession.customData));
+  if (GlobalOptions.enableNativeCrashReporting) {
+    Rg4rn.setCustomData(clone(curSession.customData));
+  }
 };
 
 const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
@@ -224,6 +224,9 @@ const recordBreadcrumb = (message: string, details?: BreadcrumbOption) => {
 
 const clearSession = () => {
   curSession = getCleanSession();
+  if (GlobalOptions.enableNativeCrashReporting) {
+    Rg4rn.clearSession();
+  }
 };
 
 const processUnhandledRejection = (id: number, error: any) => processUnhandledError(error, false);
@@ -249,7 +252,8 @@ const processUnhandledError = async (error: Error, isFatal?: boolean) => {
 
   const payload = await generatePayload(error, stack, curSession);
   const { onBeforeSend } = GlobalOptions;
-  const modifiedPayload = onBeforeSend && typeof onBeforeSend === 'function' && onBeforeSend(Object.freeze(payload));
+  const modifiedPayload =
+    onBeforeSend && typeof onBeforeSend === 'function' ? onBeforeSend(Object.freeze(payload)) : payload;
 
   if (!modifiedPayload) {
     return;

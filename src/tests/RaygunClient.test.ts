@@ -1,6 +1,6 @@
 import { Breadcrumb, BreadcrumbOption } from '../types';
 import { internalStackFrames, stackFramesWithAddress, fullStackFrames } from './fixture/errors';
-import { sendCachedReports, sendCrashReport } from '../transport';
+import { sendCachedReports } from '../transport';
 
 jest.mock('../network-monitor', () => ({
   setupNetworkMonitoring: jest.fn()
@@ -14,6 +14,7 @@ jest.mock('react-native', () => ({
       setUser: jest.fn(),
       setCustomData: jest.fn(),
       recordBreadcrumb: jest.fn(),
+      clearSession: jest.fn(),
       hasInitialized: jest.fn().mockResolvedValue(false),
       getEnvironmentInfo: jest.fn().mockResolvedValue({})
     }
@@ -67,7 +68,7 @@ describe('RaygunClient Initialization', () => {
   });
 
   test('should correctly pass apiKey to JS transport when enableNativeCrashReporting is false', async () => {
-    await RaygunClient.init({ apiKey: 'someKey', enableNativeCrashReporting: false });
+    await RaygunClient.init({ apiKey: 'someKey', enableNativeCrashReporting: false, enableRUM: false });
     expect(Rg4rn.init).not.toBeCalled();
     jest.runAllTimers();
     expect(sendCachedReports).toBeCalledTimes(1);
@@ -96,7 +97,7 @@ describe('RaygunClient Initialization', () => {
     expect(Rg4rn.init).toHaveBeenLastCalledWith({
       apiKey: 'someKey',
       version: '',
-      enableRUM: false
+      enableRUM: true
     });
   });
 
@@ -113,18 +114,17 @@ describe('RaygunClient Initialization', () => {
     });
   });
 
-  test('should NOT throws when Native SDK is not detected', async () => {
+  test('should NOT throws when RUM is enabled and Platform is iOS', async () => {
     Platform.OS = 'android';
-    NativeModules.Rg4rn.init = undefined;
-    try {
-      await RaygunClient.init({
-        apiKey: 'someKey',
-        enableRUM: true
-      });
-    } catch (error) {
-      expect(error).toEqual(Error('Can not enable RUM as native sdk not configured properly'));
-    }
-    NativeModules.Rg4rn.init = jest.fn();
+    await RaygunClient.init({
+      apiKey: 'someKey',
+      enableRUM: true
+    });
+    expect(Rg4rn.init).toBeCalledWith({
+      apiKey: 'someKey',
+      version: '',
+      enableRUM: true
+    });
   });
 
   test('should NOT automatic turn on network monitoring if user specifically turn it off', async () => {
@@ -141,13 +141,13 @@ describe('RaygunClient Initialization', () => {
     });
   });
 
-  test('should not initialize native side and sendCachedReport from JS side when not enableNativeCrashReporting', async () => {
+  test('should still initialize native side but not calling sendCachedReport from JS side when not enableNativeCrashReporting', async () => {
     await RaygunClient.init({
       apiKey: 'someKey',
       enableNativeCrashReporting: false
     });
     jest.runAllTimers();
-    expect(Rg4rn.init).not.toBeCalled();
+    expect(Rg4rn.init).toBeCalledWith({ apiKey: 'someKey', version: expect.any(String), enableRUM: true });
     expect(sendCachedReports).toBeCalledTimes(1);
     expect(sendCachedReports).toBeCalledWith('someKey', undefined);
   });

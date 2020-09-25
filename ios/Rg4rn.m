@@ -222,6 +222,13 @@ RCT_EXPORT_METHOD(init:(NSDictionary *)options)
     [self sendEventWithName: onDestroy body:@{@"name": viewName}];
 }
 
+RCT_EXPORT_METHOD(clearSession) {
+    [RaygunClient.sharedInstance setTags: @[]];
+    [RaygunClient.sharedInstance setCustomData: nil];
+    [RaygunClient.sharedInstance setUserInformation: [RaygunUserInformation anonymousUser]];
+    [RaygunClient.sharedInstance clearBreadcrumbs];
+}
+
 RCT_EXPORT_METHOD(getEnvironmentInfo:(RCTPromiseResolveBlock)resolve onError:(RCTPromiseRejectBlock)reject) {
     NSMutableDictionary* environment = [[NSMutableDictionary alloc] init];
     NSUInteger processorCount = [[NSProcessInfo processInfo] processorCount];
