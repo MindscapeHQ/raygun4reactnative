@@ -1,10 +1,18 @@
-import { Breadcrumb, BreadcrumbOption } from '../types';
+import { Breadcrumb, BreadcrumbOption, CustomData, StackTrace } from '../types';
 import { internalStackFrames, stackFramesWithAddress, fullStackFrames } from './fixture/errors';
-import { sendCachedReports } from '../transport';
+import { sendCachedReports, sendCrashReport } from '../transport';
+import { setupRealtimeUserMonitoring } from '../realtime-user-monitor';
+
+jest.mock('../realtime-user-monitor', () => ({
+  setupRealtimeUserMonitoring: jest.fn()
+}));
 
 jest.mock('../network-monitor', () => ({
   setupNetworkMonitoring: jest.fn()
 }));
+
+jest.mock('react-native/Libraries/Core/Devtools/parseErrorStack', () => jest.fn().mockReturnValue({}));
+jest.mock('react-native/Libraries/Core/Devtools/symbolicateStackTrace', () => jest.fn().mockReturnValue({}));
 
 jest.mock('react-native', () => ({
   NativeModules: {
@@ -16,7 +24,8 @@ jest.mock('react-native', () => ({
       recordBreadcrumb: jest.fn(),
       clearSession: jest.fn(),
       hasInitialized: jest.fn().mockResolvedValue(false),
-      getEnvironmentInfo: jest.fn().mockResolvedValue({})
+      getEnvironmentInfo: jest.fn().mockResolvedValue({}),
+      sendCrashReport: jest.fn().mockResolvedValue(true)
     }
   },
   NativeEventEmitter: jest.fn(() => ({
@@ -49,7 +58,28 @@ beforeAll(() => {
 import * as RaygunClient from '../RaygunClient';
 import { NativeModules, Platform } from 'react-native';
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
+
 const { Rg4rn } = NativeModules;
+const mockPayload = {
+  OccurredOn: new Date(),
+  Details: {
+    Error: {
+      ClassName: '',
+      Message: '',
+      StackTrace: [] as StackTrace[],
+      StackString: ''
+    },
+    Environment: {
+      UtcOffset: new Date().getTimezoneOffset() / 60
+    },
+    Client: {
+      Name: '',
+      Version: ''
+    },
+    UserCustomData: {} as CustomData,
+    Version: ''
+  }
+};
 
 afterEach(() => {
   RaygunClient.clearSession();
@@ -76,7 +106,6 @@ describe('RaygunClient Initialization', () => {
   });
 
   test('should pass RUM options to native side when enabled', async () => {
-    Platform.OS = 'android';
     await RaygunClient.init({
       apiKey: 'someKey',
       enableRUM: true
@@ -89,7 +118,6 @@ describe('RaygunClient Initialization', () => {
   });
 
   test('should not pass unnecessary options to native side', async () => {
-    Platform.OS = 'ios';
     await RaygunClient.init({
       apiKey: 'someKey',
       enableNativeCrashReporting: true
@@ -101,30 +129,13 @@ describe('RaygunClient Initialization', () => {
     });
   });
 
-  test('should NOT throws when RUM is enabled and Platform is iOS', async () => {
-    Platform.OS = 'ios';
+  test('should pass custom RUM endpoint to realtime-user-monitor when given', async () => {
     await RaygunClient.init({
       apiKey: 'someKey',
-      enableRUM: true
+      enableRUM: true,
+      customRUMEndpoint: 'rum.endpoint.io'
     });
-    expect(Rg4rn.init).toBeCalledWith({
-      apiKey: 'someKey',
-      version: '',
-      enableRUM: true
-    });
-  });
-
-  test('should NOT throws when RUM is enabled and Platform is iOS', async () => {
-    Platform.OS = 'android';
-    await RaygunClient.init({
-      apiKey: 'someKey',
-      enableRUM: true
-    });
-    expect(Rg4rn.init).toBeCalledWith({
-      apiKey: 'someKey',
-      version: '',
-      enableRUM: true
-    });
+    expect(setupRealtimeUserMonitoring).toBeCalledWith(expect.any(Function), 'someKey', true, [], 'rum.endpoint.io');
   });
 
   test('should NOT automatic turn on network monitoring if user specifically turn it off', async () => {
@@ -260,7 +271,7 @@ describe('Error process function', () => {
       Details: {
         Environment: {
           JailBroken: false,
-          UtcOffset: -12
+          UtcOffset: new Date().getTimezoneOffset() / 60
         },
         Error: {
           ClassName: error.name,
@@ -302,5 +313,57 @@ describe('Error process function', () => {
         Version: 'Not supplied'
       }
     });
+  });
+});
+
+describe('Sending errors', () => {
+  test('Should use native sendCrashReport when enable native crash reporting', async () => {
+    await RaygunClient.init({ apiKey: 'someKey', enableNativeCrashReporting: true });
+    await RaygunClient.sendCustomError(new Error('Test Native Report'));
+    expect(Rg4rn.sendCrashReport).toBeCalledTimes(1);
+    expect(sendCrashReport).toBeCalledTimes(0);
+  });
+
+  test('Should use JS sendCrashReport when disable native crash reporting', async () => {
+    await RaygunClient.init({ apiKey: 'someKey', enableNativeCrashReporting: false });
+    await RaygunClient.sendCustomError(new Error('Test JS Report'));
+    expect(sendCrashReport).toBeCalledTimes(1);
+    expect(Rg4rn.sendCrashReport).toBeCalledTimes(0);
+  });
+
+  test('Should stop sendCrashReport when onBeforeHandler returns falsy value', async () => {
+    await RaygunClient.init({ apiKey: 'someKey', onBeforeSend: () => null });
+    await RaygunClient.sendCustomError(new Error('Test JS Report'));
+    expect(sendCrashReport).toBeCalledTimes(0);
+    expect(Rg4rn.sendCrashReport).toBeCalledTimes(0);
+  });
+
+  test('Should use native sendCrashReport with the payload returned from onBeforeHandler', async () => {
+    await RaygunClient.init({ apiKey: 'someKey', onBeforeSend: () => mockPayload, enableNativeCrashReporting: true });
+    await RaygunClient.sendCustomError(new Error('Test JS Report'));
+    expect(sendCrashReport).toBeCalledTimes(0);
+    expect(Rg4rn.sendCrashReport).toBeCalledTimes(1);
+    expect(Rg4rn.sendCrashReport).toBeCalledWith(JSON.stringify(mockPayload), 'someKey');
+  });
+
+  test('Should use native sendCrashReport with the payload returned from onBeforeHandler', async () => {
+    await RaygunClient.init({ apiKey: 'someKey', onBeforeSend: () => mockPayload, enableNativeCrashReporting: false });
+    await RaygunClient.sendCustomError(new Error('Test JS Report'));
+    expect(sendCrashReport).toBeCalledTimes(1);
+    expect(Rg4rn.sendCrashReport).toBeCalledTimes(0);
+    expect(sendCrashReport).toBeCalledWith(mockPayload, 'someKey', undefined);
+  });
+
+  test('Should be able to use custom endpoint for CrashReporting when using JS transport', async () => {
+    await RaygunClient.init({
+      apiKey: 'someKey',
+      onBeforeSend: () => mockPayload,
+      enableNativeCrashReporting: false,
+      customCrashReportingEndpoint: 'demo.crashreport.ios'
+    });
+    await RaygunClient.sendCustomError(new Error('Test JS Report'));
+    expect(sendCrashReport).toBeCalledTimes(1);
+    expect(Rg4rn.sendCrashReport).toBeCalledTimes(0);
+    expect(sendCrashReport).toBeCalledWith(mockPayload, 'someKey', 'demo.crashreport.ios');
   });
 });

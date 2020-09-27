@@ -125,7 +125,7 @@ export interface RUMEventPayload {
   data: [RUMData];
 }
 
-export type BeforeSendHandler = (payload: CrashReportPayload) => CrashReportPayload;
+export type BeforeSendHandler = (payload: CrashReportPayload) => CrashReportPayload | null;
 
 export interface RaygunClientOptions {
   apiKey: string;

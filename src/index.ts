@@ -6,7 +6,8 @@ import {
   addTag,
   updateCustomData,
   clearSession,
-  sendRUMTimingEvent
+  sendRUMTimingEvent,
+  sendCustomError
 } from './RaygunClient';
 
 export default {
@@ -17,5 +18,6 @@ export default {
   addTag,
   updateCustomData,
   clearSession,
-  sendRUMTimingEvent
+  sendRUMTimingEvent,
+  sendCustomError
 };
