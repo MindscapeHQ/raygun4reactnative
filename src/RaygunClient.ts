@@ -80,7 +80,13 @@ const init = async (options: RaygunClientOptions) => {
   const { version: appVersion, enableRUM, ignoreURLs, enableNetworkMonitoring, apiKey } = GlobalOptions;
 
   if (enableRUM) {
-    setupRealtimeUserMonitoring(getCurrentUser, apiKey, enableNetworkMonitoring, ignoreURLs);
+    setupRealtimeUserMonitoring(
+      getCurrentUser,
+      apiKey,
+      enableNetworkMonitoring,
+      ignoreURLs,
+      GlobalOptions.customRUMEndpoint
+    );
   }
 
   if (useNativeCR || enableRUM) {
@@ -236,7 +242,7 @@ const processUnhandledError = async (error: Error, isFatal?: boolean) => {
     warn('Unrecognized error occurred');
     return;
   }
-  /** Following two module came from react flow source code, so we require here to prevent TS transpile it */
+
   const parseErrorStack = require('react-native/Libraries/Core/Devtools/parseErrorStack');
   const symbolicateStackTrace = require('react-native/Libraries/Core/Devtools/symbolicateStackTrace');
   const stackFrame = parseErrorStack(error);
@@ -269,6 +275,8 @@ const processUnhandledError = async (error: Error, isFatal?: boolean) => {
   sendCrashReport(modifiedPayload, GlobalOptions.apiKey, GlobalOptions.customCrashReportingEndpoint);
 };
 
+const sendCustomError = processUnhandledError;
+
 export {
   init,
   addTag,
@@ -280,5 +288,6 @@ export {
   filterOutReactFrames,
   noAddressAt,
   generatePayload,
-  sendRUMTimingEvent
+  sendRUMTimingEvent,
+  sendCustomError
 };
