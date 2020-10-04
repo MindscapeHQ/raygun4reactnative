@@ -160,10 +160,15 @@ public class Rg4rnModule extends ReactContextBaseJavaModule implements Lifecycle
         }
         String apiKey = options.getString("apiKey");
         String version = options.getString("version");
+        String customCREndpoint = options.getString("customCrashReportingEndpoint");
         Boolean enableRUM = options.getBoolean("enableRUM");
         RaygunClient.init(this.reactContext, apiKey, version);
         initialized = true;
+
         RaygunClient.setOnBeforeSend(new OnBeforeSendHandler());
+        Log.i("customEndpoint", customCREndpoint);
+        RaygunClient.setCustomCrashReportingEndpoint(customCREndpoint);
+
         if (enableRUM) {
             reactContext.addLifecycleEventListener(this);
             long ms = SystemClock.uptimeMillis() - startedTime;
