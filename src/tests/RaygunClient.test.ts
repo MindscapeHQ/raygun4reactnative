@@ -138,6 +138,20 @@ describe('RaygunClient Initialization', () => {
     expect(setupRealtimeUserMonitoring).toBeCalledWith(expect.any(Function), 'someKey', true, [], 'rum.endpoint.io');
   });
 
+  test('should pass custom CrashReporting endpoint to native side when given', async () => {
+    await RaygunClient.init({
+      apiKey: 'someKey',
+      enableRUM: true,
+      customCrashReportingEndpoint: 'cr.endpoint.io'
+    });
+    expect(Rg4rn.init).toHaveBeenLastCalledWith({
+      apiKey: 'someKey',
+      version: '',
+      enableRUM: true,
+      customCrashReportingEndpoint: 'cr.endpoint.io'
+    });
+  });
+
   test('should NOT automatic turn on network monitoring if user specifically turn it off', async () => {
     Platform.OS = 'ios';
     await RaygunClient.init({

@@ -77,20 +77,22 @@ const init = async (options: RaygunClientOptions) => {
     return false;
   }
 
-  const { version: appVersion, enableRUM, ignoreURLs, enableNetworkMonitoring, apiKey } = GlobalOptions;
+  const {
+    version: appVersion,
+    enableRUM,
+    ignoreURLs,
+    enableNetworkMonitoring,
+    apiKey,
+    customCrashReportingEndpoint,
+    customRUMEndpoint
+  } = GlobalOptions;
 
   if (enableRUM) {
-    setupRealtimeUserMonitoring(
-      getCurrentUser,
-      apiKey,
-      enableNetworkMonitoring,
-      ignoreURLs,
-      GlobalOptions.customRUMEndpoint
-    );
+    setupRealtimeUserMonitoring(getCurrentUser, apiKey, enableNetworkMonitoring, ignoreURLs, customRUMEndpoint);
   }
 
   if (useNativeCR || enableRUM) {
-    Rg4rn.init({ apiKey, enableRUM, version: appVersion || '' });
+    Rg4rn.init({ apiKey, enableRUM, version: appVersion || '', customCrashReportingEndpoint });
   }
 
   const prevHandler = ErrorUtils.getGlobalHandler();
@@ -106,7 +108,7 @@ const init = async (options: RaygunClientOptions) => {
     onUnhandled: processUnhandledRejection
   });
   if (!useNativeCR) {
-    setTimeout(() => sendCachedReports(GlobalOptions.apiKey, GlobalOptions.customCrashReportingEndpoint), 10);
+    setTimeout(() => sendCachedReports(GlobalOptions.apiKey, customCrashReportingEndpoint), 10);
   }
   return true;
 };

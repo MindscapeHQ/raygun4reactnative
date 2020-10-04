@@ -179,6 +179,7 @@ RCT_EXPORT_METHOD(init:(NSDictionary *)options)
 {
     RCTLogInfo(@"Start create shared RaygunClient");
     NSString *apiKey = [options objectForKey:@"apiKey"];
+    NSString *customCREndpoint = [options objectForKey:@"customCrashReportingEndpoint"];
     BOOL enableNativeCrashReporting = [RCTConvert BOOL:[options objectForKey:@"enableNativeCrashReporting"]];
     BOOL enableRUM = [RCTConvert BOOL:[options objectForKey:@"enableRUM"]];
 
@@ -186,7 +187,9 @@ RCT_EXPORT_METHOD(init:(NSDictionary *)options)
     for (id key in options) {
         RCTLogInfo(@"key: %@, value: %@ \n", key, [options objectForKey:key]);
     }
-    [RaygunClient sharedInstanceWithApiKey:apiKey];
+
+    [[RaygunClient sharedInstanceWithApiKey:apiKey] setCrashReportingApiEndpoint: customCREndpoint];
+    
     if (enableNativeCrashReporting) {
         [RaygunClient.sharedInstance enableCrashReporting];
     }
@@ -340,7 +343,6 @@ RCT_EXPORT_METHOD(saveCrashReport:(NSString *)jsonString withResolver: (RCTPromi
 
 RCT_EXPORT_METHOD(sendCrashReport:(NSString *)jsonString withApiKey:(NSString *) apiKey)
 {
-    RCTLogInfo(@"Shouldn't send iOS exception via native side");
     NSError *parsingError = nil;
     NSData *jsonData = [jsonString dataUsingEncoding:NSUTF8StringEncoding];
     NSDictionary *report = [NSJSONSerialization JSONObjectWithData:jsonData options:0 error: &parsingError];
