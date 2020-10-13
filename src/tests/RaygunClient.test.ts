@@ -380,4 +380,44 @@ describe('Sending errors', () => {
     expect(Rg4rn.sendCrashReport).toBeCalledTimes(0);
     expect(sendCrashReport).toBeCalledWith(mockPayload, 'someKey', 'demo.crashreport.ios');
   });
+
+  test('Should be able to send customData with sendCustomError function', async () => {
+    const customData = { dataKey: 'test' }
+    await RaygunClient.init({
+      apiKey: 'someKey',
+      onBeforeSend: (actualPayload) => ({ ...mockPayload, Details: { ...mockPayload.Details, UserCustomData: actualPayload.Details.UserCustomData } }),
+      enableNativeCrashReporting: false
+    });
+    await RaygunClient.sendCustomError(new Error('Test JS Report'), customData);
+    expect(sendCrashReport).toBeCalledTimes(1);
+    expect(Rg4rn.sendCrashReport).toBeCalledTimes(0);
+    expect(sendCrashReport).toBeCalledWith({...mockPayload, ...{ Details: { ...mockPayload.Details, UserCustomData: customData } }}, 'someKey', undefined);
+  });
+
+  test('Should be able to send tags with sendCustomError function', async () => {
+    const tags = ['test1', 'test2'];
+    await RaygunClient.init({
+      apiKey: 'someKey',
+      onBeforeSend: (actualPayload) => ({ ...mockPayload, Details: { ...mockPayload.Details, Tags: actualPayload.Details.Tags } }),
+      enableNativeCrashReporting: false
+    });
+    await RaygunClient.sendCustomError(new Error('Test JS Report'), tags);
+    expect(sendCrashReport).toBeCalledTimes(1);
+    expect(Rg4rn.sendCrashReport).toBeCalledTimes(0);
+    expect(sendCrashReport).toBeCalledWith({...mockPayload, ...{ Details: { ...mockPayload.Details, Tags: ['React Native'].concat(tags) } }}, 'someKey', undefined);
+  });
+
+  test('Should be able to send customData and tags with sendCustomError function', async () => {
+    const tags = ['test1', 'test2'];
+    const customData = { dataKey: 'test' }
+    await RaygunClient.init({
+      apiKey: 'someKey',
+      onBeforeSend: (actualPayload) => ({ ...mockPayload, Details: { ...mockPayload.Details, UserCustomData: actualPayload.Details.UserCustomData, Tags: actualPayload.Details.Tags } }),
+      enableNativeCrashReporting: false
+    });
+    await RaygunClient.sendCustomError(new Error('Test JS Report'), customData, tags);
+    expect(sendCrashReport).toBeCalledTimes(1);
+    expect(Rg4rn.sendCrashReport).toBeCalledTimes(0);
+    expect(sendCrashReport).toBeCalledWith({...mockPayload, ...{ Details: { ...mockPayload.Details, UserCustomData: customData, Tags: ['React Native'].concat(tags) } }}, 'someKey', undefined);
+  });
 });

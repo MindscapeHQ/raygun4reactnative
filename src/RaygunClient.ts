@@ -11,7 +11,8 @@ import {
   RaygunClientOptions,
   BreadcrumbOption,
   Breadcrumb,
-  RUMEvents
+  RUMEvents,
+  SendCustomErrorOverload
 } from './types';
 import { sendCustomRUMEvent, setupRealtimeUserMonitoring } from './realtime-user-monitor';
 import { sendCrashReport, sendCachedReports } from './transport';
@@ -259,6 +260,7 @@ const processUnhandledError = async (error: Error, isFatal?: boolean) => {
   }
 
   const payload = await generatePayload(error, stack, curSession);
+  
   const { onBeforeSend } = GlobalOptions;
   const modifiedPayload =
     onBeforeSend && typeof onBeforeSend === 'function' ? onBeforeSend(Object.freeze(payload)) : payload;
@@ -277,7 +279,16 @@ const processUnhandledError = async (error: Error, isFatal?: boolean) => {
   sendCrashReport(modifiedPayload, GlobalOptions.apiKey, GlobalOptions.customCrashReportingEndpoint);
 };
 
-const sendCustomError = processUnhandledError;
+const sendCustomError:SendCustomErrorOverload  = async (error: Error, ...params: any) => {
+  const [customData, tags] = params.length == 1 && Array.isArray(params[0]) ? [null, params[0]] : params;
+  if (customData) {
+    addCustomData(customData as CustomData);
+  }
+  if (tags && tags.length) {
+    addTag(...tags as string[]);
+  }
+  await processUnhandledError(error);
+}
 
 export {
   init,
