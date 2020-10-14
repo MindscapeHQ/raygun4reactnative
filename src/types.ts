@@ -26,6 +26,13 @@ export type BreadcrumbOption = Omit<Breadcrumb, 'message' | 'timestamp'>;
 
 export type NetworkTimingCallback = (name: string, sendTime: number, duration: number) => void;
 
+export type SendCustomErrorOverload = {
+  (error: Error, customData: CustomData, tags: string[]): Promise<void>;
+  (error: Error, customData: CustomData): Promise<void>;
+  (error: Error, tags: string[]): Promise<void>;
+  (error: Error): Promise<void>;
+}
+
 export enum RUMEvents {
   SessionStart = 'session_start',
   SessionEnd = 'session_end',
