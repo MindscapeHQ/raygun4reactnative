@@ -22,6 +22,8 @@ import RaygunClient from '@sundayempire/raygun4reactnative';
 RaygunClient.init({
   apiKey: '', // YOUR APIKEY
   version: '', // YOUR APP VERSION
+  customCrashReportingEndpoint: '',
+  customRUMEndpoint: '',
   enableNativeCrashReporting: true,
   enableRUM: true
 });
