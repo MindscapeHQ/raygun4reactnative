@@ -19,13 +19,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/raygun4reactnative.git"
+    "url": "git+https://github.com/MindscapeHQ/raygun4reactnative.git"
   },
   "keywords": [
     "react-native"
   ],
   "author": {
-    "name": "MindscapeHQ",
+    "name": "Raygun",
     "email": "hello@raygun.com"
   },
   "license": "MIT",
