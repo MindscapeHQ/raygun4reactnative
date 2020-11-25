@@ -11,6 +11,15 @@ android/local.properties
 android/.settings
 android/.project
 android/.classpath
+demo/android/.idea/
+demo/android/.gradle
+demo/android/build/
+demo/android/libs/
+demo/android/*.iml
+demo/android/local.properties
+demo/android/.settings
+demo/android/.project
+demo/android/.classpath
 .jest/
 coverage/
 release/
