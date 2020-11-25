@@ -1,4 +1,4 @@
-import RaygunClient from '@sundayempire/raygun4reactnative';
+import RaygunClient from 'raygun4reactnative';
 
 const throwUndefinedError = () => {
   //@ts-ignore

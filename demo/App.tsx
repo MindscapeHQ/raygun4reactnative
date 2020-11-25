@@ -17,7 +17,7 @@ import { Header, Colors } from 'react-native/Libraries/NewAppScreen';
 
 declare const global: { HermesInternal: null | {} };
 
-import RaygunClient from '@sundayempire/raygun4reactnative';
+import RaygunClient from 'raygun4reactnative';
 
 RaygunClient.init({
   apiKey: '', // YOUR APIKEY

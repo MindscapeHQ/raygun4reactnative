@@ -1,5 +1,5 @@
 {
-  "name": "@sundayempire/raygun4reactnative",
+  "name": "raygun4reactnative",
   "title": "Raygun4reactnative",
   "version": "1.1.1-beta-8",
   "description": "Raygun React Native SDK",
@@ -19,7 +19,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sundayempire/raygun4reactnative.git"
+    "url": "git+https://github.com/raygun4reactnative.git"
   },
   "keywords": [
     "react-native"
