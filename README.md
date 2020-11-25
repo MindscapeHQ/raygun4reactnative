@@ -15,9 +15,9 @@
 To install the package:
 
 ```sh
-npm install --save @sundayempire/raygun4reactnative
+npm install --save raygun4reactnative
 # OR
-yarn add @sundayempire/raygun4reactnative
+yarn add raygun4reactnative
 ```
 
 ### Additional step - iOS

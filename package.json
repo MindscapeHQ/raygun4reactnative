@@ -1,7 +1,7 @@
 {
-  "name": "@sundayempire/raygun4reactnative",
+  "name": "raygun4reactnative",
   "title": "Raygun4reactnative",
-  "version": "1.1.1-beta-8",
+  "version": "0.0.1-alpha",
   "description": "Raygun React Native SDK",
   "main": "dist/index.js",
   "typescript": {
@@ -19,13 +19,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sundayempire/raygun4reactnative.git"
+    "url": "git+https://github.com/MindscapeHQ/raygun4reactnative.git"
   },
   "keywords": [
     "react-native"
   ],
   "author": {
-    "name": "MindscapeHQ",
+    "name": "Raygun",
     "email": "hello@raygun.com"
   },
   "license": "MIT",

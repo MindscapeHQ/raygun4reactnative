@@ -1,6 +1,6 @@
 {
-  "name": "AwesomeTSProject",
-  "version": "0.0.1",
+  "name": "raygun4reactnativedemo",
+  "version": "0.0.1-alpha",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -10,7 +10,7 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "dependencies": {
-    "@sundayempire/raygun4reactnative": "^1.1.0-beta-18",
+    "raygun4reactnative": "file:../raygun4reactnative-0.0.1-alpha.tgz",
     "react": "16.13.1",
     "react-native": "0.63.0"
   },

@@ -1,4 +1,4 @@
-package com.awesometsproject;
+package com.raygun4reactnativedemo;
 
 import com.facebook.react.ReactActivity;
 
@@ -10,6 +10,6 @@ public class MainActivity extends ReactActivity {
    */
   @Override
   protected String getMainComponentName() {
-    return "AwesomeTSProject";
+    return "Raygun4ReactNativeDemo";
   }
 }
