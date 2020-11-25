@@ -3,12 +3,12 @@ require_relative '../node_modules/@react-native-community/cli-platform-ios/nativ
 
 platform :ios, '10.0'
 
-target 'AwesomeTSProject' do
+target 'Raygun4ReactNativeDemo' do
   config = use_native_modules!
 
   use_react_native!(:path => config["reactNativePath"])
 
-  target 'AwesomeTSProjectTests' do
+  target 'Raygun4ReactNativeDemoTests' do
     inherit! :complete
     # Pods for testing
   end

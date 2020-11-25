@@ -7,17 +7,17 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		00E356F31AD99517003FC87E /* AwesomeTSProjectTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* AwesomeTSProjectTests.m */; };
+		00E356F31AD99517003FC87E /* Raygun4ReactNativeDemoTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* Raygun4ReactNativeDemoTests.m */; };
 		13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.m */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		2D02E4BC1E0B4A80006451C7 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.m */; };
 		2D02E4BD1E0B4A84006451C7 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		2D02E4BF1E0B4AB3006451C7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
-		2DCD954D1E0B4F2C00145EB5 /* AwesomeTSProjectTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* AwesomeTSProjectTests.m */; };
-		6DE1035BF7DE317FE9E328C2 /* libPods-AwesomeTSProject.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0B32E30124374EF66F22F144 /* libPods-AwesomeTSProject.a */; };
+		2DCD954D1E0B4F2C00145EB5 /* Raygun4ReactNativeDemoTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* Raygun4ReactNativeDemoTests.m */; };
+		6DE1035BF7DE317FE9E328C2 /* libPods-Raygun4ReactNativeDemo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0B32E30124374EF66F22F144 /* libPods-Raygun4ReactNativeDemo.a */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
-		C5A2E9E15985BB9A5A338FCD /* libPods-AwesomeTSProject-AwesomeTSProjectTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F36FD6641BD6D81442298FE /* libPods-AwesomeTSProject-AwesomeTSProjectTests.a */; };
+		C5A2E9E15985BB9A5A338FCD /* libPods-Raygun4ReactNativeDemo-Raygun4ReactNativeDemoTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F36FD6641BD6D81442298FE /* libPods-Raygun4ReactNativeDemo-Raygun4ReactNativeDemoTests.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -26,39 +26,39 @@
 			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 13B07F861A680F5B00A75B9A;
-			remoteInfo = AwesomeTSProject;
+			remoteInfo = Raygun4ReactNativeDemo;
 		};
 		2D02E4911E0B4A5D006451C7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 2D02E47A1E0B4A5D006451C7;
-			remoteInfo = "AwesomeTSProject-tvOS";
+			remoteInfo = "Raygun4ReactNativeDemo-tvOS";
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		008F07F21AC5B25A0029DE68 /* main.jsbundle */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = main.jsbundle; sourceTree = "<group>"; };
-		00E356EE1AD99517003FC87E /* AwesomeTSProjectTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AwesomeTSProjectTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		00E356EE1AD99517003FC87E /* Raygun4ReactNativeDemoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Raygun4ReactNativeDemoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		00E356F21AD99517003FC87E /* AwesomeTSProjectTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AwesomeTSProjectTests.m; sourceTree = "<group>"; };
-		0B32E30124374EF66F22F144 /* libPods-AwesomeTSProject.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-AwesomeTSProject.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		0F36FD6641BD6D81442298FE /* libPods-AwesomeTSProject-AwesomeTSProjectTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-AwesomeTSProject-AwesomeTSProjectTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		13B07F961A680F5B00A75B9A /* AwesomeTSProject.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AwesomeTSProject.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = AwesomeTSProject/AppDelegate.h; sourceTree = "<group>"; };
-		13B07FB01A68108700A75B9A /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppDelegate.m; path = AwesomeTSProject/AppDelegate.m; sourceTree = "<group>"; };
-		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = AwesomeTSProject/Images.xcassets; sourceTree = "<group>"; };
-		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = AwesomeTSProject/Info.plist; sourceTree = "<group>"; };
-		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = AwesomeTSProject/main.m; sourceTree = "<group>"; };
-		2D02E47B1E0B4A5D006451C7 /* AwesomeTSProject-tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "AwesomeTSProject-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		2D02E4901E0B4A5D006451C7 /* AwesomeTSProject-tvOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "AwesomeTSProject-tvOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = AwesomeTSProject/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		920AE01196CF291853BA329C /* Pods-AwesomeTSProject-AwesomeTSProjectTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AwesomeTSProject-AwesomeTSProjectTests.release.xcconfig"; path = "Target Support Files/Pods-AwesomeTSProject-AwesomeTSProjectTests/Pods-AwesomeTSProject-AwesomeTSProjectTests.release.xcconfig"; sourceTree = "<group>"; };
-		A73D6623F5213E78782B8867 /* Pods-AwesomeTSProject.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AwesomeTSProject.release.xcconfig"; path = "Target Support Files/Pods-AwesomeTSProject/Pods-AwesomeTSProject.release.xcconfig"; sourceTree = "<group>"; };
-		D5B2C53165757B8DB1E88994 /* Pods-AwesomeTSProject-AwesomeTSProjectTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AwesomeTSProject-AwesomeTSProjectTests.debug.xcconfig"; path = "Target Support Files/Pods-AwesomeTSProject-AwesomeTSProjectTests/Pods-AwesomeTSProject-AwesomeTSProjectTests.debug.xcconfig"; sourceTree = "<group>"; };
+		00E356F21AD99517003FC87E /* Raygun4ReactNativeDemoTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Raygun4ReactNativeDemoTests.m; sourceTree = "<group>"; };
+		0B32E30124374EF66F22F144 /* libPods-Raygun4ReactNativeDemo.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Raygun4ReactNativeDemo.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		0F36FD6641BD6D81442298FE /* libPods-Raygun4ReactNativeDemo-Raygun4ReactNativeDemoTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Raygun4ReactNativeDemo-Raygun4ReactNativeDemoTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		13B07F961A680F5B00A75B9A /* Raygun4ReactNativeDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Raygun4ReactNativeDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = Raygun4ReactNativeDemo/AppDelegate.h; sourceTree = "<group>"; };
+		13B07FB01A68108700A75B9A /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppDelegate.m; path = Raygun4ReactNativeDemo/AppDelegate.m; sourceTree = "<group>"; };
+		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Raygun4ReactNativeDemo/Images.xcassets; sourceTree = "<group>"; };
+		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Raygun4ReactNativeDemo/Info.plist; sourceTree = "<group>"; };
+		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = Raygun4ReactNativeDemo/main.m; sourceTree = "<group>"; };
+		2D02E47B1E0B4A5D006451C7 /* Raygun4ReactNativeDemo-tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Raygun4ReactNativeDemo-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2D02E4901E0B4A5D006451C7 /* Raygun4ReactNativeDemo-tvOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Raygun4ReactNativeDemo-tvOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = Raygun4ReactNativeDemo/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		920AE01196CF291853BA329C /* Pods-Raygun4ReactNativeDemo-Raygun4ReactNativeDemoTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Raygun4ReactNativeDemo-Raygun4ReactNativeDemoTests.release.xcconfig"; path = "Target Support Files/Pods-Raygun4ReactNativeDemo-Raygun4ReactNativeDemoTests/Pods-Raygun4ReactNativeDemo-Raygun4ReactNativeDemoTests.release.xcconfig"; sourceTree = "<group>"; };
+		A73D6623F5213E78782B8867 /* Pods-Raygun4ReactNativeDemo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Raygun4ReactNativeDemo.release.xcconfig"; path = "Target Support Files/Pods-Raygun4ReactNativeDemo/Pods-Raygun4ReactNativeDemo.release.xcconfig"; sourceTree = "<group>"; };
+		D5B2C53165757B8DB1E88994 /* Pods-Raygun4ReactNativeDemo-Raygun4ReactNativeDemoTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Raygun4ReactNativeDemo-Raygun4ReactNativeDemoTests.debug.xcconfig"; path = "Target Support Files/Pods-Raygun4ReactNativeDemo-Raygun4ReactNativeDemoTests/Pods-Raygun4ReactNativeDemo-Raygun4ReactNativeDemoTests.debug.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		ED2971642150620600B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS12.0.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
-		F3E913972B31574447799D3B /* Pods-AwesomeTSProject.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AwesomeTSProject.debug.xcconfig"; path = "Target Support Files/Pods-AwesomeTSProject/Pods-AwesomeTSProject.debug.xcconfig"; sourceTree = "<group>"; };
+		F3E913972B31574447799D3B /* Pods-Raygun4ReactNativeDemo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Raygun4ReactNativeDemo.debug.xcconfig"; path = "Target Support Files/Pods-Raygun4ReactNativeDemo/Pods-Raygun4ReactNativeDemo.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -66,7 +66,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C5A2E9E15985BB9A5A338FCD /* libPods-AwesomeTSProject-AwesomeTSProjectTests.a in Frameworks */,
+				C5A2E9E15985BB9A5A338FCD /* libPods-Raygun4ReactNativeDemo-Raygun4ReactNativeDemoTests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -74,7 +74,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6DE1035BF7DE317FE9E328C2 /* libPods-AwesomeTSProject.a in Frameworks */,
+				6DE1035BF7DE317FE9E328C2 /* libPods-Raygun4ReactNativeDemo.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -95,13 +95,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		00E356EF1AD99517003FC87E /* AwesomeTSProjectTests */ = {
+		00E356EF1AD99517003FC87E /* Raygun4ReactNativeDemoTests */ = {
 			isa = PBXGroup;
 			children = (
-				00E356F21AD99517003FC87E /* AwesomeTSProjectTests.m */,
+				00E356F21AD99517003FC87E /* Raygun4ReactNativeDemoTests.m */,
 				00E356F01AD99517003FC87E /* Supporting Files */,
 			);
-			path = AwesomeTSProjectTests;
+			path = Raygun4ReactNativeDemoTests;
 			sourceTree = "<group>";
 		};
 		00E356F01AD99517003FC87E /* Supporting Files */ = {
@@ -112,7 +112,7 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		13B07FAE1A68108700A75B9A /* AwesomeTSProject */ = {
+		13B07FAE1A68108700A75B9A /* Raygun4ReactNativeDemo */ = {
 			isa = PBXGroup;
 			children = (
 				008F07F21AC5B25A0029DE68 /* main.jsbundle */,
@@ -123,7 +123,7 @@
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB71A68108700A75B9A /* main.m */,
 			);
-			name = AwesomeTSProject;
+			name = Raygun4ReactNativeDemo;
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
@@ -131,8 +131,8 @@
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				ED2971642150620600B7C4FE /* JavaScriptCore.framework */,
-				0B32E30124374EF66F22F144 /* libPods-AwesomeTSProject.a */,
-				0F36FD6641BD6D81442298FE /* libPods-AwesomeTSProject-AwesomeTSProjectTests.a */,
+				0B32E30124374EF66F22F144 /* libPods-Raygun4ReactNativeDemo.a */,
+				0F36FD6641BD6D81442298FE /* libPods-Raygun4ReactNativeDemo-Raygun4ReactNativeDemoTests.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -147,9 +147,9 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
-				13B07FAE1A68108700A75B9A /* AwesomeTSProject */,
+				13B07FAE1A68108700A75B9A /* Raygun4ReactNativeDemo */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
-				00E356EF1AD99517003FC87E /* AwesomeTSProjectTests */,
+				00E356EF1AD99517003FC87E /* Raygun4ReactNativeDemoTests */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				896751923113820FB4EA36BE /* Pods */,
@@ -162,10 +162,10 @@
 		83CBBA001A601CBA00E9B192 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				13B07F961A680F5B00A75B9A /* AwesomeTSProject.app */,
-				00E356EE1AD99517003FC87E /* AwesomeTSProjectTests.xctest */,
-				2D02E47B1E0B4A5D006451C7 /* AwesomeTSProject-tvOS.app */,
-				2D02E4901E0B4A5D006451C7 /* AwesomeTSProject-tvOSTests.xctest */,
+				13B07F961A680F5B00A75B9A /* Raygun4ReactNativeDemo.app */,
+				00E356EE1AD99517003FC87E /* Raygun4ReactNativeDemoTests.xctest */,
+				2D02E47B1E0B4A5D006451C7 /* Raygun4ReactNativeDemo-tvOS.app */,
+				2D02E4901E0B4A5D006451C7 /* Raygun4ReactNativeDemo-tvOSTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -173,10 +173,10 @@
 		896751923113820FB4EA36BE /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				F3E913972B31574447799D3B /* Pods-AwesomeTSProject.debug.xcconfig */,
-				A73D6623F5213E78782B8867 /* Pods-AwesomeTSProject.release.xcconfig */,
-				D5B2C53165757B8DB1E88994 /* Pods-AwesomeTSProject-AwesomeTSProjectTests.debug.xcconfig */,
-				920AE01196CF291853BA329C /* Pods-AwesomeTSProject-AwesomeTSProjectTests.release.xcconfig */,
+				F3E913972B31574447799D3B /* Pods-Raygun4ReactNativeDemo.debug.xcconfig */,
+				A73D6623F5213E78782B8867 /* Pods-Raygun4ReactNativeDemo.release.xcconfig */,
+				D5B2C53165757B8DB1E88994 /* Pods-Raygun4ReactNativeDemo-Raygun4ReactNativeDemoTests.debug.xcconfig */,
+				920AE01196CF291853BA329C /* Pods-Raygun4ReactNativeDemo-Raygun4ReactNativeDemoTests.release.xcconfig */,
 			);
 			name = Pods;
 			path = Pods;
@@ -185,9 +185,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		00E356ED1AD99517003FC87E /* AwesomeTSProjectTests */ = {
+		00E356ED1AD99517003FC87E /* Raygun4ReactNativeDemoTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "AwesomeTSProjectTests" */;
+			buildConfigurationList = 00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "Raygun4ReactNativeDemoTests" */;
 			buildPhases = (
 				99B57772D4E3BBB71ECEB08D /* [CP] Check Pods Manifest.lock */,
 				00E356EA1AD99517003FC87E /* Sources */,
@@ -200,14 +200,14 @@
 			dependencies = (
 				00E356F51AD99517003FC87E /* PBXTargetDependency */,
 			);
-			name = AwesomeTSProjectTests;
-			productName = AwesomeTSProjectTests;
-			productReference = 00E356EE1AD99517003FC87E /* AwesomeTSProjectTests.xctest */;
+			name = Raygun4ReactNativeDemoTests;
+			productName = Raygun4ReactNativeDemoTests;
+			productReference = 00E356EE1AD99517003FC87E /* Raygun4ReactNativeDemoTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		13B07F861A680F5B00A75B9A /* AwesomeTSProject */ = {
+		13B07F861A680F5B00A75B9A /* Raygun4ReactNativeDemo */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "AwesomeTSProject" */;
+			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Raygun4ReactNativeDemo" */;
 			buildPhases = (
 				0420A8CB575674623975BAD1 /* [CP] Check Pods Manifest.lock */,
 				FD10A7F022414F080027D42C /* Start Packager */,
@@ -221,14 +221,14 @@
 			);
 			dependencies = (
 			);
-			name = AwesomeTSProject;
-			productName = AwesomeTSProject;
-			productReference = 13B07F961A680F5B00A75B9A /* AwesomeTSProject.app */;
+			name = Raygun4ReactNativeDemo;
+			productName = Raygun4ReactNativeDemo;
+			productReference = 13B07F961A680F5B00A75B9A /* Raygun4ReactNativeDemo.app */;
 			productType = "com.apple.product-type.application";
 		};
-		2D02E47A1E0B4A5D006451C7 /* AwesomeTSProject-tvOS */ = {
+		2D02E47A1E0B4A5D006451C7 /* Raygun4ReactNativeDemo-tvOS */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2D02E4BA1E0B4A5E006451C7 /* Build configuration list for PBXNativeTarget "AwesomeTSProject-tvOS" */;
+			buildConfigurationList = 2D02E4BA1E0B4A5E006451C7 /* Build configuration list for PBXNativeTarget "Raygun4ReactNativeDemo-tvOS" */;
 			buildPhases = (
 				FD10A7F122414F3F0027D42C /* Start Packager */,
 				2D02E4771E0B4A5D006451C7 /* Sources */,
@@ -240,14 +240,14 @@
 			);
 			dependencies = (
 			);
-			name = "AwesomeTSProject-tvOS";
-			productName = "AwesomeTSProject-tvOS";
-			productReference = 2D02E47B1E0B4A5D006451C7 /* AwesomeTSProject-tvOS.app */;
+			name = "Raygun4ReactNativeDemo-tvOS";
+			productName = "Raygun4ReactNativeDemo-tvOS";
+			productReference = 2D02E47B1E0B4A5D006451C7 /* Raygun4ReactNativeDemo-tvOS.app */;
 			productType = "com.apple.product-type.application";
 		};
-		2D02E48F1E0B4A5D006451C7 /* AwesomeTSProject-tvOSTests */ = {
+		2D02E48F1E0B4A5D006451C7 /* Raygun4ReactNativeDemo-tvOSTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2D02E4BB1E0B4A5E006451C7 /* Build configuration list for PBXNativeTarget "AwesomeTSProject-tvOSTests" */;
+			buildConfigurationList = 2D02E4BB1E0B4A5E006451C7 /* Build configuration list for PBXNativeTarget "Raygun4ReactNativeDemo-tvOSTests" */;
 			buildPhases = (
 				2D02E48C1E0B4A5D006451C7 /* Sources */,
 				2D02E48D1E0B4A5D006451C7 /* Frameworks */,
@@ -258,9 +258,9 @@
 			dependencies = (
 				2D02E4921E0B4A5D006451C7 /* PBXTargetDependency */,
 			);
-			name = "AwesomeTSProject-tvOSTests";
-			productName = "AwesomeTSProject-tvOSTests";
-			productReference = 2D02E4901E0B4A5D006451C7 /* AwesomeTSProject-tvOSTests.xctest */;
+			name = "Raygun4ReactNativeDemo-tvOSTests";
+			productName = "Raygun4ReactNativeDemo-tvOSTests";
+			productReference = 2D02E4901E0B4A5D006451C7 /* Raygun4ReactNativeDemo-tvOSTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
@@ -289,7 +289,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "AwesomeTSProject" */;
+			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "Raygun4ReactNativeDemo" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -302,10 +302,10 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				13B07F861A680F5B00A75B9A /* AwesomeTSProject */,
-				00E356ED1AD99517003FC87E /* AwesomeTSProjectTests */,
-				2D02E47A1E0B4A5D006451C7 /* AwesomeTSProject-tvOS */,
-				2D02E48F1E0B4A5D006451C7 /* AwesomeTSProject-tvOSTests */,
+				13B07F861A680F5B00A75B9A /* Raygun4ReactNativeDemo */,
+				00E356ED1AD99517003FC87E /* Raygun4ReactNativeDemoTests */,
+				2D02E47A1E0B4A5D006451C7 /* Raygun4ReactNativeDemo-tvOS */,
+				2D02E48F1E0B4A5D006451C7 /* Raygun4ReactNativeDemo-tvOSTests */,
 			);
 		};
 /* End PBXProject section */
@@ -374,7 +374,7 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-AwesomeTSProject-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-Raygun4ReactNativeDemo-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -401,7 +401,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-AwesomeTSProject-AwesomeTSProjectTests/Pods-AwesomeTSProject-AwesomeTSProjectTests-resources.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-Raygun4ReactNativeDemo-Raygun4ReactNativeDemoTests/Pods-Raygun4ReactNativeDemo-Raygun4ReactNativeDemoTests-resources.sh",
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/AccessibilityResources.bundle",
 			);
 			name = "[CP] Copy Pods Resources";
@@ -410,7 +410,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-AwesomeTSProject-AwesomeTSProjectTests/Pods-AwesomeTSProject-AwesomeTSProjectTests-resources.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Raygun4ReactNativeDemo-Raygun4ReactNativeDemoTests/Pods-Raygun4ReactNativeDemo-Raygun4ReactNativeDemoTests-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		7673B7292A47C1F4F6B8C9E4 /* [CP] Copy Pods Resources */ = {
@@ -419,7 +419,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-AwesomeTSProject/Pods-AwesomeTSProject-resources.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-Raygun4ReactNativeDemo/Pods-Raygun4ReactNativeDemo-resources.sh",
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/AccessibilityResources.bundle",
 			);
 			name = "[CP] Copy Pods Resources";
@@ -428,7 +428,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-AwesomeTSProject/Pods-AwesomeTSProject-resources.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Raygun4ReactNativeDemo/Pods-Raygun4ReactNativeDemo-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		99B57772D4E3BBB71ECEB08D /* [CP] Check Pods Manifest.lock */ = {
@@ -446,7 +446,7 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-AwesomeTSProject-AwesomeTSProjectTests-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-Raygun4ReactNativeDemo-Raygun4ReactNativeDemoTests-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -498,7 +498,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				00E356F31AD99517003FC87E /* AwesomeTSProjectTests.m in Sources */,
+				00E356F31AD99517003FC87E /* Raygun4ReactNativeDemoTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -524,7 +524,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2DCD954D1E0B4F2C00145EB5 /* AwesomeTSProjectTests.m in Sources */,
+				2DCD954D1E0B4F2C00145EB5 /* Raygun4ReactNativeDemoTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -533,12 +533,12 @@
 /* Begin PBXTargetDependency section */
 		00E356F51AD99517003FC87E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 13B07F861A680F5B00A75B9A /* AwesomeTSProject */;
+			target = 13B07F861A680F5B00A75B9A /* Raygun4ReactNativeDemo */;
 			targetProxy = 00E356F41AD99517003FC87E /* PBXContainerItemProxy */;
 		};
 		2D02E4921E0B4A5D006451C7 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 2D02E47A1E0B4A5D006451C7 /* AwesomeTSProject-tvOS */;
+			target = 2D02E47A1E0B4A5D006451C7 /* Raygun4ReactNativeDemo-tvOS */;
 			targetProxy = 2D02E4911E0B4A5D006451C7 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -546,14 +546,14 @@
 /* Begin XCBuildConfiguration section */
 		00E356F61AD99517003FC87E /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D5B2C53165757B8DB1E88994 /* Pods-AwesomeTSProject-AwesomeTSProjectTests.debug.xcconfig */;
+			baseConfigurationReference = D5B2C53165757B8DB1E88994 /* Pods-Raygun4ReactNativeDemo-Raygun4ReactNativeDemoTests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
 				);
-				INFOPLIST_FILE = AwesomeTSProjectTests/Info.plist;
+				INFOPLIST_FILE = Raygun4ReactNativeDemoTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_LDFLAGS = (
@@ -563,17 +563,17 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AwesomeTSProject.app/AwesomeTSProject";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Raygun4ReactNativeDemo.app/Raygun4ReactNativeDemo";
 			};
 			name = Debug;
 		};
 		00E356F71AD99517003FC87E /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 920AE01196CF291853BA329C /* Pods-AwesomeTSProject-AwesomeTSProjectTests.release.xcconfig */;
+			baseConfigurationReference = 920AE01196CF291853BA329C /* Pods-Raygun4ReactNativeDemo-Raygun4ReactNativeDemoTests.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				COPY_PHASE_STRIP = NO;
-				INFOPLIST_FILE = AwesomeTSProjectTests/Info.plist;
+				INFOPLIST_FILE = Raygun4ReactNativeDemoTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_LDFLAGS = (
@@ -583,19 +583,19 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AwesomeTSProject.app/AwesomeTSProject";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Raygun4ReactNativeDemo.app/Raygun4ReactNativeDemo";
 			};
 			name = Release;
 		};
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = F3E913972B31574447799D3B /* Pods-AwesomeTSProject.debug.xcconfig */;
+			baseConfigurationReference = F3E913972B31574447799D3B /* Pods-Raygun4ReactNativeDemo.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_BITCODE = NO;
-				INFOPLIST_FILE = AwesomeTSProject/Info.plist;
+				INFOPLIST_FILE = Raygun4ReactNativeDemo/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
@@ -603,7 +603,7 @@
 					"-lc++",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
-				PRODUCT_NAME = AwesomeTSProject;
+				PRODUCT_NAME = Raygun4ReactNativeDemo;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -612,12 +612,12 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = A73D6623F5213E78782B8867 /* Pods-AwesomeTSProject.release.xcconfig */;
+			baseConfigurationReference = A73D6623F5213E78782B8867 /* Pods-Raygun4ReactNativeDemo.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				INFOPLIST_FILE = AwesomeTSProject/Info.plist;
+				INFOPLIST_FILE = Raygun4ReactNativeDemo/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
@@ -625,7 +625,7 @@
 					"-lc++",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
-				PRODUCT_NAME = AwesomeTSProject;
+				PRODUCT_NAME = Raygun4ReactNativeDemo;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
@@ -643,14 +643,14 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_TESTABILITY = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
-				INFOPLIST_FILE = "AwesomeTSProject-tvOS/Info.plist";
+				INFOPLIST_FILE = "Raygun4ReactNativeDemo-tvOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.AwesomeTSProject-tvOS";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.Raygun4ReactNativeDemo-tvOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
 				TARGETED_DEVICE_FAMILY = 3;
@@ -670,14 +670,14 @@
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_NO_COMMON_BLOCKS = YES;
-				INFOPLIST_FILE = "AwesomeTSProject-tvOS/Info.plist";
+				INFOPLIST_FILE = "Raygun4ReactNativeDemo-tvOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.AwesomeTSProject-tvOS";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.Raygun4ReactNativeDemo-tvOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
 				TARGETED_DEVICE_FAMILY = 3;
@@ -696,17 +696,17 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_TESTABILITY = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
-				INFOPLIST_FILE = "AwesomeTSProject-tvOSTests/Info.plist";
+				INFOPLIST_FILE = "Raygun4ReactNativeDemo-tvOSTests/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.AwesomeTSProject-tvOSTests";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.Raygun4ReactNativeDemo-tvOSTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AwesomeTSProject-tvOS.app/AwesomeTSProject-tvOS";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Raygun4ReactNativeDemo-tvOS.app/Raygun4ReactNativeDemo-tvOS";
 				TVOS_DEPLOYMENT_TARGET = 10.1;
 			};
 			name = Debug;
@@ -722,17 +722,17 @@
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_NO_COMMON_BLOCKS = YES;
-				INFOPLIST_FILE = "AwesomeTSProject-tvOSTests/Info.plist";
+				INFOPLIST_FILE = "Raygun4ReactNativeDemo-tvOSTests/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.AwesomeTSProject-tvOSTests";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.Raygun4ReactNativeDemo-tvOSTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AwesomeTSProject-tvOS.app/AwesomeTSProject-tvOS";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Raygun4ReactNativeDemo-tvOS.app/Raygun4ReactNativeDemo-tvOS";
 				TVOS_DEPLOYMENT_TARGET = 10.1;
 			};
 			name = Release;
@@ -853,7 +853,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "AwesomeTSProjectTests" */ = {
+		00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "Raygun4ReactNativeDemoTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				00E356F61AD99517003FC87E /* Debug */,
@@ -862,7 +862,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "AwesomeTSProject" */ = {
+		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Raygun4ReactNativeDemo" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				13B07F941A680F5B00A75B9A /* Debug */,
@@ -871,7 +871,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2D02E4BA1E0B4A5E006451C7 /* Build configuration list for PBXNativeTarget "AwesomeTSProject-tvOS" */ = {
+		2D02E4BA1E0B4A5E006451C7 /* Build configuration list for PBXNativeTarget "Raygun4ReactNativeDemo-tvOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2D02E4971E0B4A5E006451C7 /* Debug */,
@@ -880,7 +880,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2D02E4BB1E0B4A5E006451C7 /* Build configuration list for PBXNativeTarget "AwesomeTSProject-tvOSTests" */ = {
+		2D02E4BB1E0B4A5E006451C7 /* Build configuration list for PBXNativeTarget "Raygun4ReactNativeDemo-tvOSTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2D02E4991E0B4A5E006451C7 /* Debug */,
@@ -889,7 +889,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "AwesomeTSProject" */ = {
+		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "Raygun4ReactNativeDemo" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				83CBBA201A601CBA00E9B192 /* Debug */,

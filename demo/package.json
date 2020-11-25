@@ -1,5 +1,5 @@
 {
-  "name": "Raygun4ReactNativeDemo",
+  "name": "raygun4reactnativedemo",
   "version": "0.0.1-alpha",
   "private": true,
   "scripts": {
@@ -10,6 +10,7 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "dependencies": {
+    "raygun4reactnative": "file:../raygun4reactnative-0.0.1-alpha.tgz",
     "react": "16.13.1",
     "react-native": "0.63.0"
   },
