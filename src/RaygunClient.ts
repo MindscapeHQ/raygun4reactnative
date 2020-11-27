@@ -16,10 +16,9 @@ import {
 } from './types';
 import { sendCustomRUMEvent, setupRealtimeUserMonitoring } from './realtime-user-monitor';
 import { sendCrashReport, sendCachedReports } from './transport';
+import {clone, upperFirst} from "./helper";
 
 const { RaygunNativeBridge } = NativeModules;
-
-const clone = <T>(object: T): T => JSON.parse(JSON.stringify(object));
 
 const getCleanSession = (): Session => ({
   tags: new Set(['React Native']),
@@ -29,24 +28,6 @@ const getCleanSession = (): Session => ({
     identifier: `anonymous-${getDeviceBasedId()}`
   }
 });
-
-const upperFirst = (obj: any | any[]): any | any[] => {
-  if (Array.isArray(obj)) {
-    return obj.map(upperFirst);
-  }
-  if (typeof obj === 'object') {
-    return Object.entries(obj).reduce(
-      (all, [key, val]) => ({
-        ...all,
-        ...(key !== 'customData'
-          ? { [key.slice(0, 1).toUpperCase() + key.slice(1)]: upperFirst(val) }
-          : { CustomData: val })
-      }),
-      {}
-    );
-  }
-  return obj;
-};
 
 interface StackTrace {
   stack: StackFrame[];
