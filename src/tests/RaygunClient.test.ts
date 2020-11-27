@@ -16,7 +16,7 @@ jest.mock('react-native/Libraries/Core/Devtools/symbolicateStackTrace', () => je
 
 jest.mock('react-native', () => ({
   NativeModules: {
-    Rg4rn: {
+    RaygunNativeBridge: {
       init: jest.fn(),
       setTags: jest.fn(),
       setUser: jest.fn(),
@@ -59,7 +59,7 @@ import * as RaygunClient from '../RaygunClient';
 import { NativeModules, Platform } from 'react-native';
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
 
-const { Rg4rn } = NativeModules;
+const { RaygunNativeBridge } = NativeModules;
 const mockPayload = {
   OccurredOn: new Date(),
   Details: {
@@ -99,7 +99,7 @@ describe('RaygunClient Initialization', () => {
 
   test('should correctly pass apiKey to JS transport when enableNativeCrashReporting is false', async () => {
     await RaygunClient.init({ apiKey: 'someKey', enableNativeCrashReporting: false, enableRUM: false });
-    expect(Rg4rn.init).not.toBeCalled();
+    expect(RaygunNativeBridge.init).not.toBeCalled();
     jest.runAllTimers();
     expect(sendCachedReports).toBeCalledTimes(1);
     expect(sendCachedReports).toBeCalledWith('someKey', undefined);
@@ -110,7 +110,7 @@ describe('RaygunClient Initialization', () => {
       apiKey: 'someKey',
       enableRUM: true
     });
-    expect(Rg4rn.init).toHaveBeenLastCalledWith({
+    expect(RaygunNativeBridge.init).toHaveBeenLastCalledWith({
       apiKey: 'someKey',
       version: '',
       enableRUM: true
@@ -122,7 +122,7 @@ describe('RaygunClient Initialization', () => {
       apiKey: 'someKey',
       enableNativeCrashReporting: true
     });
-    expect(Rg4rn.init).toHaveBeenLastCalledWith({
+    expect(RaygunNativeBridge.init).toHaveBeenLastCalledWith({
       apiKey: 'someKey',
       version: '',
       enableRUM: true
@@ -144,7 +144,7 @@ describe('RaygunClient Initialization', () => {
       enableRUM: true,
       customCrashReportingEndpoint: 'cr.endpoint.io'
     });
-    expect(Rg4rn.init).toHaveBeenLastCalledWith({
+    expect(RaygunNativeBridge.init).toHaveBeenLastCalledWith({
       apiKey: 'someKey',
       version: '',
       enableRUM: true,
@@ -159,7 +159,7 @@ describe('RaygunClient Initialization', () => {
       enableRUM: true,
       enableNetworkMonitoring: false
     });
-    expect(Rg4rn.init).toBeCalledWith({
+    expect(RaygunNativeBridge.init).toBeCalledWith({
       apiKey: 'someKey',
       version: '',
       enableRUM: true
@@ -172,7 +172,7 @@ describe('RaygunClient Initialization', () => {
       enableNativeCrashReporting: false
     });
     jest.runAllTimers();
-    expect(Rg4rn.init).toBeCalledWith({ apiKey: 'someKey', version: expect.any(String), enableRUM: true });
+    expect(RaygunNativeBridge.init).toBeCalledWith({ apiKey: 'someKey', version: expect.any(String), enableRUM: true });
     expect(sendCachedReports).toBeCalledTimes(1);
     expect(sendCachedReports).toBeCalledWith('someKey', undefined);
   });
@@ -182,34 +182,34 @@ describe('RaygunClient functions', () => {
   test('should pass accumulated tags to backend', async () => {
     await RaygunClient.init({ apiKey: 'someKey' });
     RaygunClient.addTag('a');
-    expect(Rg4rn.setTags).lastCalledWith(['React Native', 'a']);
+    expect(RaygunNativeBridge.setTags).lastCalledWith(['React Native', 'a']);
     RaygunClient.addTag('b', 'c');
-    expect(Rg4rn.setTags).lastCalledWith(['React Native', 'a', 'b', 'c']);
+    expect(RaygunNativeBridge.setTags).lastCalledWith(['React Native', 'a', 'b', 'c']);
   });
 
   test('should pass customData to backend', async () => {
     await RaygunClient.init({ apiKey: 'someKey' });
     RaygunClient.addCustomData({ a: '1' });
-    expect(Rg4rn.setCustomData).toBeCalledWith({ a: '1' });
+    expect(RaygunNativeBridge.setCustomData).toBeCalledWith({ a: '1' });
     RaygunClient.addCustomData({ b: '2' });
-    expect(Rg4rn.setCustomData).toBeCalledWith({ a: '1', b: '2' });
+    expect(RaygunNativeBridge.setCustomData).toBeCalledWith({ a: '1', b: '2' });
     RaygunClient.updateCustomData(data => ({ val: 'key' }));
-    expect(Rg4rn.setCustomData).toBeCalledWith({ val: 'key' });
+    expect(RaygunNativeBridge.setCustomData).toBeCalledWith({ val: 'key' });
   });
 
   test('should pass correct user to backend', async () => {
     await RaygunClient.init({ apiKey: 'someKey' });
     RaygunClient.setUser('user name');
-    expect(Rg4rn.setUser).lastCalledWith({
+    expect(RaygunNativeBridge.setUser).lastCalledWith({
       identifier: 'user name',
       firstName: '',
       fullName: '',
       email: '',
       isAnonymous: false
     });
-    Rg4rn.setUser.mockReset();
+    RaygunNativeBridge.setUser.mockReset();
     RaygunClient.setUser('');
-    expect(Rg4rn.setUser).lastCalledWith({
+    expect(RaygunNativeBridge.setUser).lastCalledWith({
       identifier: expect.any(String),
       isAnonymous: true,
       firstName: '',
@@ -222,15 +222,15 @@ describe('RaygunClient functions', () => {
       firstName: 'first name',
       fullName: 'fullName'
     };
-    Rg4rn.setUser.mockReset();
+    RaygunNativeBridge.setUser.mockReset();
     RaygunClient.setUser(user);
-    expect(Rg4rn.setUser).lastCalledWith({ ...user, isAnonymous: false });
+    expect(RaygunNativeBridge.setUser).lastCalledWith({ ...user, isAnonymous: false });
   });
 
   test('should pass correct breadcrumb to backend', async () => {
     await RaygunClient.init({ apiKey: 'someKey' });
     RaygunClient.recordBreadcrumb('breadcrumbA');
-    expect(Rg4rn.recordBreadcrumb).lastCalledWith({
+    expect(RaygunNativeBridge.recordBreadcrumb).lastCalledWith({
       message: 'breadcrumbA',
       category: '',
       level: 'info',
@@ -242,7 +242,7 @@ describe('RaygunClient functions', () => {
       level: 'info'
     };
     RaygunClient.recordBreadcrumb('breadcrumbB', details);
-    expect(Rg4rn.recordBreadcrumb).lastCalledWith({
+    expect(RaygunNativeBridge.recordBreadcrumb).lastCalledWith({
       message: 'breadcrumbB',
       customData: {},
       category: 'bug',
@@ -334,7 +334,7 @@ describe('Sending errors', () => {
   test('Should use native sendCrashReport when enable native crash reporting', async () => {
     await RaygunClient.init({ apiKey: 'someKey', enableNativeCrashReporting: true });
     await RaygunClient.sendCustomError(new Error('Test Native Report'));
-    expect(Rg4rn.sendCrashReport).toBeCalledTimes(1);
+    expect(RaygunNativeBridge.sendCrashReport).toBeCalledTimes(1);
     expect(sendCrashReport).toBeCalledTimes(0);
   });
 
@@ -342,29 +342,29 @@ describe('Sending errors', () => {
     await RaygunClient.init({ apiKey: 'someKey', enableNativeCrashReporting: false });
     await RaygunClient.sendCustomError(new Error('Test JS Report'));
     expect(sendCrashReport).toBeCalledTimes(1);
-    expect(Rg4rn.sendCrashReport).toBeCalledTimes(0);
+    expect(RaygunNativeBridge.sendCrashReport).toBeCalledTimes(0);
   });
 
   test('Should stop sendCrashReport when onBeforeHandler returns falsy value', async () => {
     await RaygunClient.init({ apiKey: 'someKey', onBeforeSend: () => null });
     await RaygunClient.sendCustomError(new Error('Test JS Report'));
     expect(sendCrashReport).toBeCalledTimes(0);
-    expect(Rg4rn.sendCrashReport).toBeCalledTimes(0);
+    expect(RaygunNativeBridge.sendCrashReport).toBeCalledTimes(0);
   });
 
   test('Should use native sendCrashReport with the payload returned from onBeforeHandler', async () => {
     await RaygunClient.init({ apiKey: 'someKey', onBeforeSend: () => mockPayload, enableNativeCrashReporting: true });
     await RaygunClient.sendCustomError(new Error('Test JS Report'));
     expect(sendCrashReport).toBeCalledTimes(0);
-    expect(Rg4rn.sendCrashReport).toBeCalledTimes(1);
-    expect(Rg4rn.sendCrashReport).toBeCalledWith(JSON.stringify(mockPayload), 'someKey');
+    expect(RaygunNativeBridge.sendCrashReport).toBeCalledTimes(1);
+    expect(RaygunNativeBridge.sendCrashReport).toBeCalledWith(JSON.stringify(mockPayload), 'someKey');
   });
 
   test('Should use native sendCrashReport with the payload returned from onBeforeHandler', async () => {
     await RaygunClient.init({ apiKey: 'someKey', onBeforeSend: () => mockPayload, enableNativeCrashReporting: false });
     await RaygunClient.sendCustomError(new Error('Test JS Report'));
     expect(sendCrashReport).toBeCalledTimes(1);
-    expect(Rg4rn.sendCrashReport).toBeCalledTimes(0);
+    expect(RaygunNativeBridge.sendCrashReport).toBeCalledTimes(0);
     expect(sendCrashReport).toBeCalledWith(mockPayload, 'someKey', undefined);
   });
 
@@ -377,7 +377,7 @@ describe('Sending errors', () => {
     });
     await RaygunClient.sendCustomError(new Error('Test JS Report'));
     expect(sendCrashReport).toBeCalledTimes(1);
-    expect(Rg4rn.sendCrashReport).toBeCalledTimes(0);
+    expect(RaygunNativeBridge.sendCrashReport).toBeCalledTimes(0);
     expect(sendCrashReport).toBeCalledWith(mockPayload, 'someKey', 'demo.crashreport.ios');
   });
 
@@ -390,7 +390,7 @@ describe('Sending errors', () => {
     });
     await RaygunClient.sendCustomError(new Error('Test JS Report'), customData);
     expect(sendCrashReport).toBeCalledTimes(1);
-    expect(Rg4rn.sendCrashReport).toBeCalledTimes(0);
+    expect(RaygunNativeBridge.sendCrashReport).toBeCalledTimes(0);
     expect(sendCrashReport).toBeCalledWith({...mockPayload, ...{ Details: { ...mockPayload.Details, UserCustomData: customData } }}, 'someKey', undefined);
   });
 
@@ -403,7 +403,7 @@ describe('Sending errors', () => {
     });
     await RaygunClient.sendCustomError(new Error('Test JS Report'), tags);
     expect(sendCrashReport).toBeCalledTimes(1);
-    expect(Rg4rn.sendCrashReport).toBeCalledTimes(0);
+    expect(RaygunNativeBridge.sendCrashReport).toBeCalledTimes(0);
     expect(sendCrashReport).toBeCalledWith({...mockPayload, ...{ Details: { ...mockPayload.Details, Tags: ['React Native'].concat(tags) } }}, 'someKey', undefined);
   });
 
@@ -417,7 +417,7 @@ describe('Sending errors', () => {
     });
     await RaygunClient.sendCustomError(new Error('Test JS Report'), customData, tags);
     expect(sendCrashReport).toBeCalledTimes(1);
-    expect(Rg4rn.sendCrashReport).toBeCalledTimes(0);
+    expect(RaygunNativeBridge.sendCrashReport).toBeCalledTimes(0);
     expect(sendCrashReport).toBeCalledWith({...mockPayload, ...{ Details: { ...mockPayload.Details, UserCustomData: customData, Tags: ['React Native'].concat(tags) } }}, 'someKey', undefined);
   });
 });

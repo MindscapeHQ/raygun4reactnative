@@ -1,12 +1,12 @@
 import { NativeModules } from 'react-native';
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
-const { Rg4rn } = NativeModules;
+const { RaygunNativeBridge } = NativeModules;
 
 const SOURCE_MAP_PREFIX = 'file://reactnative.local/';
 const devicePathPattern = /^(.*@)?.*\/[^\.]+(\.app|CodePush)\/?(.*)/;
 
 export const getDeviceBasedId = () =>
-  `${Rg4rn.DEVICE_ID}-${Date.now().toString(32)}-${(Math.random() * 100000).toString(16).replace('.', '')}`;
+  `${RaygunNativeBridge.DEVICE_ID}-${Date.now().toString(32)}-${(Math.random() * 100000).toString(16).replace('.', '')}`;
 
 const internalTrace = new RegExp('ReactNativeRenderer-dev\\.js$|MessageQueue\\.js$|native\\scode');
 

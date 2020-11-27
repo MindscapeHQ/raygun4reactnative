@@ -17,7 +17,7 @@ const removeAllListeners = jest.fn();
 
 jest.mock('react-native', () => ({
   NativeModules: {
-    Rg4rn: {
+    RaygunNativeBridge: {
       init: jest.fn(),
       setTags: jest.fn(),
       setUser: jest.fn(),

@@ -5,9 +5,9 @@ import { NativeModules, Platform, NativeEventEmitter } from 'react-native';
 const { version: clientVersion } = require('../package.json');
 import { sendRUMPayload } from './transport';
 import { warn } from './utils';
-const { Rg4rn } = NativeModules;
+const { RaygunNativeBridge } = NativeModules;
 
-const { osVersion, platform } = Rg4rn;
+const { osVersion, platform } = RaygunNativeBridge;
 
 const defaultURLIgnoreList = ['api.raygun.com', 'localhost:8081/symbolicate'];
 
@@ -93,15 +93,15 @@ export const setupRealtimeUserMonitoring = (
   lastActiveAt = Date.now();
   curRUMSessionId = '';
 
-  const eventEmitter = new NativeEventEmitter(Rg4rn);
-  eventEmitter.addListener(Rg4rn.ON_START, reportStartupTime(getCurrentUser, apiKey, customRUMEndpoint));
-  eventEmitter.addListener(Rg4rn.ON_PAUSE, markLastActiveTime);
-  eventEmitter.addListener(Rg4rn.ON_RESUME, rotateRUMSession(getCurrentUser, apiKey, customRUMEndpoint));
-  eventEmitter.addListener(Rg4rn.ON_DESTROY, () => {
-    eventEmitter.removeAllListeners(Rg4rn.ON_START);
-    eventEmitter.removeAllListeners(Rg4rn.ON_PAUSE);
-    eventEmitter.removeAllListeners(Rg4rn.ON_RESUME);
-    eventEmitter.removeAllListeners(Rg4rn.ON_DESTROY);
+  const eventEmitter = new NativeEventEmitter(RaygunNativeBridge);
+  eventEmitter.addListener(RaygunNativeBridge.ON_START, reportStartupTime(getCurrentUser, apiKey, customRUMEndpoint));
+  eventEmitter.addListener(RaygunNativeBridge.ON_PAUSE, markLastActiveTime);
+  eventEmitter.addListener(RaygunNativeBridge.ON_RESUME, rotateRUMSession(getCurrentUser, apiKey, customRUMEndpoint));
+  eventEmitter.addListener(RaygunNativeBridge.ON_DESTROY, () => {
+    eventEmitter.removeAllListeners(RaygunNativeBridge.ON_START);
+    eventEmitter.removeAllListeners(RaygunNativeBridge.ON_PAUSE);
+    eventEmitter.removeAllListeners(RaygunNativeBridge.ON_RESUME);
+    eventEmitter.removeAllListeners(RaygunNativeBridge.ON_DESTROY);
   });
 };
 

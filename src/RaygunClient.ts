@@ -17,7 +17,7 @@ import {
 import { sendCustomRUMEvent, setupRealtimeUserMonitoring } from './realtime-user-monitor';
 import { sendCrashReport, sendCachedReports } from './transport';
 
-const { Rg4rn } = NativeModules;
+const { RaygunNativeBridge } = NativeModules;
 
 const clone = <T>(object: T): T => JSON.parse(JSON.stringify(object));
 
@@ -70,9 +70,9 @@ const init = async (options: RaygunClientOptions) => {
     options
   );
 
-  const useNativeCR = GlobalOptions.enableNativeCrashReporting && Rg4rn && typeof Rg4rn.init === 'function';
+  const useNativeCR = GlobalOptions.enableNativeCrashReporting && RaygunNativeBridge && typeof RaygunNativeBridge.init === 'function';
 
-  const alreadyInitialized = useNativeCR && (await Rg4rn.hasInitialized());
+  const alreadyInitialized = useNativeCR && (await RaygunNativeBridge.hasInitialized());
   if (alreadyInitialized) {
     log('Already initialized');
     return false;
@@ -93,7 +93,7 @@ const init = async (options: RaygunClientOptions) => {
   }
 
   if (useNativeCR || enableRUM) {
-    Rg4rn.init({ apiKey, enableRUM, version: appVersion || '', customCrashReportingEndpoint });
+    RaygunNativeBridge.init({ apiKey, enableRUM, version: appVersion || '', customCrashReportingEndpoint });
   }
 
   const prevHandler = ErrorUtils.getGlobalHandler();
@@ -120,7 +120,7 @@ const generatePayload = async (
   session: Session
 ): Promise<CrashReportPayload> => {
   const { breadcrumbs, tags, user, customData } = session;
-  const environmentDetails = (Rg4rn.getEnvironmentInfo && (await Rg4rn.getEnvironmentInfo())) || {};
+  const environmentDetails = (RaygunNativeBridge.getEnvironmentInfo && (await RaygunNativeBridge.getEnvironmentInfo())) || {};
   return {
     OccurredOn: new Date(),
     Details: {
@@ -178,7 +178,7 @@ const addTag = (...tags: string[]) => {
     curSession.tags.add(tag);
   });
   if (GlobalOptions.enableNativeCrashReporting) {
-    Rg4rn.setTags([...curSession.tags]);
+    RaygunNativeBridge.setTags([...curSession.tags]);
   }
 };
 
@@ -198,21 +198,21 @@ const setUser = (user: User | string) => {
   );
   curSession.user = userObj;
   if (GlobalOptions.enableNativeCrashReporting) {
-    Rg4rn.setUser(userObj);
+    RaygunNativeBridge.setUser(userObj);
   }
 };
 
 const addCustomData = (customData: CustomData) => {
   curSession.customData = Object.assign({}, curSession.customData, customData);
   if (GlobalOptions.enableNativeCrashReporting) {
-    Rg4rn.setCustomData(clone(curSession.customData));
+    RaygunNativeBridge.setCustomData(clone(curSession.customData));
   }
 };
 
 const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
   curSession.customData = updater(curSession.customData);
   if (GlobalOptions.enableNativeCrashReporting) {
-    Rg4rn.setCustomData(clone(curSession.customData));
+    RaygunNativeBridge.setCustomData(clone(curSession.customData));
   }
 };
 
@@ -227,14 +227,14 @@ const recordBreadcrumb = (message: string, details?: BreadcrumbOption) => {
   };
   curSession.breadcrumbs.push(breadcrumb);
   if (GlobalOptions.enableNativeCrashReporting) {
-    Rg4rn.recordBreadcrumb(breadcrumb);
+    RaygunNativeBridge.recordBreadcrumb(breadcrumb);
   }
 };
 
 const clearSession = () => {
   curSession = getCleanSession();
   if (GlobalOptions.enableNativeCrashReporting) {
-    Rg4rn.clearSession();
+    RaygunNativeBridge.clearSession();
   }
 };
 
@@ -260,7 +260,7 @@ const processUnhandledError = async (error: Error, isFatal?: boolean) => {
   }
 
   const payload = await generatePayload(error, stack, curSession);
-  
+
   const { onBeforeSend } = GlobalOptions;
   const modifiedPayload =
     onBeforeSend && typeof onBeforeSend === 'function' ? onBeforeSend(Object.freeze(payload)) : payload;
@@ -271,7 +271,7 @@ const processUnhandledError = async (error: Error, isFatal?: boolean) => {
 
   if (GlobalOptions.enableNativeCrashReporting) {
     log('Send crash report via Native');
-    Rg4rn.sendCrashReport(JSON.stringify(modifiedPayload), GlobalOptions.apiKey);
+    RaygunNativeBridge.sendCrashReport(JSON.stringify(modifiedPayload), GlobalOptions.apiKey);
     return;
   }
 

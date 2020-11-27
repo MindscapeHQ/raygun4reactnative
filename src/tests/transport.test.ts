@@ -3,11 +3,11 @@ import { sendCrashReport, sendCachedReports } from '../transport';
 import { CrashReportPayload } from '../types';
 import { NativeModules } from 'react-native';
 
-const { Rg4rn } = NativeModules;
+const { RaygunNativeBridge } = NativeModules;
 
 jest.mock('react-native', () => ({
   NativeModules: {
-    Rg4rn: {
+    RaygunNativeBridge: {
       saveCrashReport: jest.fn(),
       loadCrashReports: jest.fn()
     }
@@ -66,8 +66,8 @@ const getPostParams = (payload: object) => ({
 const reportsCache: string[] = [];
 
 describe('Transport Unit Testing', () => {
-  const mockLoadCrashReports = Rg4rn.loadCrashReports as jest.Mock;
-  const mockSaveCrashReport = Rg4rn.saveCrashReport as jest.Mock;
+  const mockLoadCrashReports = RaygunNativeBridge.loadCrashReports as jest.Mock;
+  const mockSaveCrashReport = RaygunNativeBridge.saveCrashReport as jest.Mock;
   mockSaveCrashReport.mockImplementation(async report => {
     reportsCache.push(JSON.parse(report));
   });
@@ -99,7 +99,7 @@ describe('Transport Unit Testing', () => {
     await sendCrashReport(baseCrashReport, API_KEY);
     await sendCrashReport(crA, API_KEY);
     await sendCrashReport(crB, API_KEY);
-    expect(Rg4rn.saveCrashReport).toBeCalledTimes(3);
+    expect(RaygunNativeBridge.saveCrashReport).toBeCalledTimes(3);
     expect(fetchMock.mock.calls[0]).toMatchObject([URL + API_KEY, getPostParams(baseCrashReport)]);
     expect(fetchMock.mock.calls[1]).toMatchObject([URL + API_KEY, getPostParams(crA)]);
     expect(fetchMock.mock.calls[2]).toMatchObject([URL + API_KEY, getPostParams(crB)]);
