@@ -47,7 +47,7 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nullable;
 
-public class Rg4rnModule extends ReactContextBaseJavaModule implements LifecycleEventListener {
+public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule implements LifecycleEventListener {
 
     private static ReactApplicationContext reactContext;
     private boolean initialized = false;
@@ -60,7 +60,7 @@ public class Rg4rnModule extends ReactContextBaseJavaModule implements Lifecycle
     private static final String DEVICE_ID = "DEVICE_ID";
     private static final String STORAGE_KEY = "__RAYGUN_CRASH_REPORT__";
 
-    public Rg4rnModule(ReactApplicationContext context, long startedAt) {
+    public RaygunNativeBridgeModule(ReactApplicationContext context, long startedAt) {
         super(context);
         reactContext = context;
         startedTime = startedAt;
@@ -69,7 +69,7 @@ public class Rg4rnModule extends ReactContextBaseJavaModule implements Lifecycle
 
     @Override
     public String getName() {
-        return "Rg4rn";
+        return "RaygunNativeBridge";
     }
 
     @ReactMethod
