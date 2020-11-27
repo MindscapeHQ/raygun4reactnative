@@ -2,6 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "group:Rg4rn.xcodeproj">
+      location = "group:RaygunNativeBridge.xcodeproj">
    </FileRef>
 </Workspace>

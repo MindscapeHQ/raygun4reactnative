@@ -1,4 +1,4 @@
-#import "Rg4rn.h"
+#import "RaygunNativeBridge.h"
 #import <Foundation/Foundation.h>
 #import <React/RCTLog.h>
 #import <mach/mach.h>
@@ -95,7 +95,7 @@ static uint64_t getMemorySize(void) {
     return value;
 }
 
-@implementation Rg4rn
+@implementation RaygunNativeBridge
 
 static CFTimeInterval startedAt;
 
