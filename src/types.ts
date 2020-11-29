@@ -74,7 +74,7 @@ export interface Breadcrumb {
   timestamp?: number;
 }
 
-export interface CrashReportingStackFrame {
+export interface RaygunStackFrame {
   FileName: string;
   LineNumber: number;
   ColumnNumber: number | null;
@@ -88,7 +88,7 @@ export interface CrashReportPayload {
     Error: {
       ClassName: string;
       Message: string;
-      StackTrace: CrashReportingStackFrame[];
+      StackTrace: RaygunStackFrame[];
       StackString: string;
     };
     Environment: Environment;

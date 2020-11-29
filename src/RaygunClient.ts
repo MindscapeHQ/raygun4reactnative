@@ -1,8 +1,6 @@
 import { NativeModules, Platform } from 'react-native';
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
 import { getDeviceBasedId, filterOutReactFrames, cleanFilePath, noAddressAt, log, warn } from './utils';
-//@ts-ignore
-const { version: clientVersion } = require('../package.json');
 import {
   User,
   Session,
@@ -17,6 +15,9 @@ import {
 import { sendCustomRUMEvent, setupRealtimeUserMonitoring } from './realtime-user-monitor';
 import { sendCrashReport, sendCachedReports } from './transport';
 import {clone, upperFirst} from "./helper";
+
+//@ts-ignore
+const { version: clientVersion } = require('../package.json');
 
 const { RaygunNativeBridge } = NativeModules;
 

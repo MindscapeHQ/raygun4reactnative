@@ -1,4 +1,4 @@
-import { Breadcrumb, BreadcrumbOption, CustomData, CrashReportingStackFrame } from '../types';
+import { Breadcrumb, BreadcrumbOption, CustomData, RaygunStackFrame } from '../types';
 import { internalStackFrames, stackFramesWithAddress, fullStackFrames } from './fixture/errors';
 import { sendCachedReports, sendCrashReport } from '../transport';
 import { setupRealtimeUserMonitoring } from '../realtime-user-monitor';
@@ -66,7 +66,7 @@ const mockPayload = {
     Error: {
       ClassName: '',
       Message: '',
-      StackTrace: [] as CrashReportingStackFrame[],
+      StackTrace: [] as RaygunStackFrame[],
       StackString: ''
     },
     Environment: {
