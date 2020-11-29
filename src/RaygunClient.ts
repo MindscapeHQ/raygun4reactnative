@@ -93,25 +93,28 @@ const init = async (options: RaygunClientOptions) => {
 };
 
 const generateCrashReportPayload = async (
-  error: Error,
-  stackFrames: StackFrame[],
-  session: Session
+    error: Error,
+    stackFrames: StackFrame[],
+    session: Session
 ): Promise<CrashReportPayload> => {
   const { breadcrumbs, tags, user, customData } = session;
   const environmentDetails = (RaygunNativeBridge.getEnvironmentInfo && (await RaygunNativeBridge.getEnvironmentInfo())) || {};
+
+  let convertToCrashReportingStackFrame =  ({ file, methodName, lineNumber, column } : StackFrame) => ({
+    FileName: file,
+    MethodName: methodName || '[anonymous]',
+    LineNumber: lineNumber,
+    ColumnNumber: column,
+    ClassName: `line ${lineNumber}, column ${column}`
+  })
+
   return {
     OccurredOn: new Date(),
     Details: {
       Error: {
         ClassName: error?.name || '',
         Message: error?.message || '',
-        StackTrace: stackFrames.map(({ file, methodName, lineNumber, column }) => ({
-          FileName: file,
-          MethodName: methodName || '[anonymous]',
-          LineNumber: lineNumber,
-          ColumnNumber: column,
-          ClassName: `line ${lineNumber}, column ${column}`
-        })),
+        StackTrace: Array.isArray(stackFrames) ? stackFrames.map(convertToCrashReportingStackFrame) : [convertToCrashReportingStackFrame(stackFrames)],
         StackString: error?.toString() || ''
       },
       Environment: {
