@@ -29,10 +29,6 @@ const getCleanSession = (): Session => ({
   }
 });
 
-interface StackTrace {
-  stack: StackFrame[];
-}
-
 let curSession = getCleanSession();
 let GlobalOptions: RaygunClientOptions;
 
@@ -230,11 +226,11 @@ const processUnhandledError = async (error: Error, isFatal?: boolean) => {
   const parseErrorStack = require('react-native/Libraries/Core/Devtools/parseErrorStack');
   const symbolicateStackTrace = require('react-native/Libraries/Core/Devtools/symbolicateStackTrace');
   const stackFrame = parseErrorStack(error);
-  const cleanedStackFrames: StackTrace = __DEV__
+  const cleanedStackFrames: StackFrame[] = __DEV__
     ? await symbolicateStackTrace(stackFrame)
     : { stack: cleanFilePath(stackFrame) };
 
-  const stack = cleanedStackFrames.stack || [].filter(filterOutReactFrames).map(noAddressAt);
+  const stack = cleanedStackFrames || [].filter(filterOutReactFrames).map(noAddressAt);
 
   if (isFatal) {
     curSession.tags.add('Fatal');
