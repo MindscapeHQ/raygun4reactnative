@@ -74,7 +74,7 @@ export interface Breadcrumb {
   timestamp?: number;
 }
 
-export interface StackTrace {
+export interface CrashReportingStackFrame {
   FileName: string;
   LineNumber: number;
   ColumnNumber: number | null;
@@ -88,7 +88,7 @@ export interface CrashReportPayload {
     Error: {
       ClassName: string;
       Message: string;
-      StackTrace: StackTrace[];
+      StackTrace: CrashReportingStackFrame[];
       StackString: string;
     };
     Environment: Environment;
