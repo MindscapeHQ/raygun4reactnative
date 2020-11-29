@@ -91,7 +91,7 @@ const init = async (options: RaygunClientOptions) => {
   return true;
 };
 
-const generatePayload = async (
+const generateCrashReportPayload = async (
   error: Error,
   stackFrames: StackFrame[],
   session: Session
@@ -236,7 +236,7 @@ const processUnhandledError = async (error: Error, isFatal?: boolean) => {
     curSession.tags.add('Fatal');
   }
 
-  const payload = await generatePayload(error, stack, curSession);
+  const payload = await generateCrashReportPayload(error, stack, curSession);
 
   const { onBeforeSend } = GlobalOptions;
   const modifiedPayload =
@@ -277,7 +277,7 @@ export {
   recordBreadcrumb,
   filterOutReactFrames,
   noAddressAt,
-  generatePayload,
+  generateCrashReportPayload,
   sendRUMTimingEvent,
   sendCustomError
 };

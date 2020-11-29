@@ -279,7 +279,7 @@ describe('Error process function', () => {
       customData: { key: 'val' },
       breadcrumbs: [breadcrumb]
     };
-    const payload = await RaygunClient.generatePayload(error, fullStackFrames, session);
+    const payload = await RaygunClient.generateCrashReportPayload(error, fullStackFrames, session);
     expect(payload).toEqual({
       OccurredOn: expect.any(Date),
       Details: {
