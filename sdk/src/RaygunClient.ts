@@ -12,7 +12,7 @@ import {
   RUMEvents,
   SendCustomErrorOverload
 } from './types';
-import { sendCustomRUMEvent, setupRealtimeUserMonitoring } from './realtime-user-monitor';
+import { sendCustomRUMEvent, setupRealtimeUserMonitoring } from './RealUserMonitoring';
 import { sendCrashReport, sendCachedReports } from './transport';
 import {clone, upperFirst} from "./helper";
 
@@ -37,15 +37,15 @@ const getCurrentUser = () => curSession.user;
 
 const init = async (options: RaygunClientOptions) => {
   GlobalOptions = Object.assign(
-    {
-      enableNetworkMonitoring: true,
-      enableNativeCrashReporting: true,
-      enableRUM: true,
-      ignoreURLs: [],
-      version: '',
-      apiKey: ''
-    },
-    options
+      {
+        enableNetworkMonitoring: true,
+        enableNativeCrashReporting: true,
+        enableRUM: true,
+        ignoreURLs: [],
+        version: '',
+        apiKey: ''
+      },
+      options
   );
 
   const useNativeCR = GlobalOptions.enableNativeCrashReporting && RaygunNativeBridge && typeof RaygunNativeBridge.init === 'function';
@@ -92,6 +92,8 @@ const init = async (options: RaygunClientOptions) => {
   return true;
 };
 
+
+//MEEEEEEEEEEEEEEEEEEEEEEEEE
 const generateCrashReportPayload = async (
     error: Error,
     stackFrames: StackFrame[],
@@ -135,24 +137,28 @@ const generateCrashReportPayload = async (
   };
 };
 
+
 const sendRUMTimingEvent = (
-  eventType: RUMEvents.ActivityLoaded | RUMEvents.NetworkCall,
-  name: string,
-  timeUsedInMs: number
+    eventType: RUMEvents.ActivityLoaded | RUMEvents.NetworkCall,
+    name: string,
+    timeUsedInMs: number
 ) => {
   if (!GlobalOptions.enableRUM) {
     warn('RUM is not enabled, please enable to use the sendRUMTimingEvent() function');
     return;
   }
   sendCustomRUMEvent(
-    getCurrentUser,
-    GlobalOptions.apiKey,
-    eventType,
-    name,
-    timeUsedInMs,
-    GlobalOptions.customRUMEndpoint
+      getCurrentUser,
+      GlobalOptions.apiKey,
+      eventType,
+      name,
+      timeUsedInMs,
+      GlobalOptions.customRUMEndpoint
   );
 };
+
+
+
 
 const addTag = (...tags: string[]) => {
   tags.forEach(tag => {
@@ -163,19 +169,20 @@ const addTag = (...tags: string[]) => {
   }
 };
 
+
 const setUser = (user: User | string) => {
   const userObj = Object.assign(
-    { firstName: '', fullName: '', email: '', isAnonymous: false },
-    typeof user === 'string'
-      ? !!user
-        ? {
+      { firstName: '', fullName: '', email: '', isAnonymous: false },
+      typeof user === 'string'
+          ? !!user
+          ? {
             identifier: user
           }
-        : {
+          : {
             identifier: `anonymous-${getDeviceBasedId()}`,
             isAnonymous: true
           }
-      : user
+          : user
   );
   curSession.user = userObj;
   if (GlobalOptions.enableNativeCrashReporting) {
@@ -183,6 +190,8 @@ const setUser = (user: User | string) => {
   }
 };
 
+
+//MEEEEEEEEEEEEEEEEEEEEEEEEE
 const addCustomData = (customData: CustomData) => {
   curSession.customData = Object.assign({}, curSession.customData, customData);
   if (GlobalOptions.enableNativeCrashReporting) {
@@ -190,6 +199,7 @@ const addCustomData = (customData: CustomData) => {
   }
 };
 
+//???????????????????????????
 const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
   curSession.customData = updater(curSession.customData);
   if (GlobalOptions.enableNativeCrashReporting) {
@@ -197,6 +207,7 @@ const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
   }
 };
 
+//MEEEEEEEEEEEEEEEEEEEEEEEEE
 const recordBreadcrumb = (message: string, details?: BreadcrumbOption) => {
   const breadcrumb: Breadcrumb = {
     customData: {},
@@ -219,8 +230,10 @@ const clearSession = () => {
   }
 };
 
+//MEEEEEEEEEEEEEEEEEEEEEEEEE
 const processUnhandledRejection = (id: number, error: any) => processUnhandledError(error, false);
 
+//MEEEEEEEEEEEEEEEEEEEEEEEEE
 const processUnhandledError = async (error: Error, isFatal?: boolean) => {
   if (!error || !error.stack) {
     warn('Unrecognized error occurred');
@@ -231,8 +244,8 @@ const processUnhandledError = async (error: Error, isFatal?: boolean) => {
   const symbolicateStackTrace = require('react-native/Libraries/Core/Devtools/symbolicateStackTrace');
   const stackFrame = parseErrorStack(error);
   const cleanedStackFrames: StackFrame[] = __DEV__
-    ? await symbolicateStackTrace(stackFrame)
-    : { stack: cleanFilePath(stackFrame) };
+      ? await symbolicateStackTrace(stackFrame)
+      : { stack: cleanFilePath(stackFrame) };
 
   const stack = cleanedStackFrames || [].filter(filterOutReactFrames).map(noAddressAt);
 
@@ -244,7 +257,7 @@ const processUnhandledError = async (error: Error, isFatal?: boolean) => {
 
   const { onBeforeSend } = GlobalOptions;
   const modifiedPayload =
-    onBeforeSend && typeof onBeforeSend === 'function' ? onBeforeSend(Object.freeze(payload)) : payload;
+      onBeforeSend && typeof onBeforeSend === 'function' ? onBeforeSend(Object.freeze(payload)) : payload;
 
   if (!modifiedPayload) {
     return;
@@ -260,6 +273,8 @@ const processUnhandledError = async (error: Error, isFatal?: boolean) => {
   sendCrashReport(modifiedPayload, GlobalOptions.apiKey, GlobalOptions.customCrashReportingEndpoint);
 };
 
+
+//MEEEEEEEEEEEEEEEEEEEEEEEEE
 const sendCustomError:SendCustomErrorOverload  = async (error: Error, ...params: any) => {
   const [customData, tags] = params.length == 1 && Array.isArray(params[0]) ? [null, params[0]] : params;
   if (customData) {
@@ -270,6 +285,8 @@ const sendCustomError:SendCustomErrorOverload  = async (error: Error, ...params:
   }
   await processUnhandledError(error);
 }
+
+
 
 export {
   init,
