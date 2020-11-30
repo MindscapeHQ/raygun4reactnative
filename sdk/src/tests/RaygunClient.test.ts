@@ -3,11 +3,11 @@ import { internalStackFrames, stackFramesWithAddress, fullStackFrames } from './
 import { sendCachedReports, sendCrashReport } from '../Transport';
 import { setupRealtimeUserMonitoring } from '../RealUserMonitoring';
 
-jest.mock('../realtime-user-monitor', () => ({
+jest.mock('../RealUserMonitoring', () => ({
   setupRealtimeUserMonitoring: jest.fn()
 }));
 
-jest.mock('../network-monitor', () => ({
+jest.mock('../NetworkMonitor', () => ({
   setupNetworkMonitoring: jest.fn()
 }));
 
@@ -42,7 +42,7 @@ jest.mock('promise/setimmediate/rejection-tracking', () => ({
   enable: jest.fn()
 }));
 
-jest.mock('../transport', () => ({
+jest.mock('../Transport', () => ({
   sendCachedReports: jest.fn(),
   sendCrashReport: jest.fn()
 }));

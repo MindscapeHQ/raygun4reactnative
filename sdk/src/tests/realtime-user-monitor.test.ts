@@ -4,11 +4,11 @@ import { setupRealtimeUserMonitoring } from '../RealUserMonitoring';
 import { setupNetworkMonitoring } from '../NetworkMonitor';
 import { sendRUMPayload } from '../Transport';
 
-jest.mock('../network-monitor', () => ({
+jest.mock('../NetworkMonitor', () => ({
   setupNetworkMonitoring: jest.fn()
 }));
 
-jest.mock('../transport', () => ({
+jest.mock('../Transport', () => ({
   sendRUMPayload: jest.fn()
 }));
 
