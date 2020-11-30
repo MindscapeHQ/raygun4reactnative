@@ -11,7 +11,7 @@
 import React from 'react';
 import { SafeAreaView, StyleSheet, ScrollView, View, StatusBar, Button } from 'react-native';
 
-import { throwUndefinedError, throwCustomError, promiseRejection, reInitialize, makeNetworkCall } from './helper';
+import { throwUndefinedError, throwCustomError, promiseRejection, reInitialize, makeNetworkCall } from './Helper';
 
 import { Header, Colors } from 'react-native/Libraries/NewAppScreen';
 
@@ -20,7 +20,7 @@ declare const global: { HermesInternal: null | {} };
 import RaygunClient from 'raygun4reactnative';
 
 RaygunClient.init({
-  apiKey: '9fmuZLpEhmPKBuRc8MfQA', // YOUR APIKEY
+  apiKey: '', // YOUR APIKEY
   version: '', // YOUR APP VERSION
   customCrashReportingEndpoint: '',
   customRUMEndpoint: '',
