@@ -9,7 +9,7 @@ android/gradle/
 android/gradlew
 android/gradlew.bat
 android/local.properties
-ios/Rg4rn.xcworkspace
+ios/RaygunNativeBridge.xcworkspace
 dist/tests/
 docker/
 .vscode/

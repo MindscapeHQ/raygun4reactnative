@@ -7,7 +7,7 @@ Pod::Spec.new do |s|
   s.version      = package["version"]
   s.summary      = package["description"]
   s.description  = <<-DESC
-                  rg4rn
+                  raygunnativebridge
                    DESC
   s.homepage     = "https://github.com/MindscapeHQ/raygun4reactnative"
   # brief license entry:
