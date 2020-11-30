@@ -20,7 +20,7 @@ declare const global: { HermesInternal: null | {} };
 import RaygunClient from 'raygun4reactnative';
 
 RaygunClient.init({
-  apiKey: '', // YOUR APIKEY
+  apiKey: '9fmuZLpEhmPKBuRc8MfQA', // YOUR APIKEY
   version: '', // YOUR APP VERSION
   customCrashReportingEndpoint: '',
   customRUMEndpoint: '',
