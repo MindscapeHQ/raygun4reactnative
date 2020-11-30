@@ -1,6 +1,6 @@
 import fetchMock from 'jest-fetch-mock';
-import { sendCrashReport, sendCachedReports } from '../transport';
-import { CrashReportPayload } from '../types';
+import { sendCrashReport, sendCachedReports } from '../Transport';
+import { CrashReportPayload } from '../Types';
 import { NativeModules } from 'react-native';
 
 const { RaygunNativeBridge } = NativeModules;

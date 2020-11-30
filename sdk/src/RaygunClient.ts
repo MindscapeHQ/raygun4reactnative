@@ -1,6 +1,6 @@
 import { NativeModules, Platform } from 'react-native';
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
-import { getDeviceBasedId, filterOutReactFrames, cleanFilePath, noAddressAt, log, warn } from './utils';
+import { getDeviceBasedId, filterOutReactFrames, cleanFilePath, noAddressAt, log, warn } from './Utils';
 import {
   User,
   Session,
@@ -11,10 +11,10 @@ import {
   Breadcrumb,
   RUMEvents,
   SendCustomErrorOverload
-} from './types';
+} from './Types';
 import { sendCustomRUMEvent, setupRealtimeUserMonitoring } from './RealUserMonitoring';
-import { sendCrashReport, sendCachedReports } from './transport';
-import {clone, upperFirst} from "./helper";
+import { sendCrashReport, sendCachedReports } from './Transport';
+import {clone, upperFirst} from "./Helper";
 
 //@ts-ignore
 const { version: clientVersion } = require('../package.json');

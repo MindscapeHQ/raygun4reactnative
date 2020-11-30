@@ -1,6 +1,6 @@
-import { Breadcrumb, BreadcrumbOption, CustomData, RaygunStackFrame } from '../types';
+import { Breadcrumb, BreadcrumbOption, CustomData, RaygunStackFrame } from '../Types';
 import { internalStackFrames, stackFramesWithAddress, fullStackFrames } from './fixture/errors';
-import { sendCachedReports, sendCrashReport } from '../transport';
+import { sendCachedReports, sendCrashReport } from '../Transport';
 import { setupRealtimeUserMonitoring } from '../RealUserMonitoring';
 
 jest.mock('../realtime-user-monitor', () => ({

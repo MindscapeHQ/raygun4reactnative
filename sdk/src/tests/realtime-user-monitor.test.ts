@@ -1,8 +1,8 @@
 import MockDate from 'mockdate';
-import { RUMEvents } from '../types';
+import { RUMEvents } from '../Types';
 import { setupRealtimeUserMonitoring } from '../RealUserMonitoring';
-import { setupNetworkMonitoring } from '../network-monitor';
-import { sendRUMPayload } from '../transport';
+import { setupNetworkMonitoring } from '../NetworkMonitor';
+import { sendRUMPayload } from '../Transport';
 
 jest.mock('../network-monitor', () => ({
   setupNetworkMonitoring: jest.fn()

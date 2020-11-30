@@ -1,10 +1,10 @@
-import { User, RUMEvents } from './types';
-import { setupNetworkMonitoring } from './network-monitor';
-import { getDeviceBasedId } from './utils';
+import { User, RUMEvents } from './Types';
+import { setupNetworkMonitoring } from './NetworkMonitor';
+import { getDeviceBasedId } from './Utils';
 import { NativeModules, Platform, NativeEventEmitter } from 'react-native';
 const { version: clientVersion } = require('../package.json');
-import { sendRUMPayload } from './transport';
-import { warn } from './utils';
+import { sendRUMPayload } from './Transport';
+import { warn } from './Utils';
 const { RaygunNativeBridge } = NativeModules;
 
 const { osVersion, platform } = RaygunNativeBridge;
