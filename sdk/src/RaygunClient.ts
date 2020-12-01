@@ -174,15 +174,8 @@ const setUser = (user: User | string) => {
   const userObj = Object.assign(
       { firstName: '', fullName: '', email: '', isAnonymous: false },
       typeof user === 'string'
-          ? !!user
-          ? {
-            identifier: user
-          }
-          : {
-            identifier: `anonymous-${getDeviceBasedId()}`,
-            isAnonymous: true
-          }
-          : user
+          ? !!user ? {identifier: user}
+                   : {identifier: `anonymous-${getDeviceBasedId()}`,isAnonymous: true} : user
   );
   curSession.user = userObj;
   if (!GlobalOptions.disableNativeCrashReporting) {

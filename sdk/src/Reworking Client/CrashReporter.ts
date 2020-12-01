@@ -1,4 +1,4 @@
-import {cleanFilePath, filterOutReactFrames, log, noAddressAt, warn} from "../Utils";
+import {cleanFilePath, error, filterOutReactFrames, log, noAddressAt, warn} from "../Utils";
 import {StackFrame} from "react-native/Libraries/Core/Devtools/parseErrorStack";
 import {sendCachedReports, sendCrashReport} from "../Transport";
 import {generateCrashReportPayload} from "../RaygunClient";
@@ -26,8 +26,9 @@ export default class CrashReporter {
 
         //Setup error handler to divert errors to crash reporter
         const prevHandler = ErrorUtils.getGlobalHandler();
+
         ErrorUtils.setGlobalHandler(async (error: Error, isFatal?: boolean) => {
-            await this.processUnhandledError(error, curSession, apiKey, disableNativeCrashReporting, customCrashReportingEndpoint, onBeforeSendingCrashReport, isFatal);
+            await this.processUnhandledError(error, isFatal);
             prevHandler && prevHandler(error, isFatal);
         });
 
@@ -38,6 +39,8 @@ export default class CrashReporter {
             allRejections: true,
             onUnhandled: this.processUnhandledRejection
         });
+
+
         if (disableNativeCrashReporting) {
             setTimeout(() => sendCachedReports(apiKey, customCrashReportingEndpoint), 10);
         }
@@ -51,12 +54,7 @@ export default class CrashReporter {
     }
 
 
-
-    processUnhandledRejection (error: any, curSession: Session, apiKey: string, enableNativeCrashReporting: boolean, customCrashReportingEndpoint: string, onBeforeSendingCrashReport: BeforeSendHandler) {
-        this.processUnhandledError(error, curSession, apiKey, enableNativeCrashReporting, customCrashReportingEndpoint, onBeforeSendingCrashReport, false);
-    };
-
-    async processUnhandledError (error: Error, curSession: Session, apiKey: string, enableNativeCrashReporting: boolean, customCrashReportingEndpoint: string, onBeforeSendingCrashReport: BeforeSendHandler, isFatal?: boolean ) {
+    async processUnhandledError (error: Error, isFatal?: boolean ) {
         if (!error || !error.stack) {
             warn('Unrecognized error occurred');
             return;
@@ -72,25 +70,29 @@ export default class CrashReporter {
         const stack = cleanedStackFrames || [].filter(filterOutReactFrames).map(noAddressAt);
 
         if (isFatal) {
-            curSession.tags.add('Fatal');
+            this.curSession.tags.add('Fatal');
         }
 
-        const payload = await generateCrashReportPayload(error, stack, curSession);
+        const payload = await generateCrashReportPayload(error, stack, this.curSession);
 
         const modifiedPayload =
-            onBeforeSendingCrashReport && typeof onBeforeSendingCrashReport === 'function' ? onBeforeSendingCrashReport(Object.freeze(payload)) : payload;
+            this.onBeforeSendingCrashReport && typeof this.onBeforeSendingCrashReport === 'function' ? this.onBeforeSendingCrashReport(Object.freeze(payload)) : payload;
 
         if (!modifiedPayload) {
             return;
         }
 
-        if (enableNativeCrashReporting) {
+        if (!this.disableNativeCrashReporting) {
             log('Send crash report via Native');
-            RaygunNativeBridge.sendCrashReport(JSON.stringify(modifiedPayload), apiKey);
+            RaygunNativeBridge.sendCrashReport(JSON.stringify(modifiedPayload), this.apiKey);
             return;
         }
 
         log('Send crash report via JS');
-        sendCrashReport(modifiedPayload, apiKey, customCrashReportingEndpoint);
+        sendCrashReport(modifiedPayload, this.apiKey, this.customCrashReportingEndpoint);
     }
+
+    processUnhandledRejection (error: any) {
+        this.processUnhandledError(error, false);
+    };
 };
