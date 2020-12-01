@@ -1,6 +1,9 @@
 import {BeforeSendHandler, NetworkTimingCallback, RUMEvents, User} from "../Types";
-import { NativeModules, NativeEventEmitter } from 'react-native';
+import {NativeModules, NativeEventEmitter, Platform} from 'react-native';
+const { version: clientVersion } = require('../package.json');
 import {setupNetworkMonitoring} from "../NetworkMonitor";
+import {warn} from "../Utils";
+import {sendRUMPayload} from "../Transport";
 
 const { RaygunNativeBridge } = NativeModules;
 const { osVersion, platform } = RaygunNativeBridge;
@@ -74,6 +77,55 @@ export default class RealUserMonitor {
                 };
 
         return callbackMethod;
+    };
+
+
+
+    sendCustomRUMEvent (
+        getCurrentUser: () => User,
+        apiKey: string,
+        eventType: RUMEvents.ActivityLoaded | RUMEvents.NetworkCall,
+        name: string,
+        duration: number,
+        customRealUserMonitoringEndpoint?: string
+    ) {
+        if (eventType === RUMEvents.ActivityLoaded) {
+            reportStartupTime(getCurrentUser, apiKey)({ name, duration });
+            return;
+        }
+        if (eventType === RUMEvents.NetworkCall) {
+            this.NetworkTimingEventCallback(name, Date.now() - duration, duration);
+            return;
+        }
+        warn('Unknown RUM event type:', eventType);
+    };
+
+
+
+
+
+    async sendRUMEvent (
+        eventName: string,
+        user: User,
+        data: Record<string, any>,
+        sessionId: string,
+        apiKey: string,
+        customRealUserMonitoringEndpoint?: string,
+        timeAt?: number
+    ){
+        const timestamp = timeAt ? new Date(timeAt) : new Date();
+        const rumMessage = {
+            type: eventName,
+            timestamp: timestamp.toISOString(),
+            user,
+            sessionId,
+            version: clientVersion,
+            os: Platform.OS,
+            osVersion,
+            platform,
+            data: JSON.stringify([data])
+        };
+        return sendRUMPayload(rumMessage, apiKey, customRealUserMonitoringEndpoint);
     };
 
 }
