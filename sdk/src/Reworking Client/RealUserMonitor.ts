@@ -20,6 +20,8 @@ export default class RealUserMonitor {
     private customRealUserMonitoringEndpoint: string;
     private ignoredURLs: string[];
 
+    private NetworkTimingEventCallback: NetworkTimingCallback;
+
     lastActiveAt = Date.now();
     curRUMSessionId: string = '';
 
@@ -28,10 +30,12 @@ export default class RealUserMonitor {
 
         this.enabled = true;  //TODO
 
+        this.NetworkTimingEventCallback = this.generateNetworkTimingEventCallbackMethod(getCurrentUser, apiKey, customRealUserMonitoringEndpoint);
+
         if (!disableNetworkMonitoring) {
             setupNetworkMonitoring(
                 ignoredURLs.concat(defaultURLIgnoreList, customRealUserMonitoringEndpoint || []),
-                this.sendNetworkTimingEvent(getCurrentUser, apiKey, customRealUserMonitoringEndpoint)
+                this.NetworkTimingEventCallback
             );
         }
 
