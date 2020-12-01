@@ -60,13 +60,18 @@ export default class RealUserMonitor {
         this.customRealUserMonitoringEndpoint = customRealUserMonitoringEndpoint;
     };
 
+    /**
+     * Create a callback method to forward network events on to RUM
+     * @param getCurrentUser
+     * @param apiKey
+     * @param customRealUserMonitoringEndpoint
+     */
+    generateNetworkTimingEventCallbackMethod (getCurrentUser: () => User, apiKey: string, customRealUserMonitoringEndpoint?: string) : NetworkTimingCallback {
 
-    sendNetworkTimingEvent (getCurrentUser: () => User, apiKey: string, customRealUserMonitoringEndpoint?: string) : NetworkTimingCallback {
-
-        return callbackMethod = ((name: string, sendTime: number, duration: number): void => {
+        let callbackMethod: NetworkTimingCallback = (name: string, sendTime: number, duration: number) => {
                     const data = { name, timing: { type: RUMEvents.NetworkCall, duration } };
-                    sendRUMEvent(RUMEvents.EventTiming, getCurrentUser(), data, this.curRUMSessionId, apiKey, customRealUserMonitoringEndpoint, sendTime);
-                }) as NetworkTimingCallback;
+                    this.sendRUMEvent(RUMEvents.EventTiming, getCurrentUser(), data, this.curRUMSessionId, apiKey, customRealUserMonitoringEndpoint, sendTime);
+                };
 
         return callbackMethod;
     };
