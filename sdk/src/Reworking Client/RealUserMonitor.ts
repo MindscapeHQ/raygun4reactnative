@@ -15,13 +15,9 @@ export default class RealUserMonitor {
     private enabled: boolean = false;
     private apiKey: string;
     private version: string;
-    private enableCrashReporting: boolean;
-    private disableNativeCrashReporting: boolean;
     private enableRealUserMonitoring: boolean;
     private disableNetworkMonitoring: boolean;
-    private customCrashReportingEndpoint: string;
     private customRealUserMonitoringEndpoint: string;
-    private onBeforeSendingCrashReport: BeforeSendHandler;
     private ignoredURLs: string[];
 
     lastActiveAt = Date.now();
