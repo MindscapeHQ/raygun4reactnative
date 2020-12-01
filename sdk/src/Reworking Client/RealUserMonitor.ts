@@ -1,5 +1,6 @@
-import {BeforeSendHandler, RaygunClientOptions, User} from "../Types";
-import { NativeModules, Platform, NativeEventEmitter } from 'react-native';
+import {BeforeSendHandler, NetworkTimingCallback, RUMEvents, User} from "../Types";
+import { NativeModules, NativeEventEmitter } from 'react-native';
+import {setupNetworkMonitoring} from "../NetworkMonitor";
 
 const { RaygunNativeBridge } = NativeModules;
 const { osVersion, platform } = RaygunNativeBridge;
@@ -10,6 +11,7 @@ const SessionRotateThreshold = 30 * 60 * 100;
 
 export default class RealUserMonitor {
 
+    private getCurrentUser: () => User;
     private enabled: boolean = false;
     private apiKey: string;
     private version: string;
@@ -25,12 +27,7 @@ export default class RealUserMonitor {
     lastActiveAt = Date.now();
     curRUMSessionId: string = '';
 
-    constructor(
-        getCurrentUser: () => User,
-        apiKey: string,
-        disableNetworkMonitoring = true,
-        ignoredURLs = [] as string[],
-        customRealUserMonitoringEndpoint: string
+    constructor(getCurrentUser: () => User, apiKey: string, disableNetworkMonitoring = true, ignoredURLs: string[], customRealUserMonitoringEndpoint: string
         ) {
 
         this.enabled = true;  //TODO
@@ -38,7 +35,7 @@ export default class RealUserMonitor {
         if (!disableNetworkMonitoring) {
             setupNetworkMonitoring(
                 ignoredURLs.concat(defaultURLIgnoreList, customRealUserMonitoringEndpoint || []),
-                sendNetworkTimingEvent(getCurrentUser, apiKey, customRealUserMonitoringEndpoint)
+                this.sendNetworkTimingEvent(getCurrentUser, apiKey, customRealUserMonitoringEndpoint)
             );
         }
 
@@ -62,4 +59,16 @@ export default class RealUserMonitor {
         this.ignoredURLs = ignoredURLs;
         this.customRealUserMonitoringEndpoint = customRealUserMonitoringEndpoint;
     };
+
+
+    sendNetworkTimingEvent (getCurrentUser: () => User, apiKey: string, customRealUserMonitoringEndpoint?: string) : NetworkTimingCallback {
+
+        return callbackMethod = ((name: string, sendTime: number, duration: number): void => {
+                    const data = { name, timing: { type: RUMEvents.NetworkCall, duration } };
+                    sendRUMEvent(RUMEvents.EventTiming, getCurrentUser(), data, this.curRUMSessionId, apiKey, customRealUserMonitoringEndpoint, sendTime);
+                }) as NetworkTimingCallback;
+
+        return callbackMethod;
+    };
+
 }

@@ -56,7 +56,7 @@ const handleResponse = (sendNetworkTimingEvent: NetworkTimingCallback) => (
 
 export const setupNetworkMonitoring = (
   ignoredURLs: string[],
-  sendNetworkTimingEvent: (name: string, sendTime: number, duration: number) => void
+  sendNetworkTimingEvent: NetworkTimingCallback
 ) => {
   if (typeof sendNetworkTimingEvent === 'function') {
     const urls = ([] as string[]).concat(ignoredURLs || []).map(removeProtocol);
