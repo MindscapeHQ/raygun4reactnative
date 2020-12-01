@@ -97,8 +97,8 @@ describe('RaygunClient Initialization', () => {
     expect(ErrorUtils.setGlobalHandler).toBeCalledWith(expect.any(Function));
   });
 
-  test('should correctly pass apiKey to JS transport when enableNativeCrashReporting is false', async () => {
-    await RaygunClient.init({ apiKey: 'someKey', enableNativeCrashReporting: false, enableRUM: false });
+  test('should correctly pass apiKey to JS transport when disableNativeCrashReporting is false', async () => {
+    await RaygunClient.init({ apiKey: 'someKey', disableNativeCrashReporting: true, enableRealUserMonitoring: false });
     expect(RaygunNativeBridge.init).not.toBeCalled();
     jest.runAllTimers();
     expect(sendCachedReports).toBeCalledTimes(1);
@@ -108,32 +108,32 @@ describe('RaygunClient Initialization', () => {
   test('should pass RUM options to native side when enabled', async () => {
     await RaygunClient.init({
       apiKey: 'someKey',
-      enableRUM: true
+      enableRealUserMonitoring: true
     });
     expect(RaygunNativeBridge.init).toHaveBeenLastCalledWith({
       apiKey: 'someKey',
       version: '',
-      enableRUM: true
+      enableRealUserMonitoring: true
     });
   });
 
   test('should not pass unnecessary options to native side', async () => {
     await RaygunClient.init({
       apiKey: 'someKey',
-      enableNativeCrashReporting: true
+      disableNativeCrashReporting: false
     });
     expect(RaygunNativeBridge.init).toHaveBeenLastCalledWith({
       apiKey: 'someKey',
       version: '',
-      enableRUM: true
+      enableRealUserMonitoring: true
     });
   });
 
   test('should pass custom RUM endpoint to realtime-user-monitor when given', async () => {
     await RaygunClient.init({
       apiKey: 'someKey',
-      enableRUM: true,
-      customRUMEndpoint: 'rum.endpoint.io'
+      enableRealUserMonitoring: true,
+      customRealUserMonitoringEndpoint: 'rum.endpoint.io'
     });
     expect(setupRealtimeUserMonitoring).toBeCalledWith(expect.any(Function), 'someKey', true, [], 'rum.endpoint.io');
   });
@@ -141,13 +141,13 @@ describe('RaygunClient Initialization', () => {
   test('should pass custom CrashReporting endpoint to native side when given', async () => {
     await RaygunClient.init({
       apiKey: 'someKey',
-      enableRUM: true,
+      enableRealUserMonitoring: true,
       customCrashReportingEndpoint: 'cr.endpoint.io'
     });
     expect(RaygunNativeBridge.init).toHaveBeenLastCalledWith({
       apiKey: 'someKey',
       version: '',
-      enableRUM: true,
+      enableRealUserMonitoring: true,
       customCrashReportingEndpoint: 'cr.endpoint.io'
     });
   });
@@ -156,23 +156,23 @@ describe('RaygunClient Initialization', () => {
     Platform.OS = 'ios';
     await RaygunClient.init({
       apiKey: 'someKey',
-      enableRUM: true,
-      enableNetworkMonitoring: false
+      enableRealUserMonitoring: true,
+      disableNetworkMonitoring: true
     });
     expect(RaygunNativeBridge.init).toBeCalledWith({
       apiKey: 'someKey',
       version: '',
-      enableRUM: true
+      enableRealUserMonitoring: true
     });
   });
 
-  test('should still initialize native side but not calling sendCachedReport from JS side when not enableNativeCrashReporting', async () => {
+  test('should still initialize native side but not calling sendCachedReport from JS side when not disableNativeCrashReporting', async () => {
     await RaygunClient.init({
       apiKey: 'someKey',
-      enableNativeCrashReporting: false
+      disableNativeCrashReporting: true
     });
     jest.runAllTimers();
-    expect(RaygunNativeBridge.init).toBeCalledWith({ apiKey: 'someKey', version: expect.any(String), enableRUM: true });
+    expect(RaygunNativeBridge.init).toBeCalledWith({ apiKey: 'someKey', version: expect.any(String), enableRealUserMonitoring: true });
     expect(sendCachedReports).toBeCalledTimes(1);
     expect(sendCachedReports).toBeCalledWith('someKey', undefined);
   });
@@ -332,28 +332,28 @@ describe('Error process function', () => {
 
 describe('Sending errors', () => {
   test('Should use native sendCrashReport when enable native crash reporting', async () => {
-    await RaygunClient.init({ apiKey: 'someKey', enableNativeCrashReporting: true });
+    await RaygunClient.init({ apiKey: 'someKey', disableNativeCrashReporting: false });
     await RaygunClient.sendCustomError(new Error('Test Native Report'));
     expect(RaygunNativeBridge.sendCrashReport).toBeCalledTimes(1);
     expect(sendCrashReport).toBeCalledTimes(0);
   });
 
   test('Should use JS sendCrashReport when disable native crash reporting', async () => {
-    await RaygunClient.init({ apiKey: 'someKey', enableNativeCrashReporting: false });
+    await RaygunClient.init({ apiKey: 'someKey', disableNativeCrashReporting: true });
     await RaygunClient.sendCustomError(new Error('Test JS Report'));
     expect(sendCrashReport).toBeCalledTimes(1);
     expect(RaygunNativeBridge.sendCrashReport).toBeCalledTimes(0);
   });
 
   test('Should stop sendCrashReport when onBeforeHandler returns falsy value', async () => {
-    await RaygunClient.init({ apiKey: 'someKey', onBeforeSend: () => null });
+    await RaygunClient.init({ apiKey: 'someKey', onBeforeSendingCrashReport: () => null });
     await RaygunClient.sendCustomError(new Error('Test JS Report'));
     expect(sendCrashReport).toBeCalledTimes(0);
     expect(RaygunNativeBridge.sendCrashReport).toBeCalledTimes(0);
   });
 
   test('Should use native sendCrashReport with the payload returned from onBeforeHandler', async () => {
-    await RaygunClient.init({ apiKey: 'someKey', onBeforeSend: () => mockPayload, enableNativeCrashReporting: true });
+    await RaygunClient.init({ apiKey: 'someKey', onBeforeSendingCrashReport: () => mockPayload, disableNativeCrashReporting: false });
     await RaygunClient.sendCustomError(new Error('Test JS Report'));
     expect(sendCrashReport).toBeCalledTimes(0);
     expect(RaygunNativeBridge.sendCrashReport).toBeCalledTimes(1);
@@ -361,7 +361,7 @@ describe('Sending errors', () => {
   });
 
   test('Should use native sendCrashReport with the payload returned from onBeforeHandler', async () => {
-    await RaygunClient.init({ apiKey: 'someKey', onBeforeSend: () => mockPayload, enableNativeCrashReporting: false });
+    await RaygunClient.init({ apiKey: 'someKey', onBeforeSendingCrashReport: () => mockPayload, disableNativeCrashReporting: true });
     await RaygunClient.sendCustomError(new Error('Test JS Report'));
     expect(sendCrashReport).toBeCalledTimes(1);
     expect(RaygunNativeBridge.sendCrashReport).toBeCalledTimes(0);
@@ -371,8 +371,8 @@ describe('Sending errors', () => {
   test('Should be able to use custom endpoint for CrashReporting when using JS transport', async () => {
     await RaygunClient.init({
       apiKey: 'someKey',
-      onBeforeSend: () => mockPayload,
-      enableNativeCrashReporting: false,
+      onBeforeSendingCrashReport: () => mockPayload,
+      disableNativeCrashReporting: true,
       customCrashReportingEndpoint: 'demo.crashreport.ios'
     });
     await RaygunClient.sendCustomError(new Error('Test JS Report'));
@@ -385,8 +385,8 @@ describe('Sending errors', () => {
     const customData = { dataKey: 'test' }
     await RaygunClient.init({
       apiKey: 'someKey',
-      onBeforeSend: (actualPayload) => ({ ...mockPayload, Details: { ...mockPayload.Details, UserCustomData: actualPayload.Details.UserCustomData } }),
-      enableNativeCrashReporting: false
+      onBeforeSendingCrashReport: (actualPayload) => ({ ...mockPayload, Details: { ...mockPayload.Details, UserCustomData: actualPayload.Details.UserCustomData } }),
+      disableNativeCrashReporting: true
     });
     await RaygunClient.sendCustomError(new Error('Test JS Report'), customData);
     expect(sendCrashReport).toBeCalledTimes(1);
@@ -398,8 +398,8 @@ describe('Sending errors', () => {
     const tags = ['test1', 'test2'];
     await RaygunClient.init({
       apiKey: 'someKey',
-      onBeforeSend: (actualPayload) => ({ ...mockPayload, Details: { ...mockPayload.Details, Tags: actualPayload.Details.Tags } }),
-      enableNativeCrashReporting: false
+      onBeforeSendingCrashReport: (actualPayload) => ({ ...mockPayload, Details: { ...mockPayload.Details, Tags: actualPayload.Details.Tags } }),
+      disableNativeCrashReporting: true
     });
     await RaygunClient.sendCustomError(new Error('Test JS Report'), tags);
     expect(sendCrashReport).toBeCalledTimes(1);
@@ -412,8 +412,8 @@ describe('Sending errors', () => {
     const customData = { dataKey: 'test' }
     await RaygunClient.init({
       apiKey: 'someKey',
-      onBeforeSend: (actualPayload) => ({ ...mockPayload, Details: { ...mockPayload.Details, UserCustomData: actualPayload.Details.UserCustomData, Tags: actualPayload.Details.Tags } }),
-      enableNativeCrashReporting: false
+      onBeforeSendingCrashReport: (actualPayload) => ({ ...mockPayload, Details: { ...mockPayload.Details, UserCustomData: actualPayload.Details.UserCustomData, Tags: actualPayload.Details.Tags } }),
+      disableNativeCrashReporting: true
     });
     await RaygunClient.sendCustomError(new Error('Test JS Report'), customData, tags);
     expect(sendCrashReport).toBeCalledTimes(1);

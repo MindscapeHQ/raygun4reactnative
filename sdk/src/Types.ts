@@ -137,13 +137,14 @@ export type BeforeSendHandler = (payload: CrashReportPayload) => CrashReportPayl
 export interface RaygunClientOptions {
   apiKey: string;
   version?: string;
-  enableNativeCrashReporting?: boolean;
-  onBeforeSend?: BeforeSendHandler;
-  enableRUM?: boolean;
-  enableNetworkMonitoring?: boolean;
-  ignoreURLs?: string[];
+  enableCrashReporting?: boolean;
+  disableNativeCrashReporting?: boolean;
+  enableRealUserMonitoring?: boolean;
+  disableNetworkMonitoring?: boolean;
   customCrashReportingEndpoint?: string;
-  customRUMEndpoint?: string;
+  customRealUserMonitoringEndpoint?: string;
+  onBeforeSendingCrashReport?: BeforeSendHandler;
+  ignoredURLs?: string[];
 }
 
 declare global {

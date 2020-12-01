@@ -38,17 +38,17 @@ const getCurrentUser = () => curSession.user;
 const init = async (options: RaygunClientOptions) => {
   GlobalOptions = Object.assign(
       {
-        enableNetworkMonitoring: true,
-        enableNativeCrashReporting: true,
-        enableRUM: true,
-        ignoreURLs: [],
+        disableNetworkMonitoring: false,
+        disableNativeCrashReporting: false,
+        enableRealUserMonitoring: true,
+        ignoredURLs: [],
         version: '',
         apiKey: ''
       },
       options
   );
 
-  const useNativeCR = GlobalOptions.enableNativeCrashReporting && RaygunNativeBridge && typeof RaygunNativeBridge.init === 'function';
+  const useNativeCR = !GlobalOptions.disableNativeCrashReporting && RaygunNativeBridge && typeof RaygunNativeBridge.init === 'function';
 
   const alreadyInitialized = useNativeCR && (await RaygunNativeBridge.hasInitialized());
   if (alreadyInitialized) {
@@ -58,20 +58,20 @@ const init = async (options: RaygunClientOptions) => {
 
   const {
     version: appVersion,
-    enableRUM,
-    ignoreURLs,
-    enableNetworkMonitoring,
+    enableRealUserMonitoring,
+    ignoredURLs,
+    disableNetworkMonitoring,
     apiKey,
     customCrashReportingEndpoint,
-    customRUMEndpoint
+    customRealUserMonitoringEndpoint
   } = GlobalOptions;
 
-  if (enableRUM) {
-    setupRealtimeUserMonitoring(getCurrentUser, apiKey, enableNetworkMonitoring, ignoreURLs, customRUMEndpoint);
+  if (enableRealUserMonitoring) {
+    setupRealtimeUserMonitoring(getCurrentUser, apiKey, disableNetworkMonitoring, ignoredURLs, customRealUserMonitoringEndpoint);
   }
 
-  if (useNativeCR || enableRUM) {
-    RaygunNativeBridge.init({ apiKey, enableRUM, version: appVersion || '', customCrashReportingEndpoint });
+  if (useNativeCR || enableRealUserMonitoring) {
+    RaygunNativeBridge.init({ apiKey, enableRealUserMonitoring, version: appVersion || '', customCrashReportingEndpoint });
   }
 
   const prevHandler = ErrorUtils.getGlobalHandler();
@@ -143,7 +143,7 @@ const sendRUMTimingEvent = (
     name: string,
     timeUsedInMs: number
 ) => {
-  if (!GlobalOptions.enableRUM) {
+  if (!GlobalOptions.enableRealUserMonitoring) {
     warn('RUM is not enabled, please enable to use the sendRUMTimingEvent() function');
     return;
   }
@@ -153,7 +153,7 @@ const sendRUMTimingEvent = (
       eventType,
       name,
       timeUsedInMs,
-      GlobalOptions.customRUMEndpoint
+      GlobalOptions.customRealUserMonitoringEndpoint
   );
 };
 
@@ -164,7 +164,7 @@ const addTag = (...tags: string[]) => {
   tags.forEach(tag => {
     curSession.tags.add(tag);
   });
-  if (GlobalOptions.enableNativeCrashReporting) {
+  if (!GlobalOptions.disableNativeCrashReporting) {
     RaygunNativeBridge.setTags([...curSession.tags]);
   }
 };
@@ -185,7 +185,7 @@ const setUser = (user: User | string) => {
           : user
   );
   curSession.user = userObj;
-  if (GlobalOptions.enableNativeCrashReporting) {
+  if (!GlobalOptions.disableNativeCrashReporting) {
     RaygunNativeBridge.setUser(userObj);
   }
 };
@@ -194,7 +194,7 @@ const setUser = (user: User | string) => {
 //MEEEEEEEEEEEEEEEEEEEEEEEEE
 const addCustomData = (customData: CustomData) => {
   curSession.customData = Object.assign({}, curSession.customData, customData);
-  if (GlobalOptions.enableNativeCrashReporting) {
+  if (!GlobalOptions.disableNativeCrashReporting) {
     RaygunNativeBridge.setCustomData(clone(curSession.customData));
   }
 };
@@ -202,7 +202,7 @@ const addCustomData = (customData: CustomData) => {
 //???????????????????????????
 const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
   curSession.customData = updater(curSession.customData);
-  if (GlobalOptions.enableNativeCrashReporting) {
+  if (!GlobalOptions.disableNativeCrashReporting) {
     RaygunNativeBridge.setCustomData(clone(curSession.customData));
   }
 };
@@ -218,14 +218,14 @@ const recordBreadcrumb = (message: string, details?: BreadcrumbOption) => {
     timestamp: new Date().getTime()
   };
   curSession.breadcrumbs.push(breadcrumb);
-  if (GlobalOptions.enableNativeCrashReporting) {
+  if (!GlobalOptions.disableNativeCrashReporting) {
     RaygunNativeBridge.recordBreadcrumb(breadcrumb);
   }
 };
 
 const clearSession = () => {
   curSession = getCleanSession();
-  if (GlobalOptions.enableNativeCrashReporting) {
+  if (!GlobalOptions.disableNativeCrashReporting) {
     RaygunNativeBridge.clearSession();
   }
 };
@@ -255,15 +255,15 @@ const processUnhandledError = async (error: Error, isFatal?: boolean) => {
 
   const payload = await generateCrashReportPayload(error, stack, curSession);
 
-  const { onBeforeSend } = GlobalOptions;
+  const { onBeforeSendingCrashReport } = GlobalOptions;
   const modifiedPayload =
-      onBeforeSend && typeof onBeforeSend === 'function' ? onBeforeSend(Object.freeze(payload)) : payload;
+      onBeforeSendingCrashReport && typeof onBeforeSendingCrashReport === 'function' ? onBeforeSendingCrashReport(Object.freeze(payload)) : payload;
 
   if (!modifiedPayload) {
     return;
   }
 
-  if (GlobalOptions.enableNativeCrashReporting) {
+  if (!GlobalOptions.disableNativeCrashReporting) {
     log('Send crash report via Native');
     RaygunNativeBridge.sendCrashReport(JSON.stringify(modifiedPayload), GlobalOptions.apiKey);
     return;

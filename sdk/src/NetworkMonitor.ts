@@ -11,17 +11,17 @@ const requests = new Map<string, RequestMeta>();
 
 const removeProtocol = (url: string) => url.replace(/^http(s)?:\/\//i, '');
 
-const shouldIgnore = (url: string, ignoreURLs: string[]): boolean => {
+const shouldIgnore = (url: string, ignoredURLs: string[]): boolean => {
   const target = removeProtocol(url);
-  return ignoreURLs.some(ignored => target.startsWith(ignored));
+  return ignoredURLs.some(ignored => target.startsWith(ignored));
 };
 
-const handleRequestOpen = (ignoreURLs: string[]) => (
+const handleRequestOpen = (ignoredURLs: string[]) => (
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
   url: string,
   xhr: any
 ) => {
-  if (shouldIgnore(url, ignoreURLs)) {
+  if (shouldIgnore(url, ignoredURLs)) {
     return;
   }
   const id = getDeviceBasedId();
@@ -55,11 +55,11 @@ const handleResponse = (sendNetworkTimingEvent: NetworkTimingCallback) => (
 };
 
 export const setupNetworkMonitoring = (
-  ignoreURLs: string[],
+  ignoredURLs: string[],
   sendNetworkTimingEvent: (name: string, sendTime: number, duration: number) => void
 ) => {
   if (typeof sendNetworkTimingEvent === 'function') {
-    const urls = ([] as string[]).concat(ignoreURLs || []).map(removeProtocol);
+    const urls = ([] as string[]).concat(ignoredURLs || []).map(removeProtocol);
     XHRInterceptor.setOpenCallback(handleRequestOpen(urls));
     XHRInterceptor.setSendCallback(handleRequestSend);
     XHRInterceptor.setResponseCallback(handleResponse(sendNetworkTimingEvent));

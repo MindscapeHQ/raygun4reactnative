@@ -16,40 +16,40 @@ const SessionRotateThreshold = 30 * 60 * 100;
 let lastActiveAt = Date.now();
 let curRUMSessionId: string = '';
 
-const reportStartupTime = (getCurrentUser: () => User, apiKey: string, customRUMEndpoint?: string) => async (
+const reportStartupTime = (getCurrentUser: () => User, apiKey: string, customRealUserMonitoringEndpoint?: string) => async (
   payload: Record<string, any>
 ) => {
   const { duration, name } = payload;
   if (!curRUMSessionId) {
     curRUMSessionId = getDeviceBasedId();
-    await sendRUMEvent(RUMEvents.SessionStart, getCurrentUser(), {}, curRUMSessionId, apiKey, customRUMEndpoint);
+    await sendRUMEvent(RUMEvents.SessionStart, getCurrentUser(), {}, curRUMSessionId, apiKey, customRealUserMonitoringEndpoint);
   }
   const data = { name, timing: { type: RUMEvents.ActivityLoaded, duration } };
-  return sendRUMEvent(RUMEvents.EventTiming, getCurrentUser(), data, curRUMSessionId, apiKey, customRUMEndpoint);
+  return sendRUMEvent(RUMEvents.EventTiming, getCurrentUser(), data, curRUMSessionId, apiKey, customRealUserMonitoringEndpoint);
 };
 
 const markLastActiveTime = async () => {
   lastActiveAt = Date.now();
 };
 
-const rotateRUMSession = (getCurrentUser: () => User, apiKey: string, customRUMEndpoint?: string) => async (
+const rotateRUMSession = (getCurrentUser: () => User, apiKey: string, customRealUserMonitoringEndpoint?: string) => async (
   payload: Record<string, any>
 ) => {
   if (Date.now() - lastActiveAt > SessionRotateThreshold) {
     lastActiveAt = Date.now();
-    await sendRUMEvent(RUMEvents.SessionEnd, getCurrentUser(), {}, curRUMSessionId, apiKey, customRUMEndpoint);
+    await sendRUMEvent(RUMEvents.SessionEnd, getCurrentUser(), {}, curRUMSessionId, apiKey, customRealUserMonitoringEndpoint);
     curRUMSessionId = getDeviceBasedId();
-    return sendRUMEvent(RUMEvents.SessionStart, getCurrentUser(), {}, curRUMSessionId, apiKey, customRUMEndpoint);
+    return sendRUMEvent(RUMEvents.SessionStart, getCurrentUser(), {}, curRUMSessionId, apiKey, customRealUserMonitoringEndpoint);
   }
 };
 
-const sendNetworkTimingEvent = (getCurrentUser: () => User, apiKey: string, customRUMEndpoint?: string) => (
+const sendNetworkTimingEvent = (getCurrentUser: () => User, apiKey: string, customRealUserMonitoringEndpoint?: string) => (
   name: string,
   sendTime: number,
   duration: number
 ): void => {
   const data = { name, timing: { type: RUMEvents.NetworkCall, duration } };
-  sendRUMEvent(RUMEvents.EventTiming, getCurrentUser(), data, curRUMSessionId, apiKey, customRUMEndpoint, sendTime);
+  sendRUMEvent(RUMEvents.EventTiming, getCurrentUser(), data, curRUMSessionId, apiKey, customRealUserMonitoringEndpoint, sendTime);
 };
 
 const sendRUMEvent = async (
@@ -58,7 +58,7 @@ const sendRUMEvent = async (
   data: Record<string, any>,
   sessionId: string,
   apiKey: string,
-  customRUMEndpoint?: string,
+  customRealUserMonitoringEndpoint?: string,
   timeAt?: number
 ) => {
   const timestamp = timeAt ? new Date(timeAt) : new Date();
@@ -73,20 +73,20 @@ const sendRUMEvent = async (
     platform,
     data: JSON.stringify([data])
   };
-  return sendRUMPayload(rumMessage, apiKey, customRUMEndpoint);
+  return sendRUMPayload(rumMessage, apiKey, customRealUserMonitoringEndpoint);
 };
 
 export const setupRealtimeUserMonitoring = (
   getCurrentUser: () => User,
   apiKey: string,
-  enableNetworkMonitoring = true,
+  disableNetworkMonitoring = false,
   ignoredUrls = [] as string[],
-  customRUMEndpoint?: string
+  customRealUserMonitoringEndpoint?: string
 ) => {
-  if (enableNetworkMonitoring) {
+  if (!disableNetworkMonitoring) {
     setupNetworkMonitoring(
-      ignoredUrls.concat(defaultURLIgnoreList, customRUMEndpoint || []),
-      sendNetworkTimingEvent(getCurrentUser, apiKey, customRUMEndpoint)
+      ignoredUrls.concat(defaultURLIgnoreList, customRealUserMonitoringEndpoint || []),
+      sendNetworkTimingEvent(getCurrentUser, apiKey, customRealUserMonitoringEndpoint)
     );
   }
 
@@ -94,9 +94,9 @@ export const setupRealtimeUserMonitoring = (
   curRUMSessionId = '';
 
   const eventEmitter = new NativeEventEmitter(RaygunNativeBridge);
-  eventEmitter.addListener(RaygunNativeBridge.ON_START, reportStartupTime(getCurrentUser, apiKey, customRUMEndpoint));
+  eventEmitter.addListener(RaygunNativeBridge.ON_START, reportStartupTime(getCurrentUser, apiKey, customRealUserMonitoringEndpoint));
   eventEmitter.addListener(RaygunNativeBridge.ON_PAUSE, markLastActiveTime);
-  eventEmitter.addListener(RaygunNativeBridge.ON_RESUME, rotateRUMSession(getCurrentUser, apiKey, customRUMEndpoint));
+  eventEmitter.addListener(RaygunNativeBridge.ON_RESUME, rotateRUMSession(getCurrentUser, apiKey, customRealUserMonitoringEndpoint));
   eventEmitter.addListener(RaygunNativeBridge.ON_DESTROY, () => {
     eventEmitter.removeAllListeners(RaygunNativeBridge.ON_START);
     eventEmitter.removeAllListeners(RaygunNativeBridge.ON_PAUSE);
@@ -111,14 +111,14 @@ export const sendCustomRUMEvent = (
   eventType: RUMEvents.ActivityLoaded | RUMEvents.NetworkCall,
   name: string,
   duration: number,
-  customRUMEndpoint?: string
+  customRealUserMonitoringEndpoint?: string
 ) => {
   if (eventType === RUMEvents.ActivityLoaded) {
     reportStartupTime(getCurrentUser, apiKey)({ name, duration });
     return;
   }
   if (eventType === RUMEvents.NetworkCall) {
-    sendNetworkTimingEvent(getCurrentUser, apiKey, customRUMEndpoint)(name, Date.now() - duration, duration);
+    sendNetworkTimingEvent(getCurrentUser, apiKey, customRealUserMonitoringEndpoint)(name, Date.now() - duration, duration);
     return;
   }
   warn('Unknown RUM event type:', eventType);

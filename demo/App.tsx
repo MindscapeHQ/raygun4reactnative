@@ -24,8 +24,8 @@ RaygunClient.init({
   version: '', // YOUR APP VERSION
   customCrashReportingEndpoint: '',
   customRUMEndpoint: '',
-  enableNativeCrashReporting: true,
-  enableRUM: true
+  disableNativeCrashReporting: false,
+  enableRealUserMonitoring: true
 });
 
 const App = () => {

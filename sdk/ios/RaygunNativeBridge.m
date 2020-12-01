@@ -59,12 +59,12 @@ static bool VMStats(vm_statistics_data_t* const vmStats, vm_size_t* const pageSi
 {
     kern_return_t kr;
     const mach_port_t hostPort = mach_host_self();
-    
+
     if((kr = host_page_size(hostPort, pageSize)) != KERN_SUCCESS)
     {
         return false;
     }
-    
+
     mach_msg_type_number_t hostSize = sizeof(*vmStats) / sizeof(natural_t);
     kr = host_statistics(hostPort,
                          HOST_VM_INFO,
@@ -116,14 +116,14 @@ static CFTimeInterval processStartTime() {
     size_t len = 4;
     int mib[len];
     struct kinfo_proc kp;
-    
+
     sysctlnametomib("kern.proc.pid", mib, &len);
     mib[3] = getpid();
     len = sizeof(kp);
     sysctl(mib, 4, &kp, &len, NULL, 0);
-    
+
     struct timeval startTime = kp.kp_proc.p_un.__p_starttime;
-    
+
     CFTimeInterval absoluteTimeToRelativeTime =  CACurrentMediaTime() - [NSDate date].timeIntervalSince1970;
     return startTime.tv_sec + startTime.tv_usec / 1e6 + absoluteTimeToRelativeTime;
 }
@@ -180,26 +180,26 @@ RCT_EXPORT_METHOD(init:(NSDictionary *)options)
     RCTLogInfo(@"Start create shared RaygunClient");
     NSString *apiKey = [options objectForKey:@"apiKey"];
     NSString *customCREndpoint = [options objectForKey:@"customCrashReportingEndpoint"];
-    BOOL enableNativeCrashReporting = [RCTConvert BOOL:[options objectForKey:@"enableNativeCrashReporting"]];
-    BOOL enableRUM = [RCTConvert BOOL:[options objectForKey:@"enableRUM"]];
+    BOOL disableNativeCrashReporting = [RCTConvert BOOL:[options objectForKey:@"disableNativeCrashReporting"]];
+    BOOL enableRealUserMonitoring = [RCTConvert BOOL:[options objectForKey:@"enableRealUserMonitoring"]];
 
-    RCTLogInfo(apiKey, enableNativeCrashReporting, options);
+    RCTLogInfo(apiKey, disableNativeCrashReporting, options);
     for (id key in options) {
         RCTLogInfo(@"key: %@, value: %@ \n", key, [options objectForKey:key]);
     }
 
     [[RaygunClient sharedInstanceWithApiKey:apiKey] setCrashReportingApiEndpoint: customCREndpoint];
-    
-    if (enableNativeCrashReporting) {
+
+    if (!disableNativeCrashReporting) {
         [RaygunClient.sharedInstance enableCrashReporting];
     }
-    if (enableRUM) {
-        [self enableRUM];
+    if (enableRealUserMonitoring) {
+        [self enableRealUserMonitoring];
     }
     hasInitialized = YES;
 }
 
-- (void) enableRUM {
+- (void) enableRealUserMonitoring {
 #if TARGET_OS_IOS || TARGET_OS_TV
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillEnterForeground) name:UIApplicationWillEnterForegroundNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidEnterBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
@@ -313,7 +313,7 @@ RCT_EXPORT_METHOD(saveCrashReport:(NSString *)jsonString withResolver: (RCTPromi
         reject(@"Parsing JSON error", [jsonParseError localizedDescription], jsonParseError);
         return;
     }
-    
+
     NSString *rawReports = [[NSUserDefaults standardUserDefaults] stringForKey:defaultsKey];
     if (rawReports) {
         NSArray *reports = [NSJSONSerialization JSONObjectWithData:[rawReports dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableContainers error:&jsonParseError];
@@ -321,7 +321,7 @@ RCT_EXPORT_METHOD(saveCrashReport:(NSString *)jsonString withResolver: (RCTPromi
             reject(@"Error parsing saved reports", [jsonParseError localizedDescription], jsonParseError);
             return;
         }
-        
+
         NSArray *newReports = sizeof(reports) >= 10 ? [[reports subarrayWithRange: NSMakeRange(1, 9)] arrayByAddingObject: report] : [reports arrayByAddingObject:report];
         NSError *error = [self saveReportsArray:newReports];
         if (error) {
@@ -329,7 +329,7 @@ RCT_EXPORT_METHOD(saveCrashReport:(NSString *)jsonString withResolver: (RCTPromi
             return;
         }
         resolve([[NSNumber alloc] initWithUnsignedLong:sizeof(newReports)]);
-        
+
     } else {
         NSArray *newReports = [[NSArray alloc] initWithObjects:report, nil];
         NSError *error = [self saveReportsArray:newReports];
@@ -346,16 +346,16 @@ RCT_EXPORT_METHOD(sendCrashReport:(NSString *)jsonString withApiKey:(NSString *)
     NSError *parsingError = nil;
     NSData *jsonData = [jsonString dataUsingEncoding:NSUTF8StringEncoding];
     NSDictionary *report = [NSJSONSerialization JSONObjectWithData:jsonData options:0 error: &parsingError];
-    
+
     if (parsingError) {
         RCTLogError(@"Parsing JSON CrashReport error: %@", parsingError);
         return;
     }
-    
+
     NSString *occurredOn  = report[@"OccurredOn"];
     RaygunMessageDetails *details = [self buildMessageDetails: report[@"Details"]];
     RaygunMessage *message = [[RaygunMessage alloc] initWithTimestamp:occurredOn withDetails:details];
-    
+
     RCTLogInfo(@"RaygunMessageDetail %@", details);
     [RaygunClient.sharedInstance sendMessage: message];
 }
@@ -409,7 +409,7 @@ RCT_EXPORT_METHOD(sendCrashReport:(NSString *)jsonString withApiKey:(NSString *)
             [reportBreadcrumbs addObject:[RaygunBreadcrumb breadcrumbWithInformation:crumb]];
         }
     }
-    
+
     return reportBreadcrumbs;
 }
 

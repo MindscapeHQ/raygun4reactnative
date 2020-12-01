@@ -46,7 +46,7 @@ const currentUser = {
 const getCurrentUser = jest.fn(() => currentUser);
 
 describe('Setup user monitoring', () => {
-  test('Should correctly setup listeners when enableNetworkMonitoring is on', () => {
+  test('Should correctly setup listeners when disableNetworkMonitoring is on', () => {
     setupRealtimeUserMonitoring(getCurrentUser, 'apiKey', true, []);
     expect(setupNetworkMonitoring).toBeCalledWith(
       ['api.raygun.com', 'localhost:8081/symbolicate'],
@@ -55,7 +55,7 @@ describe('Setup user monitoring', () => {
     expect(addListener).toBeCalledTimes(4);
   });
 
-  test('Should correctly ignore customRUMEndpoint when enableNetworkMonitoring is on', () => {
+  test('Should correctly ignore customRealUserMonitoringEndpoint when disableNetworkMonitoring is on', () => {
     setupRealtimeUserMonitoring(getCurrentUser, 'apiKey', true, [], 'https://mock-endpoint.io');
     expect(setupNetworkMonitoring).toBeCalledWith(
       ['api.raygun.com', 'localhost:8081/symbolicate', 'https://mock-endpoint.io'],
@@ -64,7 +64,7 @@ describe('Setup user monitoring', () => {
     expect(addListener).toBeCalledTimes(4);
   });
 
-  test('Should correctly setup listeners when enableNetworkMonitoring is off', () => {
+  test('Should correctly setup listeners when disableNetworkMonitoring is off', () => {
     setupRealtimeUserMonitoring(getCurrentUser, 'apiKey', false, []);
     expect(addListener).toBeCalledTimes(4);
   });
@@ -75,7 +75,7 @@ describe('Send RUM events', () => {
     MockDate.reset();
   });
 
-  test('Should correctly send out payload with to customRUMEndpoint from onStart event', async () => {
+  test('Should correctly send out payload with to customRealUserMonitoringEndpoint from onStart event', async () => {
     setupRealtimeUserMonitoring(getCurrentUser, 'apiKey', true, [], 'https://mock-endpoint.io');
     const onStartHandler = addListener.mock.calls[0][1] as (payload: Record<string, any>) => void;
     await onStartHandler({ duration: 1000, name: 'MainActivity' });
@@ -192,7 +192,7 @@ describe('Send RUM events', () => {
     );
   });
 
-  test('Should send out session rotating payload to customRUMEndpoint from onResume event when onPause called more than 30 minutes ago', async () => {
+  test('Should send out session rotating payload to customRealUserMonitoringEndpoint from onResume event when onPause called more than 30 minutes ago', async () => {
     setupRealtimeUserMonitoring(getCurrentUser, 'apiKey', true, [], 'https://mock-endpoint.io');
     const onPauseHandler = addListener.mock.calls[1][1] as (payload?: Record<string, any>) => void;
     const onResumeHandler = addListener.mock.calls[2][1] as (payload: Record<string, any>) => void;

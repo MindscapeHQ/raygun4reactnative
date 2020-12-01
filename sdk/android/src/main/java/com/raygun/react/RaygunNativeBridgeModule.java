@@ -161,7 +161,7 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
         String apiKey = options.getString("apiKey");
         String version = options.getString("version");
         String customCREndpoint = options.getString("customCrashReportingEndpoint");
-        Boolean enableRUM = options.getBoolean("enableRUM");
+        Boolean enableRealUserMonitoring = options.getBoolean("enableRealUserMonitoring");
         RaygunClient.init(this.reactContext, apiKey, version);
         initialized = true;
 
@@ -169,7 +169,7 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
         Log.i("customEndpoint", customCREndpoint);
         RaygunClient.setCustomCrashReportingEndpoint(customCREndpoint);
 
-        if (enableRUM) {
+        if (enableRealUserMonitoring) {
             reactContext.addLifecycleEventListener(this);
             long ms = SystemClock.uptimeMillis() - startedTime;
             WritableMap payload = Arguments.createMap();
