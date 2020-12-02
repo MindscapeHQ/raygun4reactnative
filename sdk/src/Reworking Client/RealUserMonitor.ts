@@ -1,9 +1,10 @@
-import {BeforeSendHandler, NetworkTimingCallback, RUMEvents, User} from "../Types";
-import {NativeModules, NativeEventEmitter, Platform} from 'react-native';
-const { version: clientVersion } = require('../package.json');
+import {NetworkTimingCallback, RUMEvents, User} from "../Types";
+import {NativeEventEmitter, NativeModules, Platform} from 'react-native';
 import {setupNetworkMonitoring} from "../NetworkMonitor";
-import {warn} from "../Utils";
+import {getDeviceBasedId, warn} from "../Utils";
 import {sendRUMPayload} from "../Transport";
+
+const { version: clientVersion } = require('../package.json');
 
 const { RaygunNativeBridge } = NativeModules;
 const { osVersion, platform } = RaygunNativeBridge;
@@ -14,16 +15,15 @@ const SessionRotateThreshold = 30 * 60 * 100;
 
 export default class RealUserMonitor {
 
-    private getCurrentUser: () => User;
+    private readonly getCurrentUser: () => User;
     private enabled: boolean = false;
-    private apiKey: string;
-    private version: string;
-    private enableRealUserMonitoring: boolean;
+    private readonly apiKey: string;
+    // private version: string;
+    // private enableRealUserMonitoring: boolean;
     private disableNetworkMonitoring: boolean;
-    private customRealUserMonitoringEndpoint: string;
+    private readonly customRealUserMonitoringEndpoint: string;
     private ignoredURLs: string[];
-
-    private NetworkTimingEventCallback: NetworkTimingCallback;
+    private readonly NetworkTimingEventCallback: NetworkTimingCallback;
 
     lastActiveAt = Date.now();
     curRUMSessionId: string = '';
@@ -33,7 +33,7 @@ export default class RealUserMonitor {
 
         this.enabled = true;  //TODO
 
-        this.NetworkTimingEventCallback = this.generateNetworkTimingEventCallbackMethod(getCurrentUser, apiKey, customRealUserMonitoringEndpoint);
+        this.NetworkTimingEventCallback = this.generateNetworkTimingEventCallbackMethod();
 
         if (!disableNetworkMonitoring) {
             setupNetworkMonitoring(
@@ -46,9 +46,9 @@ export default class RealUserMonitor {
         this.curRUMSessionId = '';
 
         const eventEmitter = new NativeEventEmitter(RaygunNativeBridge);
-        eventEmitter.addListener(RaygunNativeBridge.ON_START, reportStartupTime(getCurrentUser, apiKey, customRealUserMonitoringEndpoint));
-        eventEmitter.addListener(RaygunNativeBridge.ON_PAUSE, markLastActiveTime);
-        eventEmitter.addListener(RaygunNativeBridge.ON_RESUME, rotateRUMSession(getCurrentUser, apiKey, customRealUserMonitoringEndpoint));
+        eventEmitter.addListener(RaygunNativeBridge.ON_START, this.reportStartupTime(getCurrentUser, apiKey, customRealUserMonitoringEndpoint));
+        eventEmitter.addListener(RaygunNativeBridge.ON_PAUSE, this.markLastActiveTime);
+        eventEmitter.addListener(RaygunNativeBridge.ON_RESUME, this.rotateRUMSession(getCurrentUser, apiKey, customRealUserMonitoringEndpoint));
         eventEmitter.addListener(RaygunNativeBridge.ON_DESTROY, () => {
             eventEmitter.removeAllListeners(RaygunNativeBridge.ON_START);
             eventEmitter.removeAllListeners(RaygunNativeBridge.ON_PAUSE);
@@ -61,6 +61,7 @@ export default class RealUserMonitor {
         this.disableNetworkMonitoring = disableNetworkMonitoring;
         this.ignoredURLs = ignoredURLs;
         this.customRealUserMonitoringEndpoint = customRealUserMonitoringEndpoint;
+        this.getCurrentUser = getCurrentUser;
     };
 
     /**
@@ -69,35 +70,39 @@ export default class RealUserMonitor {
      * @param apiKey
      * @param customRealUserMonitoringEndpoint
      */
-    generateNetworkTimingEventCallbackMethod (getCurrentUser: () => User, apiKey: string, customRealUserMonitoringEndpoint?: string) : NetworkTimingCallback {
-
-        let callbackMethod: NetworkTimingCallback = (name: string, sendTime: number, duration: number) => {
-                    const data = { name, timing: { type: RUMEvents.NetworkCall, duration } };
-                    this.sendRUMEvent(RUMEvents.EventTiming, getCurrentUser(), data, this.curRUMSessionId, apiKey, customRealUserMonitoringEndpoint, sendTime);
-                };
-
-        return callbackMethod;
+    generateNetworkTimingEventCallbackMethod = () => (name: string, sendTime: number, duration: number) => {
+            const data = {name, timing: {type: RUMEvents.NetworkCall, duration}};
+            this.sendRUMEvent(RUMEvents.EventTiming, this.getCurrentUser(), data, this.curRUMSessionId, this.apiKey, this.customRealUserMonitoringEndpoint, sendTime);
     };
 
 
 
-    sendCustomRUMEvent (
-        getCurrentUser: () => User,
-        apiKey: string,
-        eventType: RUMEvents.ActivityLoaded | RUMEvents.NetworkCall,
-        name: string,
-        duration: number,
-        customRealUserMonitoringEndpoint?: string
-    ) {
-        if (eventType === RUMEvents.ActivityLoaded) {
-            reportStartupTime(getCurrentUser, apiKey)({ name, duration });
-            return;
+    reportStartupTime = (getCurrentUser: () => User, apiKey: string, customRealUserMonitoringEndpoint?: string) => async (
+        payload: Record<string, any>
+    ) => {
+        const { duration, name } = payload;
+        if (!this.curRUMSessionId) {
+            this.curRUMSessionId = getDeviceBasedId();
+            await this.sendRUMEvent(RUMEvents.SessionStart, getCurrentUser(), {}, this.curRUMSessionId, apiKey, customRealUserMonitoringEndpoint);
         }
-        if (eventType === RUMEvents.NetworkCall) {
-            this.NetworkTimingEventCallback(name, Date.now() - duration, duration);
-            return;
+        const data = { name, timing: { type: RUMEvents.ActivityLoaded, duration } };
+        return this.sendRUMEvent(RUMEvents.EventTiming, getCurrentUser(), data, this.curRUMSessionId, apiKey, customRealUserMonitoringEndpoint);
+    };
+
+    markLastActiveTime = async () => {
+        this.lastActiveAt = Date.now();
+    };
+
+
+    rotateRUMSession = (getCurrentUser: () => User, apiKey: string, customRealUserMonitoringEndpoint?: string) => async (
+        payload: Record<string, any>
+    ) => {
+        if (Date.now() - this.lastActiveAt > SessionRotateThreshold) {
+            this.lastActiveAt = Date.now();
+            await this.sendRUMEvent(RUMEvents.SessionEnd, getCurrentUser(), {}, this.curRUMSessionId, apiKey, customRealUserMonitoringEndpoint);
+            this.curRUMSessionId = getDeviceBasedId();
+            return this.sendRUMEvent(RUMEvents.SessionStart, getCurrentUser(), {}, this.curRUMSessionId, apiKey, customRealUserMonitoringEndpoint);
         }
-        warn('Unknown RUM event type:', eventType);
     };
 
 
@@ -126,6 +131,27 @@ export default class RealUserMonitor {
             data: JSON.stringify([data])
         };
         return sendRUMPayload(rumMessage, apiKey, customRealUserMonitoringEndpoint);
+    };
+
+
+
+    sendCustomRUMEvent (
+        getCurrentUser: () => User,
+        apiKey: string,
+        eventType: RUMEvents.ActivityLoaded | RUMEvents.NetworkCall,
+        name: string,
+        duration: number,
+        customRealUserMonitoringEndpoint?: string
+    ) {
+        if (eventType === RUMEvents.ActivityLoaded) {
+            this.reportStartupTime(getCurrentUser, apiKey)({ name, duration });
+            return;
+        }
+        if (eventType === RUMEvents.NetworkCall) {
+            this.NetworkTimingEventCallback(name, Date.now() - duration, duration);
+            return;
+        }
+        warn('Unknown RUM event type:', eventType);
     };
 
 }
