@@ -1,10 +1,11 @@
 import {
-  BeforeSendHandler, BreadcrumbOption,
-  CrashReportPayload, CustomData,
+  BreadcrumbOption,
+  CustomData,
   RaygunClientOptions,
   RUMEvents,
-  Session, User
-} from "../Types";
+  Session,
+  User
+} from "./Types";
 import { getDeviceBasedId, log, warn } from '../Utils';
 import {NativeModules} from "react-native";
 import CrashReporter from "./CrashReporter";
@@ -91,6 +92,10 @@ const init = async (options: RaygunClientOptions) => {
   return true;
 };
 
+
+//-------------------------------------------------------------------------------------------------
+// RAYGUN CLIENT SESSION LOGIC
+//-------------------------------------------------------------------------------------------------
 
 const addTag = (...tags: string[]) => {
   tags.forEach(tag => {

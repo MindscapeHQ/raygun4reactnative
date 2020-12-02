@@ -1,10 +1,9 @@
-import {NetworkTimingCallback, RUMEvents, User} from "../Types";
+import {RUMEvents, User} from "./Types";
 import {NativeEventEmitter, NativeModules, Platform} from 'react-native';
 import {setupNetworkMonitoring} from "../NetworkMonitor";
 import {getDeviceBasedId, warn} from "../Utils";
 import {sendRUMPayload} from "../Transport";
 
-const {version: clientVersion} = require('../package.json');
 
 const {RaygunNativeBridge} = NativeModules;
 const {osVersion, platform} = RaygunNativeBridge;
@@ -15,13 +14,12 @@ const SessionRotateThreshold = 30 * 60 * 100;
 
 export default class RealUserMonitor {
 
-  private readonly getCurrentUser: () => User;
+  private getCurrentUser: () => User;
   private enabled: boolean = false;
-  private readonly apiKey: string;
+  private apiKey: string;
   private version: string;
-  // private enableRealUserMonitoring: boolean;
   private disableNetworkMonitoring: boolean;
-  private readonly customRealUserMonitoringEndpoint: string;
+  private customRealUserMonitoringEndpoint: string;
   private ignoredURLs: string[];
 
   lastActiveAt = Date.now();

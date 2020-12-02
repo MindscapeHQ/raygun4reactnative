@@ -1,32 +1,29 @@
-import {cleanFilePath, error, filterOutReactFrames, log, noAddressAt, warn} from "../Utils";
+import {cleanFilePath, filterOutReactFrames, log, noAddressAt, warn} from "../Utils";
 import {StackFrame} from "react-native/Libraries/Core/Devtools/parseErrorStack";
 import {sendCachedReports, sendCrashReport} from "../Transport";
 import {
-  BeforeSendHandler, Breadcrumb,
+  BeforeSendHandler,
+  Breadcrumb,
   BreadcrumbOption,
-  CrashReportPayload, CustomData,
-  RaygunClientOptions, SendCustomErrorOverload,
+  CrashReportPayload,
+  CustomData,
   Session
-} from "../Types";
+} from "./Types";
 import {NativeModules, Platform} from "react-native";
 import {clone, upperFirst} from "../Helper";
 import {addCustomData, addTag} from "../RaygunClient";
 
 const {RaygunNativeBridge} = NativeModules;
-const {osVersion, platform} = RaygunNativeBridge;
 const {version: clientVersion} = require('../package.json');
 
 export default class CrashReporter {
 
-  private enabled: boolean = false;
   private curSession: Session;
   private apiKey: string;
   private version: string;
-  // private enableCrashReporting: boolean;
   private disableNativeCrashReporting: boolean;
   private customCrashReportingEndpoint: string;
   private onBeforeSendingCrashReport: BeforeSendHandler | null;
-  // private ignoredURLs: string[];
 
   constructor(curSession: Session, apiKey: string, disableNativeCrashReporting: boolean, customCrashReportingEndpoint: string, onBeforeSendingCrashReport: BeforeSendHandler | null, version: string) {
 
