@@ -6,7 +6,7 @@ import {
   Session,
   User
 } from "./Types";
-import { getDeviceBasedId, log, warn } from '../Utils';
+import { getDeviceBasedId, log, warn } from './Utils';
 import {NativeModules} from "react-native";
 import CrashReporter from "./CrashReporter";
 import RealUserMonitor from "./RealUserMonitor";

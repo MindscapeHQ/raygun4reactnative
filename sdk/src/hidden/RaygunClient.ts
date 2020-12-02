@@ -1,6 +1,6 @@
 import { NativeModules, Platform } from 'react-native';
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
-import { getDeviceBasedId, filterOutReactFrames, cleanFilePath, noAddressAt, log, warn } from '../Utils';
+import { getDeviceBasedId, filterOutReactFrames, cleanFilePath, noAddressAt, log, warn } from './Utils';
 import {
   User,
   Session,
