@@ -9,8 +9,6 @@ import {getDeviceBasedId, log, warn} from "../Utils";
 import {NativeModules} from "react-native";
 import CrashReporter from "./CrashReporter";
 import RealUserMonitor from "./RealUserMonitor";
-import {sendCustomRUMEvent} from "../RealUserMonitoring";
-import {generateCrashReportPayload} from "../RaygunClient";
 import {StackFrame} from "react-native/Libraries/Core/Devtools/parseErrorStack";
 
 /**
@@ -94,10 +92,14 @@ const init = async (options: RaygunClientOptions) => {
 
 
 //-------------------------------------------------------------------------------------------------
-// RE-ROUTING METHODS (Simple checks + calls to CrashReporter or RealUserMonitor.
+// CRASH REPORTING LOGIC
 //-------------------------------------------------------------------------------------------------
 
-
+/**
+ * Converts an incoming error and its stacktrace to a standard Raygun Crash Report format
+ * @param error
+ * @param stackFrames
+ */
 const generateCrashReportPayload = (error: Error, stackFrames: StackFrame[]) => {
   if (cr && CleanedOptions.enableCrashReporting) {
     cr.generateCrashReportPayload(error, stackFrames).then();
@@ -107,6 +109,11 @@ const generateCrashReportPayload = (error: Error, stackFrames: StackFrame[]) => 
   }
 };
 
+/**
+ * Create a breadcrumb in the current session
+ * @param message
+ * @param details
+ */
 const recordBreadcrumb = (message: string, details?: BreadcrumbOption) => {
   if (cr && CleanedOptions.enableCrashReporting) {
     cr.recordBreadcrumb(message, details);
@@ -142,6 +149,8 @@ const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
     return;
   }
 }
+
+
 
 const sendRUMTimingEvent = (eventType: RUMEvents.ActivityLoaded | RUMEvents.NetworkCall, name: string, timeUsedInMs: number) => {
   if (rum && CleanedOptions.enableRealUserMonitoring) {
