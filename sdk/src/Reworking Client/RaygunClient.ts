@@ -1,6 +1,6 @@
 import {
-  BeforeSendHandler,
-  CrashReportPayload,
+  BeforeSendHandler, BreadcrumbOption,
+  CrashReportPayload, CustomData,
   RaygunClientOptions,
   RUMEvents,
   Session
@@ -10,6 +10,8 @@ import {NativeModules} from "react-native";
 import CrashReporter from "./CrashReporter";
 import RealUserMonitor from "./RealUserMonitor";
 import {sendCustomRUMEvent} from "../RealUserMonitoring";
+import {generateCrashReportPayload} from "../RaygunClient";
+import {StackFrame} from "react-native/Libraries/Core/Devtools/parseErrorStack";
 
 const {RaygunNativeBridge} = NativeModules;
 
@@ -77,23 +79,65 @@ const init = async (options: RaygunClientOptions) => {
 };
 
 
-const sendRUMTimingEvent = (
-  eventType: RUMEvents.ActivityLoaded | RUMEvents.NetworkCall,
-  name: string,
-  timeUsedInMs: number
-) => {
-  if (!CleanedOptions.enableRealUserMonitoring) {
-    warn('RUM is not enabled, please enable to use the sendRUMTimingEvent() function');
+const generateCrashReportPayload = (error: Error, stackFrames: StackFrame[]) => {
+  if (cr && CleanedOptions.enableCrashReporting) {
+    cr.generateCrashReportPayload(error, stackFrames).then();
+  } else {
+    warn('TODO');
     return;
   }
-  rum.sendCustomRUMEvent(
-    getCurrentUser,
-    CleanedOptions.apiKey,
-    eventType,
-    name,
-    timeUsedInMs,
-    CleanedOptions.customRealUserMonitoringEndpoint
-  );
+};
+
+const recordBreadcrumb = (message: string, details?: BreadcrumbOption) => {
+  if (cr && CleanedOptions.enableCrashReporting) {
+    cr.recordBreadcrumb(message, details);
+  } else {
+    warn('TODO');
+    return;
+  }
+};
+
+const sendCustomError = async (error: Error, ...params: any) => {
+  if (cr && CleanedOptions.enableCrashReporting) {
+    cr.sendCustomError(error, params);
+  } else {
+    warn('TODO');
+    return;
+  }
+};
+
+const addCustomData = (customData: CustomData) => {
+  if (cr && CleanedOptions.enableCrashReporting) {
+    cr.addCustomData(customData);
+  } else {
+    warn('TODO');
+    return;
+  }
+}
+
+const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
+  if (cr && CleanedOptions.enableCrashReporting) {
+    cr.updateCustomData(updater);
+  } else {
+    warn('TODO');
+    return;
+  }
+}
+
+const sendRUMTimingEvent = (eventType: RUMEvents.ActivityLoaded | RUMEvents.NetworkCall, name: string, timeUsedInMs: number) => {
+  if (rum && CleanedOptions.enableRealUserMonitoring) {
+    rum.sendCustomRUMEvent(
+      getCurrentUser,
+      CleanedOptions.apiKey,
+      eventType,
+      name,
+      timeUsedInMs,
+      CleanedOptions.customRealUserMonitoringEndpoint
+    );
+  } else {
+    warn('TODO');
+    return;
+  }
 };
 
 
@@ -110,7 +154,6 @@ export {
   recordBreadcrumb,
   addCustomData,
   sendCustomError,
-
   updateCustomData,
 
   sendRUMTimingEvent

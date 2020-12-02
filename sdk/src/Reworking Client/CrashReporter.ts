@@ -92,7 +92,7 @@ export default class CrashReporter {
     await this.processUnhandledError(error);
   }
 
-  updateCustomData = (updater: (customData: CustomData) => CustomData) => {
+  updateCustomData(updater: (customData: CustomData) => CustomData){
     this.curSession.customData = updater(this.curSession.customData);
     if (!this.disableNativeCrashReporting) {
       RaygunNativeBridge.setCustomData(clone(this.curSession.customData));
@@ -118,7 +118,7 @@ export default class CrashReporter {
       this.curSession.tags.add('Fatal');
     }
 
-    const payload = await this.generateCrashReportPayload(error, stack, this.curSession);
+    const payload = await this.generateCrashReportPayload(error, stack);
 
     const modifiedPayload =
       this.onBeforeSendingCrashReport && typeof this.onBeforeSendingCrashReport === 'function' ? this.onBeforeSendingCrashReport(Object.freeze(payload)) : payload;
@@ -137,8 +137,8 @@ export default class CrashReporter {
     sendCrashReport(modifiedPayload, this.apiKey, this.customCrashReportingEndpoint);
   }
 
-  async generateCrashReportPayload(error: Error, stackFrames: StackFrame[], session: Session): Promise<CrashReportPayload> {
-    const {breadcrumbs, tags, user, customData} = session;
+  async generateCrashReportPayload(error: Error, stackFrames: StackFrame[]): Promise<CrashReportPayload> {
+    const {breadcrumbs, tags, user, customData} = this.curSession;
     const environmentDetails = (RaygunNativeBridge.getEnvironmentInfo && (await RaygunNativeBridge.getEnvironmentInfo())) || {};
 
     let convertToCrashReportingStackFrame = ({file, methodName, lineNumber, column}: StackFrame) => ({
