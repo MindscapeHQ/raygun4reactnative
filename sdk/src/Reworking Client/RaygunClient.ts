@@ -71,7 +71,7 @@ const init = async (options: RaygunClientOptions) => {
   }
   //enable CR
   if (enableCrashReporting) {
-    cr = new CrashReporter(curSession, apiKey, disableNetworkMonitoring, customCrashReportingEndpoint || '', onBeforeSendingCrashReport);
+    cr = new CrashReporter(curSession, apiKey, disableNetworkMonitoring, customCrashReportingEndpoint || '', onBeforeSendingCrashReport, version);
   }
   return true;
 };
@@ -99,16 +99,20 @@ const sendRUMTimingEvent = (
 
 export {
   init,
+
   addTag,
   setUser,
-  addCustomData,
   clearSession,
-  updateCustomData,
-  recordBreadcrumb,
   filterOutReactFrames,
   noAddressAt,
+
   generateCrashReportPayload,
-  sendRUMTimingEvent,
-  sendCustomError
+  recordBreadcrumb,
+  addCustomData,
+  sendCustomError,
+
+  updateCustomData,
+
+  sendRUMTimingEvent
 };
 
