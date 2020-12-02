@@ -184,6 +184,18 @@ const setUser = (user: User | string) => {
 };
 
 
+//???????????????????????????
+const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
+  curSession.customData = updater(curSession.customData);
+  if (!GlobalOptions.disableNativeCrashReporting) {
+    RaygunNativeBridge.setCustomData(clone(curSession.customData));
+  }
+};
+
+
+
+
+
 //MEEEEEEEEEEEEEEEEEEEEEEEEE
 const addCustomData = (customData: CustomData) => {
   curSession.customData = Object.assign({}, curSession.customData, customData);
@@ -192,13 +204,7 @@ const addCustomData = (customData: CustomData) => {
   }
 };
 
-//???????????????????????????
-const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
-  curSession.customData = updater(curSession.customData);
-  if (!GlobalOptions.disableNativeCrashReporting) {
-    RaygunNativeBridge.setCustomData(clone(curSession.customData));
-  }
-};
+
 
 //MEEEEEEEEEEEEEEEEEEEEEEEEE
 const recordBreadcrumb = (message: string, details?: BreadcrumbOption) => {

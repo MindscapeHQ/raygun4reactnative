@@ -1,8 +1,15 @@
-import {BeforeSendHandler, CrashReportPayload, RaygunClientOptions, Session} from "../Types";
-import {getDeviceBasedId, log} from "../Utils";
+import {
+  BeforeSendHandler,
+  CrashReportPayload,
+  RaygunClientOptions,
+  RUMEvents,
+  Session
+} from "../Types";
+import {getDeviceBasedId, log, warn} from "../Utils";
 import {NativeModules} from "react-native";
 import CrashReporter from "./CrashReporter";
 import RealUserMonitor from "./RealUserMonitor";
+import {sendCustomRUMEvent} from "../RealUserMonitoring";
 
 const {RaygunNativeBridge} = NativeModules;
 
@@ -60,13 +67,33 @@ const init = async (options: RaygunClientOptions) => {
   }
   //Enable rum
   if (enableRealUserMonitoring) {
-    rum = new RealUserMonitor(getCurrentUser, apiKey, disableNetworkMonitoring, ignoredURLs, customRealUserMonitoringEndpoint);
+    rum = new RealUserMonitor(getCurrentUser, apiKey, disableNetworkMonitoring, ignoredURLs, customRealUserMonitoringEndpoint, version);
   }
   //enable CR
   if (enableCrashReporting) {
     cr = new CrashReporter(curSession, apiKey, disableNetworkMonitoring, customCrashReportingEndpoint || '', onBeforeSendingCrashReport);
   }
   return true;
+};
+
+
+const sendRUMTimingEvent = (
+  eventType: RUMEvents.ActivityLoaded | RUMEvents.NetworkCall,
+  name: string,
+  timeUsedInMs: number
+) => {
+  if (!CleanedOptions.enableRealUserMonitoring) {
+    warn('RUM is not enabled, please enable to use the sendRUMTimingEvent() function');
+    return;
+  }
+  rum.sendCustomRUMEvent(
+    getCurrentUser,
+    CleanedOptions.apiKey,
+    eventType,
+    name,
+    timeUsedInMs,
+    CleanedOptions.customRealUserMonitoringEndpoint
+  );
 };
 
 
@@ -84,3 +111,4 @@ export {
   sendRUMTimingEvent,
   sendCustomError
 };
+
