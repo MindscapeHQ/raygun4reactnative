@@ -3,7 +3,7 @@ import {
   CrashReportPayload, CustomData,
   RaygunClientOptions,
   RUMEvents,
-  Session
+  Session, User
 } from "../Types";
 import {getDeviceBasedId, log, warn} from "../Utils";
 import {NativeModules} from "react-native";
@@ -20,9 +20,6 @@ import {StackFrame} from "react-native/Libraries/Core/Devtools/parseErrorStack";
 
 const {RaygunNativeBridge} = NativeModules;
 
-let cr: CrashReporter;
-let rum: RealUserMonitor;
-
 /**
  *
  */
@@ -35,10 +32,14 @@ const getCleanSession = (): Session => ({
   }
 });
 
-const curSession = getCleanSession();
 const getCurrentUser = () => curSession.user;
 
+
+let curSession = getCleanSession();
+let cr: CrashReporter;
+let rum: RealUserMonitor;
 let CleanedOptions: RaygunClientOptions;
+
 
 /**
  * RaygunClient initializer. Creates the CrashReporter and RealUserMonitor.
@@ -88,6 +89,39 @@ const init = async (options: RaygunClientOptions) => {
     cr = new CrashReporter(curSession, apiKey, disableNetworkMonitoring, customCrashReportingEndpoint || '', onBeforeSendingCrashReport, version);
   }
   return true;
+};
+
+
+const addTag = (...tags: string[]) => {
+  tags.forEach(tag => {
+    curSession.tags.add(tag);
+  });
+  if (!CleanedOptions.disableNativeCrashReporting) {
+    RaygunNativeBridge.setTags([...curSession.tags]);
+  }
+};
+
+
+const setUser = (user: User | string) => {
+  const userObj = Object.assign(
+      { firstName: '', fullName: '', email: '', isAnonymous: false },
+      typeof user === 'string' ?
+          !!user ?
+              {identifier: user}
+              : {identifier: `anonymous-${getDeviceBasedId()}`,isAnonymous: true}
+          : user
+  );
+  curSession.user = userObj;
+  if (!CleanedOptions.disableNativeCrashReporting) {
+    RaygunNativeBridge.setUser(userObj);
+  }
+};
+
+const clearSession = () => {
+  curSession = getCleanSession();
+  if (!CleanedOptions.disableNativeCrashReporting) {
+    RaygunNativeBridge.clearSession();
+  }
 };
 
 
@@ -151,6 +185,9 @@ const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
 }
 
 
+//-------------------------------------------------------------------------------------------------
+// REAL USER MONITORING LOGIC
+//-------------------------------------------------------------------------------------------------
 
 const sendRUMTimingEvent = (eventType: RUMEvents.ActivityLoaded | RUMEvents.NetworkCall, name: string, timeUsedInMs: number) => {
   if (rum && CleanedOptions.enableRealUserMonitoring) {
