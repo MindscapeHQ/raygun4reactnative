@@ -1,4 +1,4 @@
-import { NetworkTimingCallback } from './Types';
+import { NetworkTimingCallback } from './hidden/Types';
 //@ts-ignore
 import XHRInterceptor from 'react-native/Libraries/Network/XHRInterceptor';
 import { getDeviceBasedId } from './Utils';

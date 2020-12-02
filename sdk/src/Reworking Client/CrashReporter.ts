@@ -11,7 +11,7 @@ import {
 } from "./Types";
 import {NativeModules, Platform} from "react-native";
 import {clone, upperFirst} from "../Helper";
-import {addCustomData, addTag} from "../RaygunClient";
+import {addCustomData, addTag} from "./RaygunClient";
 
 const {RaygunNativeBridge} = NativeModules;
 const {version: clientVersion} = require('../package.json');

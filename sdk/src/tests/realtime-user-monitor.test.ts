@@ -1,6 +1,6 @@
 import MockDate from 'mockdate';
-import { RUMEvents } from '../Types';
-import { setupRealtimeUserMonitoring } from '../RealUserMonitoring';
+import { RUMEvents } from '../hidden/Types';
+import { setupRealtimeUserMonitoring } from '../hidden/RealUserMonitoring';
 import { setupNetworkMonitoring } from '../NetworkMonitor';
 import { sendRUMPayload } from '../Transport';
 

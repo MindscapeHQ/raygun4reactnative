@@ -1,5 +1,5 @@
 import { saveCrashReport, loadCachedReports } from './Storage';
-import { CrashReportPayload } from './Types';
+import { CrashReportPayload } from './hidden/Types';
 import { error, warn, log } from './Utils';
 
 const RAYGUN_CRASH_REPORT_ENDPOINT = 'https://api.raygun.com/entries';

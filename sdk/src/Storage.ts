@@ -1,5 +1,5 @@
 import { NativeModules } from 'react-native';
-import { CrashReportPayload } from './Types';
+import { CrashReportPayload } from './hidden/Types';
 import { error } from './Utils';
 
 const { RaygunNativeBridge } = NativeModules;

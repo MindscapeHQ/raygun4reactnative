@@ -1,7 +1,7 @@
-import { Breadcrumb, BreadcrumbOption, CustomData, RaygunStackFrame } from '../Types';
+import { Breadcrumb, BreadcrumbOption, CustomData, RaygunStackFrame } from '../hidden/Types';
 import { internalStackFrames, stackFramesWithAddress, fullStackFrames } from './fixture/errors';
 import { sendCachedReports, sendCrashReport } from '../Transport';
-import { setupRealtimeUserMonitoring } from '../RealUserMonitoring';
+import { setupRealtimeUserMonitoring } from '../hidden/RealUserMonitoring';
 
 jest.mock('../RealUserMonitoring', () => ({
   setupRealtimeUserMonitoring: jest.fn()
@@ -55,7 +55,7 @@ beforeAll(() => {
   jest.useFakeTimers();
 });
 
-import * as RaygunClient from '../RaygunClient';
+import * as RaygunClient from '../hidden/RaygunClient';
 import { NativeModules, Platform } from 'react-native';
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
 
