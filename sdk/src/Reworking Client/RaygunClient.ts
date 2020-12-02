@@ -49,7 +49,7 @@ let CleanedOptions: RaygunClientOptions;
 const init = async (options: RaygunClientOptions) => {
 
   //Cleans options with defaults
-  const {
+  let {
     apiKey = '',
     version = '',
     enableCrashReporting = false,
@@ -63,10 +63,10 @@ const init = async (options: RaygunClientOptions) => {
   } = CleanedOptions;
 
   //Check if native bridge is available and enabled
-  const useNativeCR = !disableNativeCrashReporting && RaygunNativeBridge && typeof RaygunNativeBridge.init === 'function';
+  let useNativeCR = !disableNativeCrashReporting && RaygunNativeBridge && typeof RaygunNativeBridge.init === 'function';
 
   //Has the client already been initialised
-  const alreadyInitialized = useNativeCR && (await RaygunNativeBridge.hasInitialized());
+  let alreadyInitialized = useNativeCR && (await RaygunNativeBridge.hasInitialized());
   if (alreadyInitialized) {
     log('Already initialized');
     return false;
@@ -108,7 +108,7 @@ const addTag = (...tags: string[]) => {
 
 
 const setUser = (user: User | string) => {
-  const userObj = Object.assign(
+  let userObj = Object.assign(
       { firstName: '', fullName: '', email: '', isAnonymous: false },
       typeof user === 'string' ?
           !!user ?

@@ -39,7 +39,7 @@ export default class RealUserMonitor {
     this.lastActiveAt = Date.now();
     this.curRUMSessionId = '';
 
-    const eventEmitter = new NativeEventEmitter(RaygunNativeBridge);
+    let eventEmitter = new NativeEventEmitter(RaygunNativeBridge);
     eventEmitter.addListener(RaygunNativeBridge.ON_START, this.reportStartupTime);
     eventEmitter.addListener(RaygunNativeBridge.ON_PAUSE, this.markLastActiveTime);
     eventEmitter.addListener(RaygunNativeBridge.ON_RESUME, this.rotateRUMSession);
@@ -61,7 +61,7 @@ export default class RealUserMonitor {
 
 
   generateNetworkTimingEventCallbackMethod(name: string, sendTime: number,duration: number){
-    const data = {name, timing: {type: RUMEvents.NetworkCall, duration}};
+    let data = {name, timing: {type: RUMEvents.NetworkCall, duration}};
     this.sendRUMEvent(RUMEvents.EventTiming, data, sendTime);
   };
 
@@ -122,7 +122,7 @@ export default class RealUserMonitor {
       this.curRUMSessionId = getDeviceBasedId();
       await this.sendRUMEvent(RUMEvents.SessionStart, {});
     }
-    const data = {name, timing: {type: RUMEvents.ActivityLoaded, duration}};
+    let data = {name, timing: {type: RUMEvents.ActivityLoaded, duration}};
     return this.sendRUMEvent(RUMEvents.EventTiming, data);
   };
 
