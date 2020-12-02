@@ -13,11 +13,21 @@ import {sendCustomRUMEvent} from "../RealUserMonitoring";
 import {generateCrashReportPayload} from "../RaygunClient";
 import {StackFrame} from "react-native/Libraries/Core/Devtools/parseErrorStack";
 
+/**
+ * The RaygunClient is the interface in which this provider publicly shows. The bottom of this page
+ * has an 'export' statement which exports the methods defined in the RaygunClient.ts file. Some
+ * of the logical components have been separated out from this file and into classes specific to
+ * CrashReporting or RealUserMonitoring (CrashReporter.ts and RealUserMonitor.ts respectively).
+ */
+
 const {RaygunNativeBridge} = NativeModules;
 
 let cr: CrashReporter;
 let rum: RealUserMonitor;
 
+/**
+ *
+ */
 const getCleanSession = (): Session => ({
   tags: new Set(['React Native']),
   customData: {},
@@ -32,6 +42,10 @@ const getCurrentUser = () => curSession.user;
 
 let CleanedOptions: RaygunClientOptions;
 
+/**
+ * RaygunClient initializer. Creates the CrashReporter and RealUserMonitor.
+ * @param options
+ */
 const init = async (options: RaygunClientOptions) => {
 
   //Cleans options with defaults
@@ -77,6 +91,11 @@ const init = async (options: RaygunClientOptions) => {
   }
   return true;
 };
+
+
+//-------------------------------------------------------------------------------------------------
+// RE-ROUTING METHODS (Simple checks + calls to CrashReporter or RealUserMonitor.
+//-------------------------------------------------------------------------------------------------
 
 
 const generateCrashReportPayload = (error: Error, stackFrames: StackFrame[]) => {
