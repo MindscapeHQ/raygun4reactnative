@@ -137,7 +137,7 @@ export default class CrashReporter {
     sendCrashReport(modifiedPayload, this.apiKey, this.customCrashReportingEndpoint);
   }
 
-  async generateCrashReportPayload(error: Error, stackFrames: StackFrame[], session: Session) {
+  async generateCrashReportPayload(error: Error, stackFrames: StackFrame[], session: Session): Promise<CrashReportPayload> {
     const {breadcrumbs, tags, user, customData} = session;
     const environmentDetails = (RaygunNativeBridge.getEnvironmentInfo && (await RaygunNativeBridge.getEnvironmentInfo())) || {};
 
