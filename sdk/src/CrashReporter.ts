@@ -1,6 +1,5 @@
 import {cleanFilePath, clone, error, filterOutReactFrames, log, noAddressAt, upperFirst, warn} from "./Utils";
 import {StackFrame} from "react-native/Libraries/Core/Devtools/parseErrorStack";
-import {sendCachedReports, sendCrashReport} from "./Transport";
 import {
   BeforeSendHandler,
   Breadcrumb,
@@ -23,6 +22,7 @@ export default class CrashReporter {
   private disableNativeCrashReporting: boolean;
   private customCrashReportingEndpoint: string;
   private onBeforeSendingCrashReport: BeforeSendHandler | null;
+  private RAYGUN_CRASH_REPORT_ENDPOINT = 'https://api.raygun.com/entries';
 
   constructor(curSession: Session, apiKey: string, disableNativeCrashReporting: boolean,
               customCrashReportingEndpoint: string,
@@ -46,7 +46,7 @@ export default class CrashReporter {
 
 
     if (disableNativeCrashReporting) {
-      setTimeout(() => sendCachedReports(apiKey, customCrashReportingEndpoint), 10);
+      setTimeout(() => this.sendCachedReports(apiKey, customCrashReportingEndpoint), 10);
     }
 
     // Assign the values parsed in (assuming initiation is the only time these are altered).
@@ -134,7 +134,7 @@ export default class CrashReporter {
     }
 
     log('Send crash report via JS');
-    sendCrashReport(modifiedPayload, this.apiKey, this.customCrashReportingEndpoint);
+    this.sendCrashReport(modifiedPayload, this.apiKey, this.customCrashReportingEndpoint);
 
   }
 
@@ -185,7 +185,7 @@ export default class CrashReporter {
 //-------------------------------------------------------------------------------------------------
 // LOCAL CACHING OF CRASH REPORTS
 //-------------------------------------------------------------------------------------------------
-  
+
   async saveCrashReport (report: CrashReportPayload): Promise<null>{
       return RaygunNativeBridge.saveCrashReport(JSON.stringify(report));
   }
@@ -201,4 +201,34 @@ export default class CrashReporter {
       });
   }
 
+  async sendCachedReports(apiKey: string, customEndpoint?: string) {
+    const reports = await this.loadCachedReports();
+    log('Load all cached report', reports);
+    return Promise.all(reports.map(report => this.sendCrashReport(report, apiKey, customEndpoint, true)));
+  };
+
+
+
+//-------------------------------------------------------------------------------------------------
+// SENDING CRASH REPORTS
+//-------------------------------------------------------------------------------------------------
+
+  async sendCrashReport(report: CrashReportPayload, apiKey: string, customEndpoint?: string, isRetry?: boolean) {
+    return fetch(customEndpoint || this.RAYGUN_CRASH_REPORT_ENDPOINT + '?apiKey=' + encodeURIComponent(apiKey), {
+      method: 'POST',
+      mode: 'cors',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(report)
+    }).catch(err => {
+      error(err);
+      log('Cache report when it failed to send', isRetry);
+      if (isRetry) {
+        log('Skip cache saved reports');
+        return;
+      }
+      return this.saveCrashReport(report);
+    });
+  };
 };
