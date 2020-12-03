@@ -92,9 +92,11 @@ const init = async (options: RaygunClientOptions) => {
 
   return true;
 };
+
 //-------------------------------------------------------------------------------------------------
 // RAYGUN CLIENT SESSION LOGIC
 //-------------------------------------------------------------------------------------------------
+
 const addTag = (...tags: string[]) => {
   tags.forEach(tag => {
     curSession.tags.add(tag);

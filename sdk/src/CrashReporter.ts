@@ -1,4 +1,4 @@
-import {cleanFilePath, clone, filterOutReactFrames, log, noAddressAt, upperFirst, warn} from "./Utils";
+import {cleanFilePath, clone, error, filterOutReactFrames, log, noAddressAt, upperFirst, warn} from "./Utils";
 import {StackFrame} from "react-native/Libraries/Core/Devtools/parseErrorStack";
 import {sendCachedReports, sendCrashReport} from "./Transport";
 import {
@@ -180,4 +180,25 @@ export default class CrashReporter {
   processUnhandledRejection(error: any) {
     this.processUnhandledError(error, false);
   };
+
+
+//-------------------------------------------------------------------------------------------------
+// LOCAL CACHING OF CRASH REPORTS
+//-------------------------------------------------------------------------------------------------
+  
+  async saveCrashReport (report: CrashReportPayload): Promise<null>{
+      return RaygunNativeBridge.saveCrashReport(JSON.stringify(report));
+  }
+
+  async loadCachedReports(): Promise<CrashReportPayload[]> {
+      return RaygunNativeBridge.loadCrashReports().then((reportsJson: string) => {
+        try {
+          return JSON.parse(reportsJson).filter(Boolean);
+        } catch (err) {
+          error(err);
+          return [];
+        }
+      });
+  }
+
 };
