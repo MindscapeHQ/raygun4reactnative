@@ -60,8 +60,19 @@ export default class CrashReporter {
   }
 
 
+//-------------------------------------------------------------------------------------------------
+// ALTERING SESSION DATA
+//-------------------------------------------------------------------------------------------------
+
   addCustomData(customData: CustomData) {
     this.curSession.customData = Object.assign({}, this.curSession.customData, customData);
+    if (!this.disableNativeCrashReporting) {
+      RaygunNativeBridge.setCustomData(clone(this.curSession.customData));
+    }
+  };
+
+  updateCustomData(updater: (customData: CustomData) => CustomData){
+    this.curSession.customData = updater(this.curSession.customData);
     if (!this.disableNativeCrashReporting) {
       RaygunNativeBridge.setCustomData(clone(this.curSession.customData));
     }
@@ -81,23 +92,36 @@ export default class CrashReporter {
     }
   };
 
-  async sendCustomError(error: Error, ...params: any) {
-    const [customData, tags] = (params.length == 1 && Array.isArray(params[0])) ? [null, params[0]] : params;
-    if (customData) {
-      addCustomData(customData as CustomData);
-    }
-    if (tags && tags.length) {
-      addTag(...tags as string[]);
-    }
-    await this.processUnhandledError(error);
+
+//-------------------------------------------------------------------------------------------------
+// LOCAL CACHING OF CRASH REPORTS
+//-------------------------------------------------------------------------------------------------
+
+  async saveCrashReport (report: CrashReportPayload): Promise<null>{
+      return RaygunNativeBridge.saveCrashReport(JSON.stringify(report));
   }
 
-  updateCustomData(updater: (customData: CustomData) => CustomData){
-    this.curSession.customData = updater(this.curSession.customData);
-    if (!this.disableNativeCrashReporting) {
-      RaygunNativeBridge.setCustomData(clone(this.curSession.customData));
-    }
+  async loadCachedReports(): Promise<CrashReportPayload[]> {
+      return RaygunNativeBridge.loadCrashReports().then((reportsJson: string) => {
+        try {
+          return JSON.parse(reportsJson).filter(Boolean);
+        } catch (err) {
+          error(err);
+          return [];
+        }
+      });
+  }
+
+  async sendCachedReports(apiKey: string, customEndpoint?: string) {
+    const reports = await this.loadCachedReports();
+    log('Load all cached report', reports);
+    return Promise.all(reports.map(report => this.sendCrashReport(report, apiKey, customEndpoint, true)));
   };
+
+
+//-------------------------------------------------------------------------------------------------
+// CALLBACK HANDLERS
+//-------------------------------------------------------------------------------------------------
 
   async processUnhandledError(error: Error, isFatal?: boolean) {
     if (!error || !error.stack) {
@@ -109,8 +133,8 @@ export default class CrashReporter {
     const symbolicateStackTrace = require('react-native/Libraries/Core/Devtools/symbolicateStackTrace');
     const stackFrames = parseErrorStack(error);
     const cleanedStackFrames: StackFrame[] = __DEV__
-      ? await symbolicateStackTrace(stackFrames)
-      : {stack: cleanFilePath(stackFrames)};
+        ? await symbolicateStackTrace(stackFrames)
+        : {stack: cleanFilePath(stackFrames)};
 
     const stack = cleanedStackFrames || [].filter(filterOutReactFrames).map(noAddressAt);
 
@@ -121,7 +145,7 @@ export default class CrashReporter {
     const payload = await this.generateCrashReportPayload(error, stack);
 
     const modifiedPayload =
-      this.onBeforeSendingCrashReport && typeof this.onBeforeSendingCrashReport === 'function' ? this.onBeforeSendingCrashReport(Object.freeze(payload)) : payload;
+        this.onBeforeSendingCrashReport && typeof this.onBeforeSendingCrashReport === 'function' ? this.onBeforeSendingCrashReport(Object.freeze(payload)) : payload;
 
     if (!modifiedPayload) {
       return;
@@ -137,6 +161,15 @@ export default class CrashReporter {
     this.sendCrashReport(modifiedPayload, this.apiKey, this.customCrashReportingEndpoint);
 
   }
+
+  processUnhandledRejection(error: any) {
+    this.processUnhandledError(error, false);
+  };
+
+
+//-------------------------------------------------------------------------------------------------
+// SENDING CRASH REPORTS
+//-------------------------------------------------------------------------------------------------
 
   async generateCrashReportPayload(error: Error, stackFrames: StackFrame[]): Promise<CrashReportPayload> {
     const {breadcrumbs, tags, user, customData} = this.curSession;
@@ -177,41 +210,16 @@ export default class CrashReporter {
     };
   };
 
-  processUnhandledRejection(error: any) {
-    this.processUnhandledError(error, false);
-  };
-
-
-//-------------------------------------------------------------------------------------------------
-// LOCAL CACHING OF CRASH REPORTS
-//-------------------------------------------------------------------------------------------------
-
-  async saveCrashReport (report: CrashReportPayload): Promise<null>{
-      return RaygunNativeBridge.saveCrashReport(JSON.stringify(report));
+  async sendCustomError(error: Error, ...params: any) {
+    const [customData, tags] = (params.length == 1 && Array.isArray(params[0])) ? [null, params[0]] : params;
+    if (customData) {
+      addCustomData(customData as CustomData);
+    }
+    if (tags && tags.length) {
+      addTag(...tags as string[]);
+    }
+    await this.processUnhandledError(error);
   }
-
-  async loadCachedReports(): Promise<CrashReportPayload[]> {
-      return RaygunNativeBridge.loadCrashReports().then((reportsJson: string) => {
-        try {
-          return JSON.parse(reportsJson).filter(Boolean);
-        } catch (err) {
-          error(err);
-          return [];
-        }
-      });
-  }
-
-  async sendCachedReports(apiKey: string, customEndpoint?: string) {
-    const reports = await this.loadCachedReports();
-    log('Load all cached report', reports);
-    return Promise.all(reports.map(report => this.sendCrashReport(report, apiKey, customEndpoint, true)));
-  };
-
-
-
-//-------------------------------------------------------------------------------------------------
-// SENDING CRASH REPORTS
-//-------------------------------------------------------------------------------------------------
 
   async sendCrashReport(report: CrashReportPayload, apiKey: string, customEndpoint?: string, isRetry?: boolean) {
     return fetch(customEndpoint || this.RAYGUN_CRASH_REPORT_ENDPOINT + '?apiKey=' + encodeURIComponent(apiKey), {
