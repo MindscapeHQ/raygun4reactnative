@@ -1,7 +1,7 @@
-import { NetworkTimingCallback } from './hidden/Types';
+import { NetworkTimingCallback } from './Types';
 //@ts-ignore
 import XHRInterceptor from 'react-native/Libraries/Network/XHRInterceptor';
-import { getDeviceBasedId } from './hidden/Utils';
+import { getDeviceBasedId } from './Utils';
 interface RequestMeta {
   name: string;
   sendTime?: number;

@@ -8,7 +8,7 @@ import {
   clearSession,
   sendRUMTimingEvent,
   sendCustomError
-} from './hidden/RaygunClient';
+} from './RaygunClient';
 
 export default {
   init,

@@ -1,8 +1,8 @@
 import {RUMEvents, User} from "./Types";
 import {NativeEventEmitter, NativeModules, Platform} from 'react-native';
-import {setupNetworkMonitoring} from "../NetworkMonitor";
+import {setupNetworkMonitoring} from "./NetworkMonitor";
 import {getDeviceBasedId, warn} from "./Utils";
-import {sendRUMPayload} from "../Transport";
+import {sendRUMPayload} from "./Transport";
 
 
 const {RaygunNativeBridge} = NativeModules;
