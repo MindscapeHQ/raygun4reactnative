@@ -6,12 +6,11 @@ import {
   Session,
   User
 } from "./Types";
-import { getDeviceBasedId, log, warn } from './Utils';
+import {clone, getDeviceBasedId, log, warn} from './Utils';
 import {NativeModules} from "react-native";
 import CrashReporter from "./CrashReporter";
 import RealUserMonitor from "./RealUserMonitor";
 import {StackFrame} from "react-native/Libraries/Core/Devtools/parseErrorStack";
-import {clone} from "./Helper";
 import runOnlyPendingTimers = jest.runOnlyPendingTimers;
 /**
  * The RaygunClient is the interface in which this provider publicly shows. The bottom of this page

@@ -1,4 +1,4 @@
-import {cleanFilePath, filterOutReactFrames, log, noAddressAt, warn} from "./Utils";
+import {cleanFilePath, clone, filterOutReactFrames, log, noAddressAt, upperFirst, warn} from "./Utils";
 import {StackFrame} from "react-native/Libraries/Core/Devtools/parseErrorStack";
 import {sendCachedReports, sendCrashReport} from "./Transport";
 import {
@@ -10,7 +10,6 @@ import {
   Session
 } from "./Types";
 import {NativeModules, Platform} from "react-native";
-import {clone, upperFirst} from "./Helper";
 import {addCustomData, addTag} from "./RaygunClient";
 
 const {RaygunNativeBridge} = NativeModules;
