@@ -42,6 +42,7 @@ let Options : RaygunClientOptions;
  */
 const init = async (options: RaygunClientOptions) => {
   Options = clone(options);
+
   //Cleans options with defaults
   let {
     apiKey = '',
@@ -55,10 +56,13 @@ const init = async (options: RaygunClientOptions) => {
     onBeforeSendingCrashReport = null,
     ignoredURLs = []
   } = Options;
+
   //Check if native bridge is available and enabled
   let useNativeCR = !disableNativeCrashReporting && RaygunNativeBridge && typeof RaygunNativeBridge.init === 'function';
+
   //Has the client already been initialised
   let alreadyInitialized = useNativeCR && (await RaygunNativeBridge.hasInitialized());
+
   if (alreadyInitialized) {
     log('Already initialized');
     return false;

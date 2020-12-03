@@ -15,7 +15,6 @@ const SessionRotateThreshold = 30 * 60 * 100;
 export default class RealUserMonitor {
 
   private getCurrentUser: () => User;
-  private enabled: boolean = false;
   private apiKey: string;
   private version: string;
   private disableNetworkMonitoring: boolean;
@@ -26,8 +25,6 @@ export default class RealUserMonitor {
   curRUMSessionId: string = '';
 
   constructor(getCurrentUser: () => User, apiKey: string, disableNetworkMonitoring = true, ignoredURLs: string[], customRealUserMonitoringEndpoint: string, version: string) {
-
-    this.enabled = true;  //TODO
 
     if (!disableNetworkMonitoring) {
       setupNetworkMonitoring(
