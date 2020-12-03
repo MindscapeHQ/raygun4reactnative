@@ -20,9 +20,8 @@ import runOnlyPendingTimers = jest.runOnlyPendingTimers;
  * CrashReporting or RealUserMonitoring (CrashReporter.ts and RealUserMonitor.ts respectively).
  */
 const {RaygunNativeBridge} = NativeModules;
-/**
- *
- */
+
+
 const getCleanSession = (): Session => ({
   tags: new Set(['React Native']),
   customData: {},
@@ -32,6 +31,8 @@ const getCleanSession = (): Session => ({
   }
 });
 const getCurrentUser = () => curSession.user;
+
+
 let curSession = getCleanSession();
 let crashReporter: CrashReporter;
 let realUserMonitor: RealUserMonitor;
