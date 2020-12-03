@@ -2,7 +2,6 @@ import { NativeModules } from 'react-native';
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
 const { RaygunNativeBridge } = NativeModules;
 
-
 //-------------------------------------------------------------------------------------------------
 // GENERAL
 //-------------------------------------------------------------------------------------------------
@@ -16,40 +15,24 @@ export const getDeviceBasedId = () =>
  */
 export const clone = <T>(object: T): T => JSON.parse(JSON.stringify(object));
 
-
 //-------------------------------------------------------------------------------------------------
 // REGEX REFACTORING
 //-------------------------------------------------------------------------------------------------
 
 const SOURCE_MAP_PREFIX = 'file://reactnative.local/';
-const devicePathPattern = /^(.*@)?.*\/[^\.]+(\.app|CodePush)\/?(.*)/;
 
+const devicePathPattern = /^(.*@)?.*\/[^\.]+(\.app|CodePush)\/?(.*)/;
 const internalTrace = new RegExp('ReactNativeRenderer-dev\\.js$|MessageQueue\\.js$|native\\scode');
 
-
-export const filterOutReactFrames = (frame: StackFrame): boolean => !!frame.file && !frame.file.match(internalTrace);
-
-/**
- * Remove the '(address at' suffix added by stacktrace-parser which used by React
- * @param frame StackFrame
- */
-export const noAddressAt = ({ methodName, ...rest }: StackFrame): StackFrame => {
-  const pos = methodName.indexOf('(address at');
-  return {
-    ...rest,
-    methodName: pos > -1 ? methodName.slice(0, pos).trim() : methodName
-  };
-};
-
 export const cleanFilePath = (frames: StackFrame[]): StackFrame[] =>
-  frames.map(frame => {
-    const result = devicePathPattern.exec(frame.file);
-    if (result) {
-      const [_, __, ___, fileName] = result;
-      return { ...frame, file: SOURCE_MAP_PREFIX + fileName };
-    }
-    return frame;
-  });
+    frames.map(frame => {
+        const result = devicePathPattern.exec(frame.file);
+        if (result) {
+            const [_, __, ___, fileName] = result;
+            return { ...frame, file: SOURCE_MAP_PREFIX + fileName };
+        }
+        return frame;
+    });
 
 /**
  * Ensure a given report data payload uses uppercase keys
@@ -73,6 +56,30 @@ export const upperFirst = (obj: any | any[]): any | any[] => {
     return obj;
 };
 
+/**
+ * Remove the '(address at' suffix added by stacktrace-parser which used by React
+ * @param frame StackFrame
+ */
+export const noAddressAt = ({ methodName, ...rest }: StackFrame): StackFrame => {
+    const pos = methodName.indexOf('(address at');
+    return {
+        ...rest,
+        methodName: pos > -1 ? methodName.slice(0, pos).trim() : methodName
+    };
+};
+
+export const removeProtocol = (url: string) => url.replace(/^http(s)?:\/\//i, '');
+
+//-------------------------------------------------------------------------------------------------
+// FILTERING
+//-------------------------------------------------------------------------------------------------
+
+export const shouldIgnore = (url: string, ignoredURLs: string[]): boolean => {
+    const target = removeProtocol(url);
+    return ignoredURLs.some(ignored => target.startsWith(ignored));
+};
+
+export const filterOutReactFrames = (frame: StackFrame): boolean => !!frame.file && !frame.file.match(internalTrace);
 
 //-------------------------------------------------------------------------------------------------
 // LOGGING

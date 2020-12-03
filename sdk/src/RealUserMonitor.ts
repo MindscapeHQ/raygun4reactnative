@@ -3,7 +3,6 @@ import {NativeEventEmitter, NativeModules, Platform} from 'react-native';
 import {setupNetworkMonitoring} from "./NetworkMonitor";
 import {getDeviceBasedId, log, warn} from "./Utils";
 
-
 const {RaygunNativeBridge} = NativeModules;
 const {osVersion, platform} = RaygunNativeBridge;
 
@@ -125,6 +124,7 @@ export default class RealUserMonitor {
         const data = {name, timing: {type: RUMEvents.ActivityLoaded, duration}};
         return this.sendRUMEvent(RUMEvents.EventTiming, data);
     };
+
 
 //-------------------------------------------------------------------------------------------------
 // SENDING RUM PAYLOADS

@@ -1,20 +1,13 @@
 import { NetworkTimingCallback } from './Types';
 //@ts-ignore
 import XHRInterceptor from 'react-native/Libraries/Network/XHRInterceptor';
-import { getDeviceBasedId } from './Utils';
+import {getDeviceBasedId, removeProtocol, shouldIgnore} from './Utils';
 interface RequestMeta {
   name: string;
   sendTime?: number;
 }
 
 const requests = new Map<string, RequestMeta>();
-
-const removeProtocol = (url: string) => url.replace(/^http(s)?:\/\//i, '');
-
-const shouldIgnore = (url: string, ignoredURLs: string[]): boolean => {
-  const target = removeProtocol(url);
-  return ignoredURLs.some(ignored => target.startsWith(ignored));
-};
 
 const handleRequestOpen = (ignoredURLs: string[]) => (
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
