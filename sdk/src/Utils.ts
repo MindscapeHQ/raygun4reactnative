@@ -2,13 +2,30 @@ import { NativeModules } from 'react-native';
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
 const { RaygunNativeBridge } = NativeModules;
 
-const SOURCE_MAP_PREFIX = 'file://reactnative.local/';
-const devicePathPattern = /^(.*@)?.*\/[^\.]+(\.app|CodePush)\/?(.*)/;
+
+//-------------------------------------------------------------------------------------------------
+// GENERAL
+//-------------------------------------------------------------------------------------------------
 
 export const getDeviceBasedId = () =>
   `${RaygunNativeBridge.DEVICE_ID}-${Date.now().toString(32)}-${(Math.random() * 100000).toString(16).replace('.', '')}`;
 
+/**
+ * Deep clone an object
+ * @param object
+ */
+export const clone = <T>(object: T): T => JSON.parse(JSON.stringify(object));
+
+
+//-------------------------------------------------------------------------------------------------
+// REGEX REFACTORING
+//-------------------------------------------------------------------------------------------------
+
+const SOURCE_MAP_PREFIX = 'file://reactnative.local/';
+const devicePathPattern = /^(.*@)?.*\/[^\.]+(\.app|CodePush)\/?(.*)/;
+
 const internalTrace = new RegExp('ReactNativeRenderer-dev\\.js$|MessageQueue\\.js$|native\\scode');
+
 
 export const filterOutReactFrames = (frame: StackFrame): boolean => !!frame.file && !frame.file.match(internalTrace);
 
@@ -34,20 +51,6 @@ export const cleanFilePath = (frames: StackFrame[]): StackFrame[] =>
     return frame;
   });
 
-const getLogger = (output: (...args: any[]) => void) => (...args: any[]) => {
-  if (__DEV__) {
-    output(args);
-  }
-  return;
-};
-
-export const log = getLogger(console.log);
-
-export const warn = getLogger(console.warn);
-
-export const error = getLogger(console.error);
-
-
 /**
  * Ensure a given report data payload uses uppercase keys
  * @param obj A report data payload or an array of report data payloads
@@ -70,8 +73,20 @@ export const upperFirst = (obj: any | any[]): any | any[] => {
     return obj;
 };
 
-/**
- * Deep clone an object
- * @param object
- */
-export const clone = <T>(object: T): T => JSON.parse(JSON.stringify(object));
+
+//-------------------------------------------------------------------------------------------------
+// LOGGING
+//-------------------------------------------------------------------------------------------------
+
+const getLogger = (output: (...args: any[]) => void) => (...args: any[]) => {
+    if (__DEV__) {
+        output(args);
+    }
+    return;
+};
+
+export const log = getLogger(console.log);
+
+export const warn = getLogger(console.warn);
+
+export const error = getLogger(console.error);
