@@ -26,27 +26,6 @@ export default class RealUserMonitor {
 
   constructor(getCurrentUser: () => User, apiKey: string, disableNetworkMonitoring = true, ignoredURLs: string[], customRealUserMonitoringEndpoint: string, version: string) {
 
-    if (!disableNetworkMonitoring) {
-      setupNetworkMonitoring(
-        ignoredURLs.concat(defaultURLIgnoreList, customRealUserMonitoringEndpoint || []),
-        this.generateNetworkTimingEventCallbackMethod
-      );
-    }
-
-    this.lastActiveAt = Date.now();
-    this.curRUMSessionId = '';
-
-    let eventEmitter = new NativeEventEmitter(RaygunNativeBridge);
-    eventEmitter.addListener(RaygunNativeBridge.ON_START, this.reportStartupTime);
-    eventEmitter.addListener(RaygunNativeBridge.ON_PAUSE, this.markLastActiveTime);
-    eventEmitter.addListener(RaygunNativeBridge.ON_RESUME, this.rotateRUMSession);
-    eventEmitter.addListener(RaygunNativeBridge.ON_DESTROY, () => {
-      eventEmitter.removeAllListeners(RaygunNativeBridge.ON_START);
-      eventEmitter.removeAllListeners(RaygunNativeBridge.ON_PAUSE);
-      eventEmitter.removeAllListeners(RaygunNativeBridge.ON_RESUME);
-      eventEmitter.removeAllListeners(RaygunNativeBridge.ON_DESTROY);
-    });
-
     // Assign the values parsed in (assuming initiation is the only time these are altered).
     this.apiKey = apiKey;
     this.disableNetworkMonitoring = disableNetworkMonitoring;
@@ -54,12 +33,35 @@ export default class RealUserMonitor {
     this.customRealUserMonitoringEndpoint = customRealUserMonitoringEndpoint;
     this.getCurrentUser = getCurrentUser;
     this.version = version;
+
+    if (!disableNetworkMonitoring) {
+      setupNetworkMonitoring(
+        ignoredURLs.concat(defaultURLIgnoreList, customRealUserMonitoringEndpoint || []),
+        this.generateNetworkTimingEventCallbackMethod.bind(this)
+      );
+    }
+
+    this.lastActiveAt = Date.now();
+    this.curRUMSessionId = '';
+
+    let eventEmitter = new NativeEventEmitter(RaygunNativeBridge);
+    eventEmitter.addListener(RaygunNativeBridge.ON_START, this.reportStartupTime.bind(this));
+    eventEmitter.addListener(RaygunNativeBridge.ON_PAUSE, this.markLastActiveTime.bind(this));
+    eventEmitter.addListener(RaygunNativeBridge.ON_RESUME, this.rotateRUMSession.bind(this));
+    eventEmitter.addListener(RaygunNativeBridge.ON_DESTROY, () => {
+      eventEmitter.removeAllListeners(RaygunNativeBridge.ON_START);
+      eventEmitter.removeAllListeners(RaygunNativeBridge.ON_PAUSE);
+      eventEmitter.removeAllListeners(RaygunNativeBridge.ON_RESUME);
+      eventEmitter.removeAllListeners(RaygunNativeBridge.ON_DESTROY);
+    });
+
   };
 
 
   generateNetworkTimingEventCallbackMethod(name: string, sendTime: number,duration: number){
-    let data = {name, timing: {type: RUMEvents.NetworkCall, duration}};
-    this.sendRUMEvent(RUMEvents.EventTiming, data, sendTime);
+    const data = {name, timing: {type: RUMEvents.NetworkCall, duration}};
+    this.sendRUMEvent(RUMEvents.EventTiming, data, sendTime).catch();
+
   };
 
 
@@ -78,8 +80,8 @@ export default class RealUserMonitor {
 
 
   async sendRUMEvent(eventName: string, data: Record<string, any>, timeAt?: number) {
-    let timestamp = timeAt ? new Date(timeAt) : new Date();
-    let rumMessage = {
+    const timestamp = timeAt ? new Date(timeAt) : new Date();
+    const rumMessage = {
       type: eventName,
       timestamp: timestamp.toISOString(),
       user: this.getCurrentUser(),
@@ -90,6 +92,7 @@ export default class RealUserMonitor {
       platform,
       data: JSON.stringify([data])
     };
+
     return sendRUMPayload(rumMessage, this.apiKey, this.customRealUserMonitoringEndpoint);
   };
 

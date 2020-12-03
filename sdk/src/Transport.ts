@@ -30,6 +30,7 @@ const sendCrashReport = async (
 };
 
 const sendRUMPayload = async (event: Record<string, any>, apiKey: string, customRealUserMonitoringEndpoint?: string) => {
+
   return fetch(customRealUserMonitoringEndpoint || RAYGUN_RUM_ENDPOINT, {
     method: 'POST',
     headers: { 'X-ApiKey': apiKey, 'Content-Type': 'application/json' },

@@ -57,7 +57,9 @@ export default class CrashReporter {
     this.customCrashReportingEndpoint = customCrashReportingEndpoint;
     this.onBeforeSendingCrashReport = onBeforeSendingCrashReport;
     this.version = version;
+
   }
+
 
   addCustomData(customData: CustomData) {
     this.curSession.customData = Object.assign({}, this.curSession.customData, customData);
@@ -134,6 +136,7 @@ export default class CrashReporter {
 
     log('Send crash report via JS');
     sendCrashReport(modifiedPayload, this.apiKey, this.customCrashReportingEndpoint);
+
   }
 
   async generateCrashReportPayload(error: Error, stackFrames: StackFrame[]): Promise<CrashReportPayload> {
