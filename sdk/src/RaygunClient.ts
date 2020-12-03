@@ -76,14 +76,16 @@ const init = async (options: RaygunClientOptions) => {
       customCrashReportingEndpoint
     });
   }
-  //Enable rum
-  if (enableRealUserMonitoring) {
-    rum = new RealUserMonitor(getCurrentUser, apiKey, disableNetworkMonitoring, ignoredURLs, customRealUserMonitoringEndpoint, version);
-  }
+
   //enable CR
   if (enableCrashReporting) {
     cr = new CrashReporter(curSession, apiKey, disableNetworkMonitoring, customCrashReportingEndpoint || '', onBeforeSendingCrashReport, version);
   }
+  //Enable rum
+  if (enableRealUserMonitoring) {
+    rum = new RealUserMonitor(getCurrentUser, apiKey, disableNetworkMonitoring, ignoredURLs, customRealUserMonitoringEndpoint, version);
+  }
+
   return true;
 };
 //-------------------------------------------------------------------------------------------------
