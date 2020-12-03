@@ -30,7 +30,7 @@ export default class CrashReporter {
               onBeforeSendingCrashReport: BeforeSendHandler | null, version: string) {
 
     //Setup error handler to divert errors to crash reporter
-    let prevHandler = ErrorUtils.getGlobalHandler();
+    const prevHandler = ErrorUtils.getGlobalHandler();
 
     ErrorUtils.setGlobalHandler(async (error: Error, isFatal?: boolean) => {
       await this.processUnhandledError(error, isFatal);
@@ -38,7 +38,7 @@ export default class CrashReporter {
     });
 
     //Set up rejection handler to divert rejections to crash reporter
-    let rejectionTracking = require('promise/setimmediate/rejection-tracking');
+    const rejectionTracking = require('promise/setimmediate/rejection-tracking');
     rejectionTracking.disable();
     rejectionTracking.enable({
       allRejections: true,
@@ -69,7 +69,7 @@ export default class CrashReporter {
   };
 
   recordBreadcrumb(message: string, details?: BreadcrumbOption) {
-    let breadcrumb: Breadcrumb = {
+    const breadcrumb: Breadcrumb = {
       customData: {},
       category: '',
       level: 'info',
@@ -83,7 +83,7 @@ export default class CrashReporter {
   };
 
   async sendCustomError(error: Error, ...params: any) {
-    let [customData, tags] = (params.length == 1 && Array.isArray(params[0])) ? [null, params[0]] : params;
+    const [customData, tags] = (params.length == 1 && Array.isArray(params[0])) ? [null, params[0]] : params;
     if (customData) {
       addCustomData(customData as CustomData);
     }
@@ -106,22 +106,22 @@ export default class CrashReporter {
       return;
     }
 
-    let parseErrorStack = require('react-native/Libraries/Core/Devtools/parseErrorStack');
-    let symbolicateStackTrace = require('react-native/Libraries/Core/Devtools/symbolicateStackTrace');
-    let stackFrames = parseErrorStack(error);
-    let cleanedStackFrames: StackFrame[] = __DEV__
+    const parseErrorStack = require('react-native/Libraries/Core/Devtools/parseErrorStack');
+    const symbolicateStackTrace = require('react-native/Libraries/Core/Devtools/symbolicateStackTrace');
+    const stackFrames = parseErrorStack(error);
+    const cleanedStackFrames: StackFrame[] = __DEV__
       ? await symbolicateStackTrace(stackFrames)
       : {stack: cleanFilePath(stackFrames)};
 
-    let stack = cleanedStackFrames || [].filter(filterOutReactFrames).map(noAddressAt);
+    const stack = cleanedStackFrames || [].filter(filterOutReactFrames).map(noAddressAt);
 
     if (isFatal) {
       this.curSession.tags.add('Fatal');
     }
 
-    let payload = await this.generateCrashReportPayload(error, stack);
+    const payload = await this.generateCrashReportPayload(error, stack);
 
-    let modifiedPayload =
+    const modifiedPayload =
       this.onBeforeSendingCrashReport && typeof this.onBeforeSendingCrashReport === 'function' ? this.onBeforeSendingCrashReport(Object.freeze(payload)) : payload;
 
     if (!modifiedPayload) {
@@ -140,10 +140,10 @@ export default class CrashReporter {
   }
 
   async generateCrashReportPayload(error: Error, stackFrames: StackFrame[]): Promise<CrashReportPayload> {
-    let {breadcrumbs, tags, user, customData} = this.curSession;
-    let environmentDetails = (RaygunNativeBridge.getEnvironmentInfo && (await RaygunNativeBridge.getEnvironmentInfo())) || {};
+    const {breadcrumbs, tags, user, customData} = this.curSession;
+    const environmentDetails = (RaygunNativeBridge.getEnvironmentInfo && (await RaygunNativeBridge.getEnvironmentInfo())) || {};
 
-    let convertToCrashReportingStackFrame = ({file, methodName, lineNumber, column}: StackFrame) => ({
+    const convertToCrashReportingStackFrame = ({file, methodName, lineNumber, column}: StackFrame) => ({
       FileName: file,
       MethodName: methodName || '[anonymous]',
       LineNumber: lineNumber,

@@ -44,7 +44,7 @@ export default class RealUserMonitor {
     this.lastActiveAt = Date.now();
     this.curRUMSessionId = '';
 
-    let eventEmitter = new NativeEventEmitter(RaygunNativeBridge);
+    const eventEmitter = new NativeEventEmitter(RaygunNativeBridge);
     eventEmitter.addListener(RaygunNativeBridge.ON_START, this.reportStartupTime.bind(this));
     eventEmitter.addListener(RaygunNativeBridge.ON_PAUSE, this.markLastActiveTime.bind(this));
     eventEmitter.addListener(RaygunNativeBridge.ON_RESUME, this.rotateRUMSession.bind(this));
@@ -122,7 +122,7 @@ export default class RealUserMonitor {
       this.curRUMSessionId = getDeviceBasedId();
       await this.sendRUMEvent(RUMEvents.SessionStart, {});
     }
-    let data = {name, timing: {type: RUMEvents.ActivityLoaded, duration}};
+    const data = {name, timing: {type: RUMEvents.ActivityLoaded, duration}};
     return this.sendRUMEvent(RUMEvents.EventTiming, data);
   };
 

@@ -36,7 +36,7 @@ let curSession = getCleanSession();
 let crashReporter: CrashReporter;
 let realUserMonitor: RealUserMonitor;
 let Options : RaygunClientOptions;
-let initialised : boolean;
+let initialised : boolean = false;
 
 /**
  * RaygunClient initializer. Creates the CrashReporter and RealUserMonitor.
@@ -46,7 +46,7 @@ const init = async (options: RaygunClientOptions) => {
   Options = clone(options);
 
   //Cleans options with defaults
-  let {
+  const {
     apiKey = '',
     version = '',
     enableCrashReporting = false,
@@ -60,10 +60,10 @@ const init = async (options: RaygunClientOptions) => {
   } = Options;
 
   //Check if native bridge is available and enabled
-  let useNativeCR = !disableNativeCrashReporting && RaygunNativeBridge && typeof RaygunNativeBridge.init === 'function';
+  const useNativeCR = !disableNativeCrashReporting && RaygunNativeBridge && typeof RaygunNativeBridge.init === 'function';
 
   //Has the client already been initialised
-  let alreadyInitialized = useNativeCR && (await RaygunNativeBridge.hasInitialized());
+  const alreadyInitialized = useNativeCR && (await RaygunNativeBridge.hasInitialized());
 
   if (alreadyInitialized) {
     log('Already initialized');
@@ -104,7 +104,7 @@ const addTag = (...tags: string[]) => {
   }
 };
 const setUser = (user: User | string) => {
-  let userObj = Object.assign(
+  const userObj = Object.assign(
     { firstName: '', fullName: '', email: '', isAnonymous: false },
     typeof user === 'string' ?
       !!user ?
