@@ -33,9 +33,11 @@ const getCleanSession = (): Session => ({
 });
 const getCurrentUser = () => curSession.user;
 let curSession = getCleanSession();
-let cr: CrashReporter;
-let rum: RealUserMonitor;
+let crashReporter: CrashReporter;
+let realUserMonitor: RealUserMonitor;
 let Options : RaygunClientOptions;
+let initialised : boolean;
+
 /**
  * RaygunClient initializer. Creates the CrashReporter and RealUserMonitor.
  * @param options
@@ -79,12 +81,14 @@ const init = async (options: RaygunClientOptions) => {
 
   //enable CR
   if (enableCrashReporting) {
-    cr = new CrashReporter(curSession, apiKey, disableNetworkMonitoring, customCrashReportingEndpoint || '', onBeforeSendingCrashReport, version);
+    crashReporter = new CrashReporter(curSession, apiKey, disableNetworkMonitoring, customCrashReportingEndpoint || '', onBeforeSendingCrashReport, version);
   }
-  //Enable rum
+  //Enable realUserMonitor
   if (enableRealUserMonitoring) {
-    rum = new RealUserMonitor(getCurrentUser, apiKey, disableNetworkMonitoring, ignoredURLs, customRealUserMonitoringEndpoint, version);
+    realUserMonitor = new RealUserMonitor(getCurrentUser, apiKey, disableNetworkMonitoring, ignoredURLs, customRealUserMonitoringEndpoint, version);
   }
+
+  initialised = true;
 
   return true;
 };
@@ -123,61 +127,61 @@ const clearSession = () => {
 // CRASH REPORTING LOGIC
 //-------------------------------------------------------------------------------------------------
 /**
- * Converts an incoming error and its stacktrace to a standard Raygun Crash Report format
+ * Converts an incoming error and its stacktrace to a standard Raygun Crash Report format.
  * @param error
  * @param stackFrames
  */
 const generateCrashReportPayload = (error: Error, stackFrames: StackFrame[]) => {
-  if (cr && Options.enableCrashReporting) {
-    cr.generateCrashReportPayload(error, stackFrames).then();
-  } else {
-    warn('TODO');
-    return;
-  }
+  if(CrashReportingUnavailable()) return;
+  crashReporter.generateCrashReportPayload(error, stackFrames).then();
 };
+
+
 /**
- * Create a breadcrumb in the current session
+ * Create a breadcrumb in the current session.
  * @param message
  * @param details
  */
 const recordBreadcrumb = (message: string, details?: BreadcrumbOption) => {
-  if (cr && Options.enableCrashReporting) {
-    cr.recordBreadcrumb(message, details);
-  } else {
-    warn('TODO');
-    return;
-  }
+  if(CrashReportingUnavailable()) return;
+  crashReporter.recordBreadcrumb(message, details);
+
 };
 const sendCustomError = async (error: Error, ...params: any) => {
-  if (cr && Options.enableCrashReporting) {
-    cr.sendCustomError(error, params);
-  } else {
-    warn('TODO');
-    return;
-  }
+  if(CrashReportingUnavailable()) return;
+  crashReporter.sendCustomError(error, params);
 };
 const addCustomData = (customData: CustomData) => {
-  if (cr && Options.enableCrashReporting) {
-    cr.addCustomData(customData);
-  } else {
-    warn('TODO');
-    return;
-  }
+  if(CrashReportingUnavailable()) return;
+  crashReporter.addCustomData(customData);
+
 }
 const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
-  if (cr && Options.enableCrashReporting) {
-    cr.updateCustomData(updater);
-  } else {
-    warn('TODO');
-    return;
-  }
+  if(CrashReportingUnavailable()) return;
+  crashReporter.updateCustomData(updater);
 }
+
+/**
+ * Checks whether or not the user has initialised the client AND enabled crash reporting.
+ * @constructor
+ */
+const CrashReportingUnavailable = () => {
+  if (!initialised) {
+    warn('RaygunClient has not been initialised, please call RaygunClient.init(...) before trying to use Raygun features');
+    return true;
+  } else if (!(crashReporter && Options.enableCrashReporting)) {
+    warn('Crash Reporting not enabled, please that you set "enableCrashReporting" to true during RaygunClient.init()');
+    return true;
+  }
+  return false;
+}
+
 //-------------------------------------------------------------------------------------------------
 // REAL USER MONITORING LOGIC
 //-------------------------------------------------------------------------------------------------
 const sendRUMTimingEvent = (eventType: RUMEvents.ActivityLoaded | RUMEvents.NetworkCall, name: string, timeUsedInMs: number) => {
-  if (rum && Options.enableRealUserMonitoring) {
-    rum.sendCustomRUMEvent(
+  if (realUserMonitor && Options.enableRealUserMonitoring) {
+    realUserMonitor.sendCustomRUMEvent(
       getCurrentUser,
       Options.apiKey,
       eventType,
@@ -190,6 +194,19 @@ const sendRUMTimingEvent = (eventType: RUMEvents.ActivityLoaded | RUMEvents.Netw
     return;
   }
 };
+
+const RealUserMonitoringUnavailable = () => {
+  if (!initialised) {
+    warn('RaygunClient has not been initialised, please call RaygunClient.init(...) before trying to use Raygun features');
+    return true;
+  } if (!(realUserMonitor && Options.enableRealUserMonitoring)) {
+    warn('Real User Monitoring not enabled, please that you set "enableRealUserMonitoring" to true during RaygunClient.init()');
+    return true;
+  }
+  return false;
+}
+
+
 export {
   init,
   addTag,
