@@ -59,10 +59,10 @@ export default class CrashReporter {
 
   }
 
-
 //-------------------------------------------------------------------------------------------------
 // ALTERING SESSION DATA
 //-------------------------------------------------------------------------------------------------
+
 
   addCustomData(customData: CustomData) {
     this.curSession.customData = Object.assign({}, this.curSession.customData, customData);

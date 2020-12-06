@@ -1,15 +1,23 @@
 import { ErrorUtils } from 'react-native';
 
+//-------------------------------------------------------------------------------------------------
+// RAYGUN CLIENT SESSION TYPES
+//-------------------------------------------------------------------------------------------------
+
 type BasicType = string | number | boolean;
 
-export interface Session {
+export type CustomData = {
+  [key: string]: BasicType | CustomData | BasicType[] | CustomData[];
+}
+
+export type Session = {
   tags: Set<string>;
   customData: CustomData;
   user: User;
   breadcrumbs: Breadcrumb[];
 }
 
-export interface User {
+export type User = {
   identifier: string;
   isAnonymous?: boolean;
   email?: string;
@@ -18,36 +26,32 @@ export interface User {
   uuid?: string;
 }
 
-export interface CustomData {
-  [key: string]: BasicType | CustomData | BasicType[] | CustomData[];
+export type RaygunClientOptions = {
+  apiKey: string;
+  version?: string;
+  enableCrashReporting?: boolean;
+  disableNativeCrashReporting?: boolean;
+  enableRealUserMonitoring?: boolean;
+  disableNetworkMonitoring?: boolean;
+  customCrashReportingEndpoint?: string;
+  customRealUserMonitoringEndpoint?: string;
+  onBeforeSendingCrashReport?: BeforeSendHandler;
+  ignoredURLs?: string[];
 }
 
+//-------------------------------------------------------------------------------------------------
+// CRASH REPORTING SPECIFIC TYPES
+//-------------------------------------------------------------------------------------------------
 
-export interface RequestMeta {
-  name: string;
-  sendTime?: number;
+type RaygunStackFrame = {
+  FileName: string;
+  LineNumber: number;
+  ColumnNumber: number | null;
+  MethodName: string;
+  ClassName: string;
 }
 
-export type BreadcrumbOption = Omit<Breadcrumb, 'message' | 'timestamp'>;
-
-export type NetworkTimingCallback = (name: string, sendTime: number, duration: number) => void;
-
-export type SendCustomErrorOverload = {
-  (error: Error, customData: CustomData, tags: string[]): Promise<void>;
-  (error: Error, customData: CustomData): Promise<void>;
-  (error: Error, tags: string[]): Promise<void>;
-  (error: Error): Promise<void>;
-}
-
-export enum RUMEvents {
-  SessionStart = 'session_start',
-  SessionEnd = 'session_end',
-  EventTiming = 'mobile_event_timing',
-  ActivityLoaded = 'p',
-  NetworkCall = 'n'
-}
-
-interface Environment {
+type Environment = {
   UtcOffset: number;
   Cpu?: string;
   Architecture?: string;
@@ -72,7 +76,7 @@ interface Environment {
   JailBroken?: boolean;
 }
 
-export interface Breadcrumb {
+export type Breadcrumb = {
   message: string;
   category?: string;
   level?: 'debug' | 'info' | 'warning' | 'error';
@@ -80,15 +84,11 @@ export interface Breadcrumb {
   timestamp?: number;
 }
 
-export interface RaygunStackFrame {
-  FileName: string;
-  LineNumber: number;
-  ColumnNumber: number | null;
-  MethodName: string;
-  ClassName: string;
-}
+export type BreadcrumbOption = Omit<Breadcrumb, 'message' | 'timestamp'>;
 
-export interface CrashReportPayload {
+export type BeforeSendHandler = (payload: CrashReportPayload) => CrashReportPayload | null;
+
+export type CrashReportPayload = {
   OccurredOn: Date;
   Details: {
     Error: {
@@ -110,52 +110,38 @@ export interface CrashReportPayload {
   };
 }
 
-interface TimingMessage {
-  type: 'p' | 'n';
-  duration: number;
-}
+//-------------------------------------------------------------------------------------------------
+// REAL USER MONITORING SPECIFIC TYPES
+//-------------------------------------------------------------------------------------------------
 
-interface RUMData {
-  name: string;
-  timing: TimingMessage;
-}
-
-enum RUMEventTypes {
+export enum RealUserMonitoringEvents {
   SessionStart = 'session_start',
   SessionEnd = 'session_end',
-  Timing = 'mobile_event_timing'
+  EventTiming = 'mobile_event_timing',
+  ActivityLoaded = 'p',
+  NetworkCall = 'n'
 }
 
-export interface RUMEventPayload {
-  timestamp: Date;
-  sessionId: string;
-  eventType: RUMEventTypes;
-  user: User;
-  version: string;
-  os: string;
-  osVersion: string;
-  platform: string;
-  data: [RUMData];
+//-------------------------------------------------------------------------------------------------
+// NETWORK MONITORING SPECIFIC TYPES
+//-------------------------------------------------------------------------------------------------
+
+export type RequestMeta = {
+  name: string;
+  sendTime?: number;
 }
 
-export type BeforeSendHandler = (payload: CrashReportPayload) => CrashReportPayload | null;
+export type NetworkTimingCallback = (name: string, sendTime: number, duration: number) => void;
 
-export interface RaygunClientOptions {
-  apiKey: string;
-  version?: string;
-  enableCrashReporting?: boolean;
-  disableNativeCrashReporting?: boolean;
-  enableRealUserMonitoring?: boolean;
-  disableNetworkMonitoring?: boolean;
-  customCrashReportingEndpoint?: string;
-  customRealUserMonitoringEndpoint?: string;
-  onBeforeSendingCrashReport?: BeforeSendHandler;
-  ignoredURLs?: string[];
-}
+
+
+//-------------------------------------------------------------------------------------------------
+// NAMESPACE DECLARATION
+//-------------------------------------------------------------------------------------------------
 
 declare global {
   namespace NodeJS {
-    interface Global {
+    type Global = {
       HermesInternal?: Record<string, string>;
       ErrorUtils: ErrorUtils;
     }
