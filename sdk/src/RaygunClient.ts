@@ -193,19 +193,14 @@ const CrashReportingUnavailable = () => {
 // REAL USER MONITORING LOGIC
 //-------------------------------------------------------------------------------------------------
 const sendRUMTimingEvent = (eventType: RealUserMonitoringEvents.ActivityLoaded | RealUserMonitoringEvents.NetworkCall, name: string, timeUsedInMs: number) => {
-  if (realUserMonitor && Options.enableRealUserMonitoring) {
-    realUserMonitor.sendCustomRUMEvent(
-      getCurrentUser,
-      Options.apiKey,
-      eventType,
-      name,
-      timeUsedInMs,
-      ''
-    );
-  } else {
-    warn('TODO');
-    return;
-  }
+  if (RealUserMonitoringUnavailable()) return;
+  realUserMonitor.sendCustomRUMEvent(
+    Options.apiKey,
+    eventType,
+    name,
+    timeUsedInMs,
+    ''
+  );
 };
 
 const RealUserMonitoringUnavailable = () => {
