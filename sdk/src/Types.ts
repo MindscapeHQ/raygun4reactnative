@@ -22,6 +22,12 @@ export interface CustomData {
   [key: string]: BasicType | CustomData | BasicType[] | CustomData[];
 }
 
+
+export interface RequestMeta {
+  name: string;
+  sendTime?: number;
+}
+
 export type BreadcrumbOption = Omit<Breadcrumb, 'message' | 'timestamp'>;
 
 export type NetworkTimingCallback = (name: string, sendTime: number, duration: number) => void;
