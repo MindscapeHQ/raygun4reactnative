@@ -60,7 +60,6 @@ export default class RealUserMonitor {
     generateNetworkTimingEventCallbackMethod(name: string, sendTime: number, duration: number) {
         const data = {name, timing: {type: RUMEvents.NetworkCall, duration}};
         this.sendRUMEvent(RUMEvents.EventTiming, data, sendTime).catch();
-
     };
 
 
