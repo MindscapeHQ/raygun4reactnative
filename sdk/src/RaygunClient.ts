@@ -2,7 +2,7 @@ import {
   BreadcrumbOption,
   CustomData,
   RaygunClientOptions,
-  RUMEvents,
+  RealUserMonitoringEvents,
   Session,
   User
 } from "./Types";
@@ -181,7 +181,7 @@ const CrashReportingUnavailable = () => {
 //-------------------------------------------------------------------------------------------------
 // REAL USER MONITORING LOGIC
 //-------------------------------------------------------------------------------------------------
-const sendRUMTimingEvent = (eventType: RUMEvents.ActivityLoaded | RUMEvents.NetworkCall, name: string, timeUsedInMs: number) => {
+const sendRUMTimingEvent = (eventType: RealUserMonitoringEvents.ActivityLoaded | RealUserMonitoringEvents.NetworkCall, name: string, timeUsedInMs: number) => {
   if (realUserMonitor && Options.enableRealUserMonitoring) {
     realUserMonitor.sendCustomRUMEvent(
       getCurrentUser,

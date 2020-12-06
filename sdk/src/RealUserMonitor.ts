@@ -1,4 +1,4 @@
-import {RUMEvents, User} from "./Types";
+import {RealUserMonitoringEvents, User} from "./Types";
 import {NativeEventEmitter, NativeModules, Platform} from 'react-native';
 import {setupNetworkMonitoring} from "./NetworkMonitor";
 import {getDeviceBasedId, log, warn} from "./Utils";
@@ -58,8 +58,8 @@ export default class RealUserMonitor {
 
 
     generateNetworkTimingEventCallbackMethod(name: string, sendTime: number, duration: number) {
-        const data = {name, timing: {type: RUMEvents.NetworkCall, duration}};
-        this.sendRUMEvent(RUMEvents.EventTiming, data, sendTime).catch();
+        const data = {name, timing: {type: RealUserMonitoringEvents.NetworkCall, duration}};
+        this.sendRUMEvent(RealUserMonitoringEvents.EventTiming, data, sendTime).catch();
     };
 
 
@@ -70,9 +70,9 @@ export default class RealUserMonitor {
     async rotateRUMSession(payload: Record<string, any>) {
         if (Date.now() - this.lastActiveAt > SessionRotateThreshold) {
             this.lastActiveAt = Date.now();
-            await this.sendRUMEvent(RUMEvents.SessionEnd, {});
+            await this.sendRUMEvent(RealUserMonitoringEvents.SessionEnd, {});
             this.curRUMSessionId = getDeviceBasedId();
-            return this.sendRUMEvent(RUMEvents.SessionStart, {});
+            return this.sendRUMEvent(RealUserMonitoringEvents.SessionStart, {});
         }
     };
 
@@ -98,16 +98,16 @@ export default class RealUserMonitor {
     sendCustomRUMEvent(
         getCurrentUser: () => User,
         apiKey: string,
-        eventType: RUMEvents.ActivityLoaded | RUMEvents.NetworkCall,
+        eventType: RealUserMonitoringEvents.ActivityLoaded | RealUserMonitoringEvents.NetworkCall,
         name: string,
         duration: number,
         customRealUserMonitoringEndpoint?: string
     ) {
-        if (eventType === RUMEvents.ActivityLoaded) {
+        if (eventType === RealUserMonitoringEvents.ActivityLoaded) {
             this.reportStartupTime(name, duration);
             return;
         }
-        if (eventType === RUMEvents.NetworkCall) {
+        if (eventType === RealUserMonitoringEvents.NetworkCall) {
             this.generateNetworkTimingEventCallbackMethod(name, Date.now() - duration, duration);
             return;
         }
@@ -118,10 +118,10 @@ export default class RealUserMonitor {
     async reportStartupTime(name: string, duration: number) {
         if (!this.curRUMSessionId) {
             this.curRUMSessionId = getDeviceBasedId();
-            await this.sendRUMEvent(RUMEvents.SessionStart, {});
+            await this.sendRUMEvent(RealUserMonitoringEvents.SessionStart, {});
         }
-        const data = {name, timing: {type: RUMEvents.ActivityLoaded, duration}};
-        return this.sendRUMEvent(RUMEvents.EventTiming, data);
+        const data = {name, timing: {type: RealUserMonitoringEvents.ActivityLoaded, duration}};
+        return this.sendRUMEvent(RealUserMonitoringEvents.EventTiming, data);
     };
 
 
