@@ -12,6 +12,7 @@ import CrashReporter from "./CrashReporter";
 import RealUserMonitor from "./RealUserMonitor";
 import {StackFrame} from "react-native/Libraries/Core/Devtools/parseErrorStack";
 import runOnlyPendingTimers = jest.runOnlyPendingTimers;
+
 /**
  * The RaygunClient is the interface in which this provider publicly shows. The bottom of this page
  * has an 'export' statement which exports the methods defined in the RaygunClient.ts file. Some
@@ -35,8 +36,8 @@ const getCurrentUser = () => curSession.user;
 let curSession = getCleanSession();
 let crashReporter: CrashReporter;
 let realUserMonitor: RealUserMonitor;
-let Options : RaygunClientOptions;
-let initialised : boolean = false;
+let Options: RaygunClientOptions;
+let initialised: boolean = false;
 
 /**
  * RaygunClient initializer. Creates the CrashReporter and RealUserMonitor.
@@ -107,11 +108,11 @@ const addTag = (...tags: string[]) => {
 };
 const setUser = (user: User | string) => {
   const userObj = Object.assign(
-    { firstName: '', fullName: '', email: '', isAnonymous: false },
+    {firstName: '', fullName: '', email: '', isAnonymous: false},
     typeof user === 'string' ?
       !!user ?
         {identifier: user}
-        : {identifier: `anonymous-${getDeviceBasedId()}`,isAnonymous: true}
+        : {identifier: `anonymous-${getDeviceBasedId()}`, isAnonymous: true}
       : user
   );
   curSession.user = userObj;
@@ -134,7 +135,7 @@ const clearSession = () => {
  * @param stackFrames
  */
 const generateCrashReportPayload = (error: Error, stackFrames: StackFrame[]) => {
-  if(CrashReportingUnavailable()) return;
+  if (CrashReportingUnavailable()) return;
   crashReporter.generateCrashReportPayload(error, stackFrames).then();
 };
 
@@ -145,21 +146,31 @@ const generateCrashReportPayload = (error: Error, stackFrames: StackFrame[]) => 
  * @param details
  */
 const recordBreadcrumb = (message: string, details?: BreadcrumbOption) => {
-  if(CrashReportingUnavailable()) return;
+  if (CrashReportingUnavailable()) return;
   crashReporter.recordBreadcrumb(message, details);
 
 };
 const sendCustomError = async (error: Error, ...params: any) => {
-  if(CrashReportingUnavailable()) return;
-  crashReporter.sendCustomError(error, params);
+  if (CrashReportingUnavailable()) return;
+
+  const [customData, tags] = (params.length == 1 && Array.isArray(params[0])) ? [null, params[0]] : params;
+
+  if (customData) {
+    addCustomData(customData as CustomData);
+  }
+  if (tags && tags.length) {
+    addTag(...tags as string[]);
+  }
+
+  await crashReporter.processUnhandledError(error);
 };
 const addCustomData = (customData: CustomData) => {
-  if(CrashReportingUnavailable()) return;
+  if (CrashReportingUnavailable()) return;
   crashReporter.addCustomData(customData);
 
 }
 const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
-  if(CrashReportingUnavailable()) return;
+  if (CrashReportingUnavailable()) return;
   crashReporter.updateCustomData(updater);
 }
 
@@ -201,7 +212,8 @@ const RealUserMonitoringUnavailable = () => {
   if (!initialised) {
     warn('RaygunClient has not been initialised, please call RaygunClient.init(...) before trying to use Raygun features');
     return true;
-  } if (!(realUserMonitor && Options.enableRealUserMonitoring)) {
+  }
+  if (!(realUserMonitor && Options.enableRealUserMonitoring)) {
     warn('Real User Monitoring not enabled, please that you set "enableRealUserMonitoring" to true during RaygunClient.init()');
     return true;
   }

@@ -9,7 +9,6 @@ import {
   Session
 } from "./Types";
 import {NativeModules, Platform} from "react-native";
-import {addCustomData, addTag} from "./RaygunClient";
 
 const {RaygunNativeBridge} = NativeModules;
 const {version: clientVersion} = require('../package.json');
@@ -209,17 +208,6 @@ export default class CrashReporter {
       }
     };
   };
-
-  async sendCustomError(error: Error, ...params: any) {
-    const [customData, tags] = (params.length == 1 && Array.isArray(params[0])) ? [null, params[0]] : params;
-    if (customData) {
-      addCustomData(customData as CustomData);
-    }
-    if (tags && tags.length) {
-      addTag(...tags as string[]);
-    }
-    await this.processUnhandledError(error);
-  }
 
   async sendCrashReport(report: CrashReportPayload, apiKey: string, customEndpoint?: string, isRetry?: boolean) {
     return fetch(customEndpoint || this.RAYGUN_CRASH_REPORT_ENDPOINT + '?apiKey=' + encodeURIComponent(apiKey), {
