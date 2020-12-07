@@ -1,4 +1,4 @@
-import {RealUserMonitoringEvents, User} from "./Types";
+import {RealUserMonitoringEvents, Session, User} from "./Types";
 import {NativeEventEmitter, NativeModules, Platform} from 'react-native';
 import {setupNetworkMonitoring} from "./NetworkMonitor";
 import {getDeviceBasedId, log, warn} from "./Utils";
@@ -12,7 +12,7 @@ const SessionRotateThreshold = 30 * 60 * 100;
 
 export default class RealUserMonitor {
 
-  readonly currentUser: User;
+  private readonly currentSession: Session;
   private readonly apiKey: string;
   private readonly version: string;
   private readonly disableNetworkMonitoring: boolean;
@@ -22,13 +22,13 @@ export default class RealUserMonitor {
   lastActiveAt = Date.now();
   curRUMSessionId: string = '';
 
-  constructor(currentUser: User, apiKey: string, disableNetworkMonitoring = true, ignoredURLs: string[], customRealUserMonitoringEndpoint: string, version: string) {
+  constructor(currentSession: Session, apiKey: string, disableNetworkMonitoring = true, ignoredURLs: string[], customRealUserMonitoringEndpoint: string, version: string) {
 
     // Assign the values parsed in (assuming initiation is the only time these are altered).
     this.apiKey = apiKey;
     this.disableNetworkMonitoring = disableNetworkMonitoring;
     this.customRealUserMonitoringEndpoint = customRealUserMonitoringEndpoint;
-    this.currentUser = currentUser;
+    this.currentSession = currentSession;
     this.version = version;
 
     if (!disableNetworkMonitoring) {
@@ -99,7 +99,7 @@ export default class RealUserMonitor {
     const rumMessage = {
       type: eventName,
       timestamp: timestamp.toISOString(),
-      user: this.currentUser,
+      user: this.currentSession.user,
       sessionId: this.curRUMSessionId,
       version: this.version,
       os: Platform.OS,

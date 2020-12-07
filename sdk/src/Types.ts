@@ -12,9 +12,7 @@ export type CustomData = {
 
 export type Session = {
   tags: Set<string>;
-  customData: CustomData;
   user: User;
-  breadcrumbs: Breadcrumb[];
 }
 
 export type User = {

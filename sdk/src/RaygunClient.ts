@@ -24,8 +24,6 @@ const {RaygunNativeBridge} = NativeModules;
 
 const getCleanSession = (): Session => ({
   tags: new Set(['React Native']),
-  customData: {},
-  breadcrumbs: [],
   user: {
     identifier: `anonymous-${getDeviceBasedId()}`
   }
@@ -85,7 +83,7 @@ const init = async (options: RaygunClientOptions) => {
   }
   //Enable realUserMonitor
   if (enableRealUserMonitoring) {
-    realUserMonitor = new RealUserMonitor(curSession.user, apiKey, disableNetworkMonitoring, ignoredURLs, customRealUserMonitoringEndpoint, version);
+    realUserMonitor = new RealUserMonitor(curSession, apiKey, disableNetworkMonitoring, ignoredURLs, customRealUserMonitoringEndpoint, version);
   }
 
   initialised = true;
@@ -120,8 +118,6 @@ const setUser = (user: User | string) => {
   if (!Options.disableNativeCrashReporting) {
     RaygunNativeBridge.setUser(userObj);
   }
-
-  console.log(realUserMonitor.currentUser);
 };
 
 
@@ -130,6 +126,8 @@ const clearSession = () => {
   if (!Options.disableNativeCrashReporting) {
     RaygunNativeBridge.clearSession();
   }
+
+  crashReporter.resetCrashReporter();
 };
 //-------------------------------------------------------------------------------------------------
 // CRASH REPORTING LOGIC
@@ -226,10 +224,12 @@ export {
   addTag,
   setUser,
   clearSession,
+
   generateCrashReportPayload,
   recordBreadcrumb,
   addCustomData,
   sendCustomError,
   updateCustomData,
+
   sendRUMTimingEvent
 };
