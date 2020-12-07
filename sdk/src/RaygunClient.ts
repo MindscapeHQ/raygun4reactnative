@@ -34,10 +34,10 @@ let curSession = getCleanSession();
 let crashReporter: CrashReporter;
 let realUserMonitor: RealUserMonitor;
 let Options: RaygunClientOptions;
-let initialised: boolean = false;
+let initialized: boolean = false;
 
 /**
- * RaygunClient initializer. Creates the CrashReporter and RealUserMonitor.
+ * Extract the users RaygunClientOptions and enable desired features.
  * @param options
  */
 const init = async (options: RaygunClientOptions) => {
@@ -57,17 +57,17 @@ const init = async (options: RaygunClientOptions) => {
     ignoredURLs = []
   } = Options;
 
-  //Check if native bridge is available and enabled
+  //Check if native bridge is available and enabled by the user
   const useNativeCR = !disableNativeCrashReporting && RaygunNativeBridge && typeof RaygunNativeBridge.init === 'function';
 
-  //Has the client already been initialised
-  const alreadyInitialized = useNativeCR && (await RaygunNativeBridge.hasInitialized());
-
-  if (alreadyInitialized) {
+  //Do not reinitialize
+  if (initialized) {
     log('Already initialized');
     return false;
   }
-  //Initialise if a service is being utilised
+
+
+  //initialize if a service is being utilised
   if (useNativeCR || enableRealUserMonitoring) {
     await RaygunNativeBridge.init({
       apiKey,
@@ -86,7 +86,7 @@ const init = async (options: RaygunClientOptions) => {
     realUserMonitor = new RealUserMonitor(curSession, apiKey, disableNetworkMonitoring, ignoredURLs, customRealUserMonitoringEndpoint, version);
   }
 
-  initialised = true;
+  initialized = true;
 
   return true;
 };
@@ -178,12 +178,12 @@ const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
 }
 
 /**
- * Checks whether or not the user has initialised the client AND enabled crash reporting.
+ * Checks whether or not the user has initialized the client AND enabled crash reporting.
  * @constructor
  */
 const CrashReportingUnavailable = () => {
-  if (!initialised) {
-    warn('RaygunClient has not been initialised, please call RaygunClient.init(...) before trying to use Raygun features');
+  if (!initialized) {
+    warn('RaygunClient has not been initialized, please call RaygunClient.init(...) before trying to use Raygun features');
     return true;
   } else if (!(crashReporter && Options.enableCrashReporting)) {
     warn('Crash Reporting not enabled, please that you set "enableCrashReporting" to true during RaygunClient.init()');
@@ -207,8 +207,8 @@ const sendRUMTimingEvent = (eventType: RealUserMonitoringEvents.ActivityLoaded |
 };
 
 const RealUserMonitoringUnavailable = () => {
-  if (!initialised) {
-    warn('RaygunClient has not been initialised, please call RaygunClient.init(...) before trying to use Raygun features');
+  if (!initialized) {
+    warn('RaygunClient has not been initialized, please call RaygunClient.init(...) before trying to use Raygun features');
     return true;
   }
   if (!(realUserMonitor && Options.enableRealUserMonitoring)) {
