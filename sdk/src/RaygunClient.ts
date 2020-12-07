@@ -183,11 +183,9 @@ const CrashReportingAvailable = () => {
 const sendRUMTimingEvent = (eventType: RealUserMonitoringEvents.ActivityLoaded | RealUserMonitoringEvents.NetworkCall, name: string, timeUsedInMs: number) => {
   if (!RealUserMonitoringAvailable()) return;
   realUserMonitor.sendCustomRUMEvent(
-    Options.apiKey,
     eventType,
     name,
-    timeUsedInMs,
-    ''
+    timeUsedInMs
   );
 };
 
