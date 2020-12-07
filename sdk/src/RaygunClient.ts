@@ -1,5 +1,5 @@
 import {
-  BreadcrumbOption,
+  BreadcrumbOption, CrashReportPayload,
   CustomData,
   RaygunClientOptions,
   RealUserMonitoringEvents,
@@ -12,15 +12,12 @@ import CrashReporter from "./CrashReporter";
 import RealUserMonitor from "./RealUserMonitor";
 import {StackFrame} from "react-native/Libraries/Core/Devtools/parseErrorStack";
 import runOnlyPendingTimers = jest.runOnlyPendingTimers;
-
-/**
- * The RaygunClient is the interface in which this provider publicly shows. The bottom of this page
- * has an 'export' statement which exports the methods defined in the RaygunClient.ts file. Some
- * of the logical components have been separated out from this file and into classes specific to
- * CrashReporting or RealUserMonitoring (CrashReporter.ts and RealUserMonitor.ts respectively).
- */
 const {RaygunNativeBridge} = NativeModules;
 
+//------------------------------------------------------------------------------------------------//
+// The RaygunClient is responsible for managing the users access to Real User Monitoring and      //
+// Crash Reporting functionality as well as managing Session specific data.                       //
+//------------------------------------------------------------------------------------------------//
 
 const getCleanSession = (): Session => ({
   tags: new Set(['React Native']),
@@ -28,7 +25,6 @@ const getCleanSession = (): Session => ({
     identifier: `anonymous-${getDeviceBasedId()}`
   }
 });
-
 
 let curSession = getCleanSession();
 let crashReporter: CrashReporter;
@@ -77,11 +73,11 @@ const init = async (options: RaygunClientOptions) => {
     });
   }
 
-  //enable CR
+  //Enable Crash Reporting
   if (enableCrashReporting) {
     crashReporter = new CrashReporter(curSession, apiKey, disableNetworkMonitoring, customCrashReportingEndpoint || '', onBeforeSendingCrashReport, version);
   }
-  //Enable realUserMonitor
+  //Enable Real User Monitoring
   if (enableRealUserMonitoring) {
     realUserMonitor = new RealUserMonitor(curSession, apiKey, disableNetworkMonitoring, ignoredURLs, customRealUserMonitoringEndpoint, version);
   }
@@ -90,6 +86,8 @@ const init = async (options: RaygunClientOptions) => {
 
   return true;
 };
+
+
 
 //-------------------------------------------------------------------------------------------------
 // RAYGUN CLIENT SESSION LOGIC
@@ -104,8 +102,9 @@ const addTag = (...tags: string[]) => {
   }
 };
 
-
 const setUser = (user: User | string) => {
+
+  //Discern the type of the user argument and apply it to the user field
   const userObj = Object.assign(
     {firstName: '', fullName: '', email: '', isAnonymous: false},
     typeof user === 'string' ?
@@ -120,7 +119,6 @@ const setUser = (user: User | string) => {
   }
 };
 
-
 const clearSession = () => {
   curSession = getCleanSession();
   if (!Options.disableNativeCrashReporting) {
@@ -129,22 +127,21 @@ const clearSession = () => {
 
   crashReporter.resetCrashReporter();
 };
+
+
+
 //-------------------------------------------------------------------------------------------------
 // CRASH REPORTING LOGIC
 //-------------------------------------------------------------------------------------------------
 
-/**
- * Create a breadcrumb in the current session.
- * @param message
- * @param details
- */
 const recordBreadcrumb = (message: string, details?: BreadcrumbOption) => {
-  if (CrashReportingUnavailable()) return;
+  if (!CrashReportingAvailable()) return;
   crashReporter.recordBreadcrumb(message, details);
 
 };
+
 const sendCustomError = async (error: Error, ...params: any) => {
-  if (CrashReportingUnavailable()) return;
+  if (!CrashReportingAvailable()) return;
 
   const [customData, tags] = (params.length == 1 && Array.isArray(params[0])) ? [null, params[0]] : params;
 
@@ -157,36 +154,37 @@ const sendCustomError = async (error: Error, ...params: any) => {
 
   await crashReporter.processUnhandledError(error);
 };
+
 const addCustomData = (customData: CustomData) => {
-  if (CrashReportingUnavailable()) return;
+  if (!CrashReportingAvailable()) return;
   crashReporter.addCustomData(customData);
 
 }
+
 const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
-  if (CrashReportingUnavailable()) return;
+  if (!CrashReportingAvailable()) return;
   crashReporter.updateCustomData(updater);
 }
 
-/**
- * Checks whether or not the user has initialized the client AND enabled crash reporting.
- * @constructor
- */
-const CrashReportingUnavailable = () => {
+const CrashReportingAvailable = () => {
   if (!initialized) {
     warn('RaygunClient has not been initialized, please call RaygunClient.init(...) before trying to use Raygun features');
-    return true;
+    return false;
   } else if (!(crashReporter && Options.enableCrashReporting)) {
     warn('Crash Reporting not enabled, please that you set "enableCrashReporting" to true during RaygunClient.init()');
-    return true;
+    return false;
   }
-  return false;
+  return true;
 }
+
+
 
 //-------------------------------------------------------------------------------------------------
 // REAL USER MONITORING LOGIC
 //-------------------------------------------------------------------------------------------------
+
 const sendRUMTimingEvent = (eventType: RealUserMonitoringEvents.ActivityLoaded | RealUserMonitoringEvents.NetworkCall, name: string, timeUsedInMs: number) => {
-  if (RealUserMonitoringUnavailable()) return;
+  if (!RealUserMonitoringAvailable()) return;
   realUserMonitor.sendCustomRUMEvent(
     Options.apiKey,
     eventType,
@@ -196,17 +194,18 @@ const sendRUMTimingEvent = (eventType: RealUserMonitoringEvents.ActivityLoaded |
   );
 };
 
-const RealUserMonitoringUnavailable = () => {
+const RealUserMonitoringAvailable = () => {
   if (!initialized) {
     warn('RaygunClient has not been initialized, please call RaygunClient.init(...) before trying to use Raygun features');
-    return true;
+    return false;
   }
   if (!(realUserMonitor && Options.enableRealUserMonitoring)) {
     warn('Real User Monitoring not enabled, please that you set "enableRealUserMonitoring" to true during RaygunClient.init()');
-    return true;
+    return false;
   }
-  return false;
+  return true;
 }
+
 
 
 export {
@@ -215,9 +214,9 @@ export {
   setUser,
   clearSession,
 
+  sendCustomError,
   recordBreadcrumb,
   addCustomData,
-  sendCustomError,
   updateCustomData,
 
   sendRUMTimingEvent
