@@ -12,25 +12,23 @@ const SessionRotateThreshold = 30 * 60 * 100;
 
 export default class RealUserMonitor {
 
-  private getCurrentUser: () => User;
-  private apiKey: string;
-  private version: string;
-  private disableNetworkMonitoring: boolean;
-  private customRealUserMonitoringEndpoint: string;
-  private ignoredURLs: string[];
+  private readonly currentUser: User;
+  private readonly apiKey: string;
+  private readonly version: string;
+  private readonly disableNetworkMonitoring: boolean;
+  private readonly customRealUserMonitoringEndpoint: string;
   private RAYGUN_RUM_ENDPOINT = 'https://api.raygun.com/events';
 
   lastActiveAt = Date.now();
   curRUMSessionId: string = '';
 
-  constructor(getCurrentUser: () => User, apiKey: string, disableNetworkMonitoring = true, ignoredURLs: string[], customRealUserMonitoringEndpoint: string, version: string) {
+  constructor(currentUser: User, apiKey: string, disableNetworkMonitoring = true, ignoredURLs: string[], customRealUserMonitoringEndpoint: string, version: string) {
 
     // Assign the values parsed in (assuming initiation is the only time these are altered).
     this.apiKey = apiKey;
     this.disableNetworkMonitoring = disableNetworkMonitoring;
-    this.ignoredURLs = ignoredURLs;
     this.customRealUserMonitoringEndpoint = customRealUserMonitoringEndpoint;
-    this.getCurrentUser = getCurrentUser;
+    this.currentUser = currentUser;
     this.version = version;
 
     if (!disableNetworkMonitoring) {
@@ -82,7 +80,7 @@ export default class RealUserMonitor {
     const rumMessage = {
       type: eventName,
       timestamp: timestamp.toISOString(),
-      user: this.getCurrentUser(),
+      user: this.currentUser,
       sessionId: this.curRUMSessionId,
       version: this.version,
       os: Platform.OS,
@@ -102,7 +100,6 @@ export default class RealUserMonitor {
 
 
   sendCustomRUMEvent(
-    getCurrentUser: () => User,
     apiKey: string,
     eventType: RealUserMonitoringEvents.ActivityLoaded | RealUserMonitoringEvents.NetworkCall,
     name: string,
