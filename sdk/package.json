@@ -16,7 +16,14 @@
     "build": "tsc -p ./",
     "build-watch": "tsc -p ./ -w",
     "test": "jest -i",
-    "fully-automated-win_10": "npm i && npm pack && copyfiles *.tgz ../demo && cd ../demo && npm i && npx react-native run-android"
+    "clean_sdk": "node glob_rimraf.js dist node_modules package-lock.json raygun4reactnative-0.0.1-alpha.tgz",
+    "clean_demo": "node glob_rimraf.js ../demo/dist ../demo/node_modules ../demo/package-lock.json ../demo/raygun4reactnative-0.0.1-alpha.tgz ../demo/android/.gradle ../demo/android/app/build",
+    "clean_dir_all": "npm install --save-dev glob && npm install --save-dev rimraf && npm run clean_demo && npm run clean_sdk",
+    "build_sdk": "npm i && npm pack",
+    "local_send_sdk": "copyfiles *.tgz ../demo",
+    "build_demo": "cd ../demo && npm i",
+    "run_demo": "cd ../demo && npx react-native run-android",
+    "fully-automated": "npm run clean_dir_all && npm run build_sdk && npm run local_send_sdk && npm run build_demo && npm run run_demo"
   },
   "repository": {
     "type": "git",
@@ -49,6 +56,7 @@
     "eslint-config-prettier": "^6.11.0",
     "eslint-import-resolver-typescript": "^2.0.0",
     "eslint-plugin-jest": "^23.13.2",
+    "glob": "^7.1.6",
     "jest": "^26.0.1",
     "jest-fetch-mock": "^3.0.3",
     "mockdate": "^3.0.2",
