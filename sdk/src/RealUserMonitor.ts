@@ -34,7 +34,7 @@ export default class RealUserMonitor {
     if (!disableNetworkMonitoring) {
       setupNetworkMonitoring(
         ignoredURLs.concat(defaultURLIgnoreList, customRealUserMonitoringEndpoint || []),
-        this.generateNetworkTimingEventCallbackMethod.bind(this)
+        this.sendNetworkTimingEventCallback.bind(this)
       );
     }
 
@@ -55,7 +55,7 @@ export default class RealUserMonitor {
   };
 
 
-  generateNetworkTimingEventCallbackMethod(name: string, sendTime: number, duration: number) {
+  sendNetworkTimingEventCallback(name: string, sendTime: number, duration: number) {
     const data = {name, timing: {type: RealUserMonitoringEvents.NetworkCall, duration}};
     this.sendRUMEvent(RealUserMonitoringEvents.EventTiming, data, sendTime).catch();
   };
@@ -77,7 +77,7 @@ export default class RealUserMonitor {
       return;
     }
     if (eventType === RealUserMonitoringEvents.NetworkCall) {
-      this.generateNetworkTimingEventCallbackMethod(name, Date.now() - duration, duration);
+      this.sendNetworkTimingEventCallback(name, Date.now() - duration, duration);
       return;
     }
     warn('Unknown RUM event type:', eventType);

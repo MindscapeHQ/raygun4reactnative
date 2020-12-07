@@ -30,7 +30,6 @@ const getCleanSession = (): Session => ({
     identifier: `anonymous-${getDeviceBasedId()}`
   }
 });
-const getCurrentUser = () => curSession.user;
 
 
 let curSession = getCleanSession();
@@ -72,7 +71,7 @@ const init = async (options: RaygunClientOptions) => {
   }
   //Initialise if a service is being utilised
   if (useNativeCR || enableRealUserMonitoring) {
-    RaygunNativeBridge.init({
+    await RaygunNativeBridge.init({
       apiKey,
       enableRealUserMonitoring,
       version,
