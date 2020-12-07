@@ -12,7 +12,7 @@ const SessionRotateThreshold = 30 * 60 * 100;
 
 export default class RealUserMonitor {
 
-  private readonly currentUser: User;
+  readonly currentUser: User;
   private readonly apiKey: string;
   private readonly version: string;
   private readonly disableNetworkMonitoring: boolean;
@@ -65,6 +65,25 @@ export default class RealUserMonitor {
     this.lastActiveAt = Date.now();
   };
 
+  sendCustomRUMEvent(
+    apiKey: string,
+    eventType: RealUserMonitoringEvents.ActivityLoaded | RealUserMonitoringEvents.NetworkCall,
+    name: string,
+    duration: number,
+    customRealUserMonitoringEndpoint?: string
+  ) {
+    if (eventType === RealUserMonitoringEvents.ActivityLoaded) {
+      this.reportStartupTime(name, duration);
+      return;
+    }
+    if (eventType === RealUserMonitoringEvents.NetworkCall) {
+      this.generateNetworkTimingEventCallbackMethod(name, Date.now() - duration, duration);
+      return;
+    }
+    warn('Unknown RUM event type:', eventType);
+  };
+
+
   async rotateRUMSession(payload: Record<string, any>) {
     if (Date.now() - this.lastActiveAt > SessionRotateThreshold) {
       this.lastActiveAt = Date.now();
@@ -96,25 +115,6 @@ export default class RealUserMonitor {
     }).catch(err => {
       log(err);
     });
-  };
-
-
-  sendCustomRUMEvent(
-    apiKey: string,
-    eventType: RealUserMonitoringEvents.ActivityLoaded | RealUserMonitoringEvents.NetworkCall,
-    name: string,
-    duration: number,
-    customRealUserMonitoringEndpoint?: string
-  ) {
-    if (eventType === RealUserMonitoringEvents.ActivityLoaded) {
-      this.reportStartupTime(name, duration);
-      return;
-    }
-    if (eventType === RealUserMonitoringEvents.NetworkCall) {
-      this.generateNetworkTimingEventCallbackMethod(name, Date.now() - duration, duration);
-      return;
-    }
-    warn('Unknown RUM event type:', eventType);
   };
 
 

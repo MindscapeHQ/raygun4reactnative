@@ -86,7 +86,7 @@ const init = async (options: RaygunClientOptions) => {
   }
   //Enable realUserMonitor
   if (enableRealUserMonitoring) {
-    realUserMonitor = new RealUserMonitor(getCurrentUser, apiKey, disableNetworkMonitoring, ignoredURLs, customRealUserMonitoringEndpoint, version);
+    realUserMonitor = new RealUserMonitor(curSession.user, apiKey, disableNetworkMonitoring, ignoredURLs, customRealUserMonitoringEndpoint, version);
   }
 
   initialised = true;
@@ -106,6 +106,8 @@ const addTag = (...tags: string[]) => {
     RaygunNativeBridge.setTags([...curSession.tags]);
   }
 };
+
+
 const setUser = (user: User | string) => {
   const userObj = Object.assign(
     {firstName: '', fullName: '', email: '', isAnonymous: false},
@@ -119,7 +121,11 @@ const setUser = (user: User | string) => {
   if (!Options.disableNativeCrashReporting) {
     RaygunNativeBridge.setUser(userObj);
   }
+
+  console.log(realUserMonitor.currentUser);
 };
+
+
 const clearSession = () => {
   curSession = getCleanSession();
   if (!Options.disableNativeCrashReporting) {
