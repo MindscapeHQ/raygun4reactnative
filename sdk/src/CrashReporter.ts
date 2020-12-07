@@ -22,6 +22,13 @@ import {NativeModules, Platform} from "react-native";
 const {RaygunNativeBridge} = NativeModules;
 const {version: clientVersion} = require('../package.json');
 
+
+//------------------------------------------------------------------------------------------------//
+// The Crash Reporter is responsible for all of the functionality related to generating, catching //
+// formatting, caching and transmitting Crash Reports as well as managing users custom data       //
+// (breadcrumbs and customData).                                                                  //
+//------------------------------------------------------------------------------------------------//
+
 export default class CrashReporter {
 
   private curSession: Session;
@@ -33,7 +40,19 @@ export default class CrashReporter {
   private customCrashReportingEndpoint: string;
   private onBeforeSendingCrashReport: BeforeSendHandler | null;
   private RAYGUN_CRASH_REPORT_ENDPOINT = 'https://api.raygun.com/entries';
+  private applyReactSideCaching : boolean;
 
+  /**
+   * Initialise Javascript side error/promise rejection handlers and identify whether the Native or
+   * Javascript side should be responsible for caching Crash Reports.
+   *
+   * @param curSession - User session data
+   * @param apiKey - Access key for Raygun API
+   * @param disableNativeCrashReporting - Whether or not to enable Native side error reporting
+   * @param customCrashReportingEndpoint - Custom endpoint for crash reports (may be empty or null)
+   * @param onBeforeSendingCrashReport - A lambda to execute before each Crash Report transmission
+   * @param version - The current version of the RaygunClient
+   */
   constructor(curSession: Session,
               apiKey: string,
               disableNativeCrashReporting: boolean,
@@ -41,13 +60,14 @@ export default class CrashReporter {
               onBeforeSendingCrashReport: BeforeSendHandler | null,
               version: string) {
 
+
     //Setup error handler to divert errors to crash reporter
     const prevHandler = ErrorUtils.getGlobalHandler();
-
     ErrorUtils.setGlobalHandler(async (error: Error, isFatal?: boolean) => {
       await this.processUnhandledError(error, isFatal);
       prevHandler && prevHandler(error, isFatal);
     });
+
 
     //Set up rejection handler to divert rejections to crash reporter
     const rejectionTracking = require('promise/setimmediate/rejection-tracking');
@@ -58,11 +78,15 @@ export default class CrashReporter {
     });
 
 
-    if (disableNativeCrashReporting) {
-      setTimeout(() => this.sendCachedReports(apiKey, customCrashReportingEndpoint), 10);
+    //If NATIVE crash reporting is enabled then the native side will handle caching
+    //Otherwise the react native side will need to apply caching logic/
+    this.applyReactSideCaching = disableNativeCrashReporting;
+    if (this.applyReactSideCaching) {
+      setTimeout(() => this.sendCachedReports(apiKey, customCrashReportingEndpoint), 10); //TODO not on timer!!!
     }
 
-    // Assign the values parsed in (assuming initiation is the only time these are altered).
+
+    // Store the values parsed in (assuming initiation is the only time these are altered).
     this.curSession = curSession;
     this.apiKey = apiKey;
     this.disableNativeCrashReporting = disableNativeCrashReporting;
@@ -72,11 +96,16 @@ export default class CrashReporter {
 
   }
 
-//-------------------------------------------------------------------------------------------------
-// ALTERING SESSION DATA
-//-------------------------------------------------------------------------------------------------
 
 
+//-------------------------------------------------------------------------------------------------
+// ALTERING CUSTOM USER DATA
+//-------------------------------------------------------------------------------------------------
+
+  /**
+   * Append some custom data to the users current set of custom data.
+   * @param customData - The custom data to append
+   */
   addCustomData(customData: CustomData) {
     this.customData = Object.assign({}, this.customData, customData);
     if (!this.disableNativeCrashReporting) {
@@ -84,6 +113,10 @@ export default class CrashReporter {
     }
   };
 
+  /**
+   * Apply some transformation lambda to all of the users custom data
+   * @param updater - The transformation
+   */
   updateCustomData(updater: (customData: CustomData) => CustomData) {
     this.customData = updater(this.customData);
     if (!this.disableNativeCrashReporting) {
@@ -91,6 +124,11 @@ export default class CrashReporter {
     }
   };
 
+  /**
+   * Create and store a new Breadcrumb
+   * @param message - A string to describe what this breadcrumb signifies
+   * @param details - Details about the breadcrumb
+   */
   recordBreadcrumb(message: string, details?: BreadcrumbOption) {
     const breadcrumb: Breadcrumb = {
       customData: {},
@@ -105,15 +143,33 @@ export default class CrashReporter {
     }
   };
 
+  /**
+   * Clear all custom user data
+   */
+  resetCrashReporter() {
+    this.breadcrumbs = [];
+    this.customData = {};
+  }
+
+
 
 //-------------------------------------------------------------------------------------------------
 // LOCAL CACHING OF CRASH REPORTS
 //-------------------------------------------------------------------------------------------------
 
+  /**
+   * Cache a given Report to be sent later.
+   * @param report - the Report to cache
+   */
   async saveCrashReport(report: CrashReportPayload): Promise<null> {
     return RaygunNativeBridge.saveCrashReport(JSON.stringify(report));
+
+    //TODO React side caching not implemented
   }
 
+  /**
+   * Load and return cached reports.
+   */
   async loadCachedReports(): Promise<CrashReportPayload[]> {
     return RaygunNativeBridge.loadCrashReports().then((reportsJson: string) => {
       try {
@@ -123,49 +179,72 @@ export default class CrashReporter {
         return [];
       }
     });
+
+    //TODO React side caching not implemented
   }
 
+  //TODO clearCachedReports()
+
+  /**
+   * Transmit cached reports.
+   * @param apiKey - The Raygun application to transmit too
+   * @param customEndpoint
+   */
   async sendCachedReports(apiKey: string, customEndpoint?: string) {
     const reports = await this.loadCachedReports();
     log('Load all cached report', reports);
     return Promise.all(reports.map(report => this.sendCrashReport(report, apiKey, customEndpoint, true)));
+
+    //TODO React side caching not implemented && cached reports should be cleared when sent
   };
+
 
 
 //-------------------------------------------------------------------------------------------------
 // CALLBACK HANDLERS
 //-------------------------------------------------------------------------------------------------
 
+  /**
+   * The error handler method to catch react errors and route them to the CrashReporter.
+   * @param error - The caught error
+   * @param isFatal - Whether or not the error was fatal
+   */
   async processUnhandledError(error: Error, isFatal?: boolean) {
     if (!error || !error.stack) {
       warn('Unrecognized error occurred');
       return;
     }
 
+    //Extract the errors stack trace
     const parseErrorStack = require('react-native/Libraries/Core/Devtools/parseErrorStack');
     const stackTrace = parseErrorStack(error);
 
+    //Clean the stack trace and check for empty stack trace
     const symbolicateStackTrace = require('react-native/Libraries/Core/Devtools/symbolicateStackTrace');
-
     const cleanedstackTrace: StackFrame[] = __DEV__
       ? await symbolicateStackTrace(stackTrace)
       : {stack: cleanFilePath(stackTrace)};
 
     const stack = cleanedstackTrace || [].filter(filterOutReactFrames).map(noAddressAt);
 
+    //Add specific tag if this error is fatal
     if (isFatal) {
       this.curSession.tags.add('Fatal');
     }
 
+    //Create the Crash Reporting payload structure to be send
     const payload = await this.generateCrashReportPayload(error, stack);
 
+    //Apply any specified preprocessing to the Crash Report
     const modifiedPayload =
       this.onBeforeSendingCrashReport && typeof this.onBeforeSendingCrashReport === 'function' ? this.onBeforeSendingCrashReport(Object.freeze(payload)) : payload;
+
 
     if (!modifiedPayload) {
       return;
     }
 
+    //Assign transmitting responsibility to native side if available
     if (!this.disableNativeCrashReporting) {
       log('Send crash report via Native');
       RaygunNativeBridge.sendCrashReport(JSON.stringify(modifiedPayload), this.apiKey);
@@ -177,19 +256,30 @@ export default class CrashReporter {
 
   }
 
+  /**
+   * the promise rejection handler to catch and reroute rejections to the default error handler.
+   * @param error - the caught rejection
+   */
   processUnhandledRejection(error: any) {
     this.processUnhandledError(error, false);
   };
+
 
 
 //-------------------------------------------------------------------------------------------------
 // SENDING CRASH REPORTS
 //-------------------------------------------------------------------------------------------------
 
+  /**
+   * Format an error into the standard Crash Reporting structure.
+   * @param error - The error to format
+   * @param stackTrace - The errors stacktrace
+   */
   async generateCrashReportPayload(error: Error, stackTrace: StackFrame[]): Promise<CrashReportPayload> {
     const {tags, user} = this.curSession;
     const environmentDetails = (RaygunNativeBridge.getEnvironmentInfo && (await RaygunNativeBridge.getEnvironmentInfo())) || {};
 
+    //Reformat Native Stack frames to the Raygun StackTrace format.
     const convertToCrashReportingStackFrame = ({file, methodName, lineNumber, column}: StackFrame) => ({
       FileName: file,
       MethodName: methodName || '[anonymous]',
@@ -225,14 +315,13 @@ export default class CrashReporter {
     };
   };
 
-
-
-  resetCrashReporter() {
-    this.breadcrumbs = [];
-    this.customData = {};
-  }
-
-
+  /**
+   * Output a CrashReportPayload to Raygun or a custom endpoint
+   * @param report
+   * @param apiKey
+   * @param customEndpoint
+   * @param isRetry
+   */
   async sendCrashReport(report: CrashReportPayload, apiKey: string, customEndpoint?: string, isRetry?: boolean) {
     return fetch(customEndpoint || this.RAYGUN_CRASH_REPORT_ENDPOINT + '?apiKey=' + encodeURIComponent(apiKey), {
       method: 'POST',
@@ -244,6 +333,10 @@ export default class CrashReporter {
     }).catch(err => {
       error(err);
       log('Cache report when it failed to send', isRetry);
+
+      //TODO what is isRetry?? Why does it negate caching?
+
+      //If the Crash Report fails to send then cache it.
       if (isRetry) {
         log('Skip cache saved reports');
         return;

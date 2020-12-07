@@ -32,10 +32,7 @@ let realUserMonitor: RealUserMonitor;
 let Options: RaygunClientOptions;
 let initialized: boolean = false;
 
-/**
- * Extract the users RaygunClientOptions and enable desired features.
- * @param options
- */
+//Extract the users RaygunClientOptions and enable desired features.
 const init = async (options: RaygunClientOptions) => {
   Options = clone(options);
 
