@@ -16,7 +16,7 @@
     "build": "tsc -p ./",
     "build-watch": "tsc -p ./ -w",
     "test": "jest -i",
-    "local-android-run": "npm i && npm pack && copyfiles *.tgz ../demo && cd ../demo && npm i && npx react-native run-android"
+    "fully-automated-win_10": "npm i && npm pack && copyfiles *.tgz ../demo && cd ../demo && npm i && npx react-native run-android"
   },
   "repository": {
     "type": "git",
