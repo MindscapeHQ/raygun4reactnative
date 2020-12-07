@@ -143,13 +143,15 @@ export default class CrashReporter {
     }
 
     const parseErrorStack = require('react-native/Libraries/Core/Devtools/parseErrorStack');
-    const symbolicateStackTrace = require('react-native/Libraries/Core/Devtools/symbolicateStackTrace');
-    const stackFrames = parseErrorStack(error);
-    const cleanedStackFrames: StackFrame[] = __DEV__
-      ? await symbolicateStackTrace(stackFrames)
-      : {stack: cleanFilePath(stackFrames)};
+    const stackTrace = parseErrorStack(error);
 
-    const stack = cleanedStackFrames || [].filter(filterOutReactFrames).map(noAddressAt);
+    const symbolicateStackTrace = require('react-native/Libraries/Core/Devtools/symbolicateStackTrace');
+
+    const cleanedstackTrace: StackFrame[] = __DEV__
+      ? await symbolicateStackTrace(stackTrace)
+      : {stack: cleanFilePath(stackTrace)};
+
+    const stack = cleanedstackTrace || [].filter(filterOutReactFrames).map(noAddressAt);
 
     if (isFatal) {
       this.curSession.tags.add('Fatal');
@@ -184,7 +186,7 @@ export default class CrashReporter {
 // SENDING CRASH REPORTS
 //-------------------------------------------------------------------------------------------------
 
-  async generateCrashReportPayload(error: Error, stackFrames: StackFrame[]): Promise<CrashReportPayload> {
+  async generateCrashReportPayload(error: Error, stackTrace: StackFrame[]): Promise<CrashReportPayload> {
     const {tags, user} = this.curSession;
     const environmentDetails = (RaygunNativeBridge.getEnvironmentInfo && (await RaygunNativeBridge.getEnvironmentInfo())) || {};
 
@@ -202,7 +204,7 @@ export default class CrashReporter {
         Error: {
           ClassName: error?.name || '',
           Message: error?.message || '',
-          StackTrace: Array.isArray(stackFrames) ? stackFrames.map(convertToCrashReportingStackFrame) : [convertToCrashReportingStackFrame(stackFrames)],
+          StackTrace: Array.isArray(stackTrace) ? stackTrace.map(convertToCrashReportingStackFrame) : [convertToCrashReportingStackFrame(stackTrace)],
           StackString: error?.toString() || ''
         },
         Environment: {
