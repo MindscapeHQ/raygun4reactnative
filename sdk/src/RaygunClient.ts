@@ -132,16 +132,6 @@ const clearSession = () => {
 //-------------------------------------------------------------------------------------------------
 // CRASH REPORTING LOGIC
 //-------------------------------------------------------------------------------------------------
-/**
- * Converts an incoming error and its stacktrace to a standard Raygun Crash Report format.
- * @param error
- * @param stackFrames
- */
-const generateCrashReportPayload = (error: Error, stackFrames: StackFrame[]) => {
-  if (CrashReportingUnavailable()) return;
-  crashReporter.generateCrashReportPayload(error, stackFrames).then();
-};
-
 
 /**
  * Create a breadcrumb in the current session.
@@ -225,7 +215,6 @@ export {
   setUser,
   clearSession,
 
-  generateCrashReportPayload,
   recordBreadcrumb,
   addCustomData,
   sendCustomError,
