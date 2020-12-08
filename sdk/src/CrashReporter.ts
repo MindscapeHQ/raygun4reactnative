@@ -23,12 +23,12 @@ const {RaygunNativeBridge} = NativeModules;
 const {version: clientVersion} = require('../package.json');
 
 
-//------------------------------------------------------------------------------------------------//
-// The Crash Reporter is responsible for all of the functionality related to generating, catching //
-// formatting, caching and transmitting Crash Reports as well as managing users custom data       //
-// (breadcrumbs and customData).                                                                  //
-//------------------------------------------------------------------------------------------------//
 
+/**
+ * The Crash Reporter is responsible for all of the functionality related to generating, catching
+ * formatting, caching and transmitting Crash Reports as well as managing users custom data
+ * (breadcrumbs and customData).
+ */
 export default class CrashReporter {
 
   private curSession: Session;
@@ -157,6 +157,7 @@ export default class CrashReporter {
 // LOCAL CACHING OF CRASH REPORTS
 //-------------------------------------------------------------------------------------------------
 
+  //TODO Rename to cacheCrashReport
   /**
    * Cache a given Report to be sent later.
    * @param report - the Report to cache

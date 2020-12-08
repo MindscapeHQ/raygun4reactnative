@@ -1,3 +1,8 @@
+/**
+ * The RaygunClient is responsible for managing the users access to Real User Monitoring and
+ * Crash Reporting functionality as well as managing Session specific data.
+ */
+
 import {
   BreadcrumbOption, CrashReportPayload,
   CustomData,
@@ -14,10 +19,6 @@ import {StackFrame} from "react-native/Libraries/Core/Devtools/parseErrorStack";
 import runOnlyPendingTimers = jest.runOnlyPendingTimers;
 const {RaygunNativeBridge} = NativeModules;
 
-//------------------------------------------------------------------------------------------------//
-// The RaygunClient is responsible for managing the users access to Real User Monitoring and      //
-// Crash Reporting functionality as well as managing Session specific data.                       //
-//------------------------------------------------------------------------------------------------//
 
 const getCleanSession = (): Session => ({
   tags: new Set(['React Native']),
