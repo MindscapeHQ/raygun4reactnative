@@ -11,8 +11,13 @@ android/local.properties
 android/.settings
 android/.project
 android/.classpath
-demo/android/app/build/
-demo/android/.gradle/
+#-----------------------------------------#
+#demo/android/app/build/
+#demo/android/.gradle/
+
+#gitignoring the demo while we arent altering it for the repo, will delete later
+demo/*
+#-----------------------------------------#
 .jest/
 coverage/
 release/
