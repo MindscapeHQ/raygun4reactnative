@@ -2,9 +2,8 @@ import { NativeModules } from 'react-native';
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
 const { RaygunNativeBridge } = NativeModules;
 
-//-------------------------------------------------------------------------------------------------
-// GENERAL
-//-------------------------------------------------------------------------------------------------
+
+//#region ----GENERAL-------------------------------------------------------------------------------
 
 export const getDeviceBasedId = () =>
   `${RaygunNativeBridge.DEVICE_ID}-${Date.now().toString(32)}-${(Math.random() * 100000).toString(16).replace('.', '')}`;
@@ -15,9 +14,10 @@ export const getDeviceBasedId = () =>
  */
 export const clone = <T>(object: T): T => JSON.parse(JSON.stringify(object));
 
-//-------------------------------------------------------------------------------------------------
-// REGEX REFACTORING
-//-------------------------------------------------------------------------------------------------
+//#endregion----------------------------------------------------------------------------------------
+
+
+//#region ----REGEX REFACTORING---------------------------------------------------------------------
 
 const SOURCE_MAP_PREFIX = 'file://reactnative.local/';
 
@@ -70,9 +70,10 @@ export const noAddressAt = ({ methodName, ...rest }: StackFrame): StackFrame => 
 
 export const removeProtocol = (url: string) => url.replace(/^http(s)?:\/\//i, '');
 
-//-------------------------------------------------------------------------------------------------
-// FILTERING
-//-------------------------------------------------------------------------------------------------
+//#endregion----------------------------------------------------------------------------------------
+
+
+//#region ----FILTERING-----------------------------------------------------------------------------
 
 export const shouldIgnore = (url: string, ignoredURLs: string[]): boolean => {
     const target = removeProtocol(url);
@@ -81,9 +82,10 @@ export const shouldIgnore = (url: string, ignoredURLs: string[]): boolean => {
 
 export const filterOutReactFrames = (frame: StackFrame): boolean => !!frame.file && !frame.file.match(internalTrace);
 
-//-------------------------------------------------------------------------------------------------
-// LOGGING
-//-------------------------------------------------------------------------------------------------
+//#endregion----------------------------------------------------------------------------------------
+
+
+//#region ----LOGGING-------------------------------------------------------------------------------
 
 const getLogger = (output: (...args: any[]) => void) => (...args: any[]) => {
     if (__DEV__) {
@@ -97,3 +99,5 @@ export const log = getLogger(console.log);
 export const warn = getLogger(console.warn);
 
 export const error = getLogger(console.error);
+
+//#endregion----------------------------------------------------------------------------------------

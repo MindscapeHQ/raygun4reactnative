@@ -7,10 +7,13 @@ const {RaygunNativeBridge} = NativeModules;
 const {osVersion, platform} = RaygunNativeBridge;
 
 const defaultURLIgnoreList = ['api.raygun.com', 'localhost:8081/symbolicate'];
-const SessionRotateThreshold = 30 * 60 * 100;
+const SessionRotateThreshold = 30 * 60 * 1000; //milliseconds (equivalent to 30 minutes)
 
 
 export default class RealUserMonitor {
+
+
+  //#region ----INITIALIZATION----------------------------------------------------------------------
 
   private readonly currentSession: Session;
   private readonly apiKey: string;
@@ -54,6 +57,10 @@ export default class RealUserMonitor {
 
   };
 
+  //#endregion--------------------------------------------------------------------------------------
+
+
+  //#region ----ALL RUM LOGIC-----------------------------------------------------------------------
 
   sendNetworkTimingEventCallback(name: string, sendTime: number, duration: number) {
     const data = {name, timing: {type: RealUserMonitoringEvents.NetworkCall, duration}};
@@ -67,12 +74,12 @@ export default class RealUserMonitor {
 
   sendCustomRUMEvent(
     apiKey: string,
-    eventType: RealUserMonitoringEvents.ActivityLoaded | RealUserMonitoringEvents.NetworkCall,
+    eventType: RealUserMonitoringEvents.ViewLoaded | RealUserMonitoringEvents.NetworkCall,
     name: string,
     duration: number,
     customRealUserMonitoringEndpoint?: string
   ) {
-    if (eventType === RealUserMonitoringEvents.ActivityLoaded) {
+    if (eventType === RealUserMonitoringEvents.ViewLoaded) {
       this.reportStartupTime(name, duration);
       return;
     }
@@ -123,8 +130,11 @@ export default class RealUserMonitor {
       this.curRUMSessionId = getDeviceBasedId();
       await this.sendRUMEvent(RealUserMonitoringEvents.SessionStart, {});
     }
-    const data = {name, timing: {type: RealUserMonitoringEvents.ActivityLoaded, duration}};
+    const data = {name, timing: {type: RealUserMonitoringEvents.ViewLoaded, duration}};
     return this.sendRUMEvent(RealUserMonitoringEvents.EventTiming, data);
   };
+
+  //#endregion--------------------------------------------------------------------------------------
+
 
 }

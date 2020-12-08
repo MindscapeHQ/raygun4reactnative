@@ -24,6 +24,9 @@ const {version: clientVersion} = require('../package.json');
 
 export default class CrashReporter {
 
+
+  //#region ----INITIALIZATION----------------------------------------------------------------------
+
   private curSession: Session;
   private breadcrumbs: Breadcrumb[] = [];
   private customData: CustomData = {};
@@ -41,7 +44,15 @@ export default class CrashReporter {
               onBeforeSendingCrashReport: BeforeSendHandler | null,
               version: string) {
 
-    //Setup error handler to divert errors to crash reporter
+    // Assign the values parsed in (assuming initiation is the only time these are altered).
+    this.curSession = curSession;
+    this.apiKey = apiKey;
+    this.disableNativeCrashReporting = disableNativeCrashReporting;
+    this.customCrashReportingEndpoint = customCrashReportingEndpoint;
+    this.onBeforeSendingCrashReport = onBeforeSendingCrashReport;
+    this.version = version;
+
+    //Set up error handler to divert errors to crash reporter
     const prevHandler = ErrorUtils.getGlobalHandler();
 
     ErrorUtils.setGlobalHandler(async (error: Error, isFatal?: boolean) => {
@@ -57,25 +68,15 @@ export default class CrashReporter {
       onUnhandled: this.processUnhandledRejection
     });
 
-
     if (disableNativeCrashReporting) {
       setTimeout(() => this.sendCachedReports(apiKey, customCrashReportingEndpoint), 10);
     }
-
-    // Assign the values parsed in (assuming initiation is the only time these are altered).
-    this.curSession = curSession;
-    this.apiKey = apiKey;
-    this.disableNativeCrashReporting = disableNativeCrashReporting;
-    this.customCrashReportingEndpoint = customCrashReportingEndpoint;
-    this.onBeforeSendingCrashReport = onBeforeSendingCrashReport;
-    this.version = version;
-
   }
 
-//-------------------------------------------------------------------------------------------------
-// ALTERING SESSION DATA
-//-------------------------------------------------------------------------------------------------
+  //#endregion--------------------------------------------------------------------------------------
 
+
+  //#region ----ALTERING SESSION DATA---------------------------------------------------------------
 
   addCustomData(customData: CustomData) {
     this.customData = Object.assign({}, this.customData, customData);
@@ -105,10 +106,10 @@ export default class CrashReporter {
     }
   };
 
+  //#endregion--------------------------------------------------------------------------------------
 
-//-------------------------------------------------------------------------------------------------
-// LOCAL CACHING OF CRASH REPORTS
-//-------------------------------------------------------------------------------------------------
+
+  //#region ----LOCAL CACHING OF CRASH REPORTS------------------------------------------------------
 
   async saveCrashReport(report: CrashReportPayload): Promise<null> {
     return RaygunNativeBridge.saveCrashReport(JSON.stringify(report));
@@ -131,10 +132,10 @@ export default class CrashReporter {
     return Promise.all(reports.map(report => this.sendCrashReport(report, apiKey, customEndpoint, true)));
   };
 
+  //#endregion--------------------------------------------------------------------------------------
 
-//-------------------------------------------------------------------------------------------------
-// CALLBACK HANDLERS
-//-------------------------------------------------------------------------------------------------
+
+  //#region ----CALLBACK HANDLERS-------------------------------------------------------------------
 
   async processUnhandledError(error: Error, isFatal?: boolean) {
     if (!error || !error.stack) {
@@ -142,9 +143,12 @@ export default class CrashReporter {
       return;
     }
 
+    //Extract the errors stack trace
     const parseErrorStack = require('react-native/Libraries/Core/Devtools/parseErrorStack');
-    const symbolicateStackTrace = require('react-native/Libraries/Core/Devtools/symbolicateStackTrace');
     const stackFrames = parseErrorStack(error);
+
+    //Clean the stack trace and check for empty stack trace
+    const symbolicateStackTrace = require('react-native/Libraries/Core/Devtools/symbolicateStackTrace');
     const cleanedStackFrames: StackFrame[] = __DEV__
       ? await symbolicateStackTrace(stackFrames)
       : {stack: cleanFilePath(stackFrames)};
@@ -157,8 +161,9 @@ export default class CrashReporter {
 
     const payload = await this.generateCrashReportPayload(error, stack);
 
-    const modifiedPayload =
-      this.onBeforeSendingCrashReport && typeof this.onBeforeSendingCrashReport === 'function' ? this.onBeforeSendingCrashReport(Object.freeze(payload)) : payload;
+    const modifiedPayload = (this.onBeforeSendingCrashReport && typeof this.onBeforeSendingCrashReport === 'function')
+      ? this.onBeforeSendingCrashReport(Object.freeze(payload))
+      : payload;
 
     if (!modifiedPayload) {
       return;
@@ -179,10 +184,10 @@ export default class CrashReporter {
     this.processUnhandledError(error, false);
   };
 
+  //#endregion--------------------------------------------------------------------------------------
 
-//-------------------------------------------------------------------------------------------------
-// SENDING CRASH REPORTS
-//-------------------------------------------------------------------------------------------------
+
+  //#region ----SENDING CRASH REPORTS---------------------------------------------------------------
 
   async generateCrashReportPayload(error: Error, stackFrames: StackFrame[]): Promise<CrashReportPayload> {
     const {tags, user} = this.curSession;
@@ -200,14 +205,13 @@ export default class CrashReporter {
       OccurredOn: new Date(),
       Details: {
         Error: {
-          ClassName: error?.name || '',
-          Message: error?.message || '',
+          ClassName: error?.name || 'Unknown',
+          Message: error?.message || 'Unknown',
           StackTrace: Array.isArray(stackFrames) ? stackFrames.map(convertToCrashReportingStackFrame) : [convertToCrashReportingStackFrame(stackFrames)],
           StackString: error?.toString() || ''
         },
         Environment: {
           UtcOffset: new Date().getTimezoneOffset() / 60.0,
-          JailBroken: false,
           ...environmentDetails
         },
         Client: {
@@ -223,13 +227,10 @@ export default class CrashReporter {
     };
   };
 
-
-
   resetCrashReporter() {
     this.breadcrumbs = [];
     this.customData = {};
   }
-
 
   async sendCrashReport(report: CrashReportPayload, apiKey: string, customEndpoint?: string, isRetry?: boolean) {
     return fetch(customEndpoint || this.RAYGUN_CRASH_REPORT_ENDPOINT + '?apiKey=' + encodeURIComponent(apiKey), {
@@ -249,4 +250,8 @@ export default class CrashReporter {
       return this.saveCrashReport(report);
     });
   };
+
+  //#endregion--------------------------------------------------------------------------------------
+
+
 };

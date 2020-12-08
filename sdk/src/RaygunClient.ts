@@ -19,13 +19,18 @@ import runOnlyPendingTimers = jest.runOnlyPendingTimers;
  * of the logical components have been separated out from this file and into classes specific to
  * CrashReporting or RealUserMonitoring (CrashReporter.ts and RealUserMonitor.ts respectively).
  */
+
+
+//#region ----INITIALIZATION------------------------------------------------------------------------
+
 const {RaygunNativeBridge} = NativeModules;
 
 
 const getCleanSession = (): Session => ({
   tags: new Set(['React Native']),
   user: {
-    identifier: `anonymous-${getDeviceBasedId()}`
+    identifier: `anonymous-${getDeviceBasedId()}`,
+    isAnonymous: true
   }
 });
 
@@ -33,15 +38,15 @@ const getCleanSession = (): Session => ({
 let curSession = getCleanSession();
 let crashReporter: CrashReporter;
 let realUserMonitor: RealUserMonitor;
-let Options: RaygunClientOptions;
+let options: RaygunClientOptions;
 let initialised: boolean = false;
 
 /**
  * RaygunClient initializer. Creates the CrashReporter and RealUserMonitor.
  * @param options
  */
-const init = async (options: RaygunClientOptions) => {
-  Options = clone(options);
+const init = async (raygunclientOptions: RaygunClientOptions) => {
+  options = clone(raygunclientOptions);
 
   //Cleans options with defaults
   const {
@@ -55,20 +60,18 @@ const init = async (options: RaygunClientOptions) => {
     customRealUserMonitoringEndpoint = '',
     onBeforeSendingCrashReport = null,
     ignoredURLs = []
-  } = Options;
+  } = options;
 
-  //Check if native bridge is available and enabled
-  const useNativeCR = !disableNativeCrashReporting && RaygunNativeBridge && typeof RaygunNativeBridge.init === 'function';
-
-  //Has the client already been initialised
-  const alreadyInitialized = useNativeCR && (await RaygunNativeBridge.hasInitialized());
-
-  if (alreadyInitialized) {
+  if (initialised) {
     log('Already initialized');
     return false;
   }
-  //Initialise if a service is being utilised
-  if (useNativeCR || enableRealUserMonitoring) {
+
+  const nativeBridgeAvailable = RaygunNativeBridge && typeof RaygunNativeBridge.init === 'function';
+  const crashReportingRequiresNative = enableCrashReporting && !disableNativeCrashReporting;
+
+  //Initialise native if it is available and a service is utilising native side logic
+  if (nativeBridgeAvailable && (crashReportingRequiresNative || enableRealUserMonitoring)) {
     await RaygunNativeBridge.init({
       apiKey,
       enableRealUserMonitoring,
@@ -79,7 +82,7 @@ const init = async (options: RaygunClientOptions) => {
 
   //enable CR
   if (enableCrashReporting) {
-    crashReporter = new CrashReporter(curSession, apiKey, disableNetworkMonitoring, customCrashReportingEndpoint || '', onBeforeSendingCrashReport, version);
+    crashReporter = new CrashReporter(curSession, apiKey, disableNativeCrashReporting, customCrashReportingEndpoint || '', onBeforeSendingCrashReport, version);
   }
   //Enable realUserMonitor
   if (enableRealUserMonitoring) {
@@ -91,57 +94,58 @@ const init = async (options: RaygunClientOptions) => {
   return true;
 };
 
-//-------------------------------------------------------------------------------------------------
-// RAYGUN CLIENT SESSION LOGIC
-//-------------------------------------------------------------------------------------------------
+//#endregion----------------------------------------------------------------------------------------
+
+
+//#region ----RAYGUN CLIENT SESSION LOGIC-----------------------------------------------------------
 
 const addTag = (...tags: string[]) => {
   tags.forEach(tag => {
     curSession.tags.add(tag);
   });
-  if (!Options.disableNativeCrashReporting) {
+  if (!options.disableNativeCrashReporting) {
     RaygunNativeBridge.setTags([...curSession.tags]);
   }
 };
 
-
 const setUser = (user: User | string) => {
   const userObj = Object.assign(
-    {firstName: '', fullName: '', email: '', isAnonymous: false},
+    {firstName: '', fullName: '', email: '', isAnonymous: true},
     typeof user === 'string' ?
       !!user ?
-        {identifier: user}
+        {identifier: user, isAnonymous: true}
         : {identifier: `anonymous-${getDeviceBasedId()}`, isAnonymous: true}
       : user
   );
   curSession.user = userObj;
-  if (!Options.disableNativeCrashReporting) {
+  if (!options.disableNativeCrashReporting) {
     RaygunNativeBridge.setUser(userObj);
   }
 };
 
-
 const clearSession = () => {
   curSession = getCleanSession();
-  if (!Options.disableNativeCrashReporting) {
+  if (!options.disableNativeCrashReporting) {
     RaygunNativeBridge.clearSession();
   }
 
   crashReporter.resetCrashReporter();
 };
-//-------------------------------------------------------------------------------------------------
-// CRASH REPORTING LOGIC
-//-------------------------------------------------------------------------------------------------
+
+//#endregion----------------------------------------------------------------------------------------
+
+
+//#region ----CRASH REPORTING LOGIC-----------------------------------------------------------------
+
 /**
  * Converts an incoming error and its stacktrace to a standard Raygun Crash Report format.
  * @param error
  * @param stackFrames
  */
 const generateCrashReportPayload = (error: Error, stackFrames: StackFrame[]) => {
-  if (CrashReportingUnavailable()) return;
+  if (CrashReportingUnavailable("generateCrashReportPayload")) return;
   crashReporter.generateCrashReportPayload(error, stackFrames).then();
 };
-
 
 /**
  * Create a breadcrumb in the current session.
@@ -149,12 +153,13 @@ const generateCrashReportPayload = (error: Error, stackFrames: StackFrame[]) => 
  * @param details
  */
 const recordBreadcrumb = (message: string, details?: BreadcrumbOption) => {
-  if (CrashReportingUnavailable()) return;
+  if (CrashReportingUnavailable("recordBreadcrumb")) return;
   crashReporter.recordBreadcrumb(message, details);
 
 };
-const sendCustomError = async (error: Error, ...params: any) => {
-  if (CrashReportingUnavailable()) return;
+
+const sendError = async (error: Error, ...params: any) => {
+  if (CrashReportingUnavailable("sendError")) return;
 
   const [customData, tags] = (params.length == 1 && Array.isArray(params[0])) ? [null, params[0]] : params;
 
@@ -168,12 +173,12 @@ const sendCustomError = async (error: Error, ...params: any) => {
   await crashReporter.processUnhandledError(error);
 };
 const addCustomData = (customData: CustomData) => {
-  if (CrashReportingUnavailable()) return;
+  if (CrashReportingUnavailable("addCustomData")) return;
   crashReporter.addCustomData(customData);
 
 }
 const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
-  if (CrashReportingUnavailable()) return;
+  if (CrashReportingUnavailable("updateCustomData")) return;
   crashReporter.updateCustomData(updater);
 }
 
@@ -181,24 +186,26 @@ const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
  * Checks whether or not the user has initialised the client AND enabled crash reporting.
  * @constructor
  */
-const CrashReportingUnavailable = () => {
+const CrashReportingUnavailable = (calledFrom: string) => {
   if (!initialised) {
-    warn('RaygunClient has not been initialised, please call RaygunClient.init(...) before trying to use Raygun features');
+    warn(`Failed: "${calledFrom}" cannot be called before initialising RaygunClient. Please call RaygunClient.init(...) before trying to call RaygunClient.${calledFrom}(...)`);
     return true;
-  } else if (!(crashReporter && Options.enableCrashReporting)) {
-    warn('Crash Reporting not enabled, please that you set "enableCrashReporting" to true during RaygunClient.init()');
+  } else if (!(crashReporter && options.enableCrashReporting)) {
+    warn(`Failed: "${calledFrom}" cannot be called unless Crash Reporting has been enabled, please ensure that you set "enableCrashReporting" to true during RaygunClient.init(...)`);
     return true;
   }
   return false;
 }
 
-//-------------------------------------------------------------------------------------------------
-// REAL USER MONITORING LOGIC
-//-------------------------------------------------------------------------------------------------
-const sendRUMTimingEvent = (eventType: RealUserMonitoringEvents.ActivityLoaded | RealUserMonitoringEvents.NetworkCall, name: string, timeUsedInMs: number) => {
-  if (RealUserMonitoringUnavailable()) return;
+//#endregion----------------------------------------------------------------------------------------
+
+
+//#region ----REAL USER MONITORING LOGIC------------------------------------------------------------
+
+const sendRUMTimingEvent = (eventType: RealUserMonitoringEvents.ViewLoaded | RealUserMonitoringEvents.NetworkCall, name: string, timeUsedInMs: number) => {
+  if (RealUserMonitoringUnavailable("sendRUMTimingEvent")) return;
   realUserMonitor.sendCustomRUMEvent(
-    Options.apiKey,
+    options.apiKey,
     eventType,
     name,
     timeUsedInMs,
@@ -206,17 +213,19 @@ const sendRUMTimingEvent = (eventType: RealUserMonitoringEvents.ActivityLoaded |
   );
 };
 
-const RealUserMonitoringUnavailable = () => {
+const RealUserMonitoringUnavailable = (calledFrom: string) => {
   if (!initialised) {
-    warn('RaygunClient has not been initialised, please call RaygunClient.init(...) before trying to use Raygun features');
+    warn(`Failed: "${calledFrom}" cannot be called before initialising RaygunClient. Please call RaygunClient.init(...) before trying to call RaygunClient.${calledFrom}(...)`);
     return true;
   }
-  if (!(realUserMonitor && Options.enableRealUserMonitoring)) {
-    warn('Real User Monitoring not enabled, please that you set "enableRealUserMonitoring" to true during RaygunClient.init()');
+  if (!(realUserMonitor && options.enableRealUserMonitoring)) {
+    warn(`Failed: "${calledFrom}" cannot be called unless Real User Monitoring has been enabled, please ensure that you set "enableRealUserMonitoring" to true during RaygunClient.init(...)`);
     return true;
   }
   return false;
 }
+
+//#endregion----------------------------------------------------------------------------------------
 
 
 export {
@@ -228,7 +237,7 @@ export {
   generateCrashReportPayload,
   recordBreadcrumb,
   addCustomData,
-  sendCustomError,
+  sendError,
   updateCustomData,
 
   sendRUMTimingEvent
