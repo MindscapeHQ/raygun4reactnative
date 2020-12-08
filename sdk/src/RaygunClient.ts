@@ -17,6 +17,7 @@ import CrashReporter from "./CrashReporter";
 import RealUserMonitor from "./RealUserMonitor";
 import {StackFrame} from "react-native/Libraries/Core/Devtools/parseErrorStack";
 import runOnlyPendingTimers = jest.runOnlyPendingTimers;
+
 const {RaygunNativeBridge} = NativeModules;
 
 
@@ -90,7 +91,6 @@ const init = async (options: RaygunClientOptions) => {
 };
 
 
-
 //-------------------------------------------------------------------------------------------------
 // RAYGUN CLIENT SESSION LOGIC
 //-------------------------------------------------------------------------------------------------
@@ -127,6 +127,8 @@ const setUser = (user: User | string) => {
   if (!Options.disableNativeCrashReporting) {
     RaygunNativeBridge.setUser(userObj);
   }
+
+  //TODO Rotate RUM where required
 };
 
 /**
@@ -140,7 +142,6 @@ const clearSession = () => {
 
   crashReporter.resetCrashReporter();
 };
-
 
 
 //-------------------------------------------------------------------------------------------------
@@ -213,7 +214,6 @@ const CrashReportingAvailable = () => {
 }
 
 
-
 //-------------------------------------------------------------------------------------------------
 // REAL USER MONITORING LOGIC
 //-------------------------------------------------------------------------------------------------
@@ -248,7 +248,6 @@ const RealUserMonitoringAvailable = () => {
   }
   return true;
 }
-
 
 
 export {
