@@ -1,23 +1,32 @@
-.npmrc
-dist/
-example/
-node_modules/
-android/.idea/
-android/.gradle
-android/build/
-android/libs/
-android/*.iml
-android/local.properties
-android/.settings
-android/.project
-android/.classpath
 #-----------------------------------------#
+
+#.npmrc
+#dist/
+#example/
+#node_modules/
+#android/.idea/
+#android/.gradle
+#android/build/
+#android/libs/
+#android/*.iml
+#android/local.properties
+#android/.settings
+#android/.project
+#android/.classpath
 #demo/android/app/build/
 #demo/android/.gradle/
 
-#gitignoring the demo while we arent altering it for the repo, will delete later
-demo/
+#package-lock.json
+
 #-----------------------------------------#
+
+
+#gitignoring the demo while we arent altering it for the repo, will delete later
+/demo/
+/sdk/dist/
+/sdk/node_modules/
+/sdk/package-lock.json
+/sdk/raygun4reactnative-0.0.1-alpha.tgz
 .jest/
 coverage/
 release/
@@ -25,4 +34,3 @@ docker/
 .vscode
 *.tgz
 .idea
-package-lock.json
