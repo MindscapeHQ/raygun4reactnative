@@ -36,8 +36,11 @@ let initialized: boolean = false;
 
 
 /**
- * Extract the users RaygunClientOptions and enable desired features.
- * @param options
+ * Initializes the RaygunClient with customized options parse in through an instance of a
+ * RaygunClientOptions. Anything unmentioned in the RaygunClientOptions will revert
+ * to their default values.
+ *
+ * @param options - An instance of RaygunClientOptions.
  */
 const init = async (options: RaygunClientOptions) => {
   Options = clone(options);
@@ -96,8 +99,9 @@ const init = async (options: RaygunClientOptions) => {
 //-------------------------------------------------------------------------------------------------
 
 /**
- * Append a tag to the current session tags.
- * @param tags - the tag(s) to append
+ * Append a tag to the current session tags. These tags will be attached to both Crash Reporting
+ * errors AND Real User Monitoring requests.
+ * @param tags - The tag(s) to append to the session.
  */
 const addTag = (...tags: string[]) => {
   tags.forEach(tag => {
@@ -109,8 +113,9 @@ const addTag = (...tags: string[]) => {
 };
 
 /**
- * Overwrite the existing session user with a new one.
- * @param user - The new name or user object to assign
+ * Set the user for the current session. This WILL overwrite an existing session user with
+ * the new one.
+ * @param user - The new name or user object to assign.
  */
 const setUser = (user: User | string) => {
 
@@ -132,7 +137,7 @@ const setUser = (user: User | string) => {
 };
 
 /**
- * Clear all session data and reset the Crash Reporter and Real User Monitor
+ * Clear all session data and reset the Crash Reporter and Real User Monitor.
  */
 const clearSession = () => {
   curSession = getCleanSession();
@@ -149,9 +154,9 @@ const clearSession = () => {
 //-------------------------------------------------------------------------------------------------
 
 /**
- * Create and store a new Breadcrumb
- * @param message - A string to describe what this breadcrumb signifies
- * @param details - Details about the breadcrumb
+ * Create and store a new Breadcrumb.
+ * @param message - A string to describe what this breadcrumb signifies.
+ * @param details - Details about the breadcrumb.
  */
 const recordBreadcrumb = (message: string, details?: BreadcrumbOption) => {
   if (!CrashReportingAvailable()) return;
@@ -160,9 +165,23 @@ const recordBreadcrumb = (message: string, details?: BreadcrumbOption) => {
 };
 
 /**
- * Construct an error and feed it into the Crash Reporting error handler
- * @param error - The error
- * @param params - Custom data or tags alongside the error
+ * Allows for an error to be sent to the Crash Reporting error handler along with some customized
+ * data. 'params' can be configured in the following ways:
+ *    1) data: CustomData, ... tags: string
+ *    2) data: CustomData
+ *    3) ... tags: string
+ *
+ * If custom data is being parsed with this method, ensure it is placed first before any tags.
+ * Also ensure that the custom data is a CustomData instance, all tags will be strings.
+ *
+ * @example
+ * 1)   RaygunClient.sendCustomError(new Error(), {[Date.now()]: `This is just an example`}, "Foo", "Bar");
+ * 2)   RaygunClient.sendCustomError(new Error(), {[Date.now()]: `This is just an example`});
+ * 3)   RaygunClient.sendCustomError(new Error(), "Foo", "Bar");
+ *
+ * @param error - The error.
+ * @param params - Custom data or tags alongside the error.
+ * @see CustomData
  */
 const sendCustomError = async (error: Error, ...params: any) => {
   if (!CrashReportingAvailable()) return;
@@ -180,7 +199,7 @@ const sendCustomError = async (error: Error, ...params: any) => {
 };
 
 /**
- * Append some custom data to the current set of custom data.
+ * Appends custom data to the current set of custom data.
  * @param customData - The custom data to append
  */
 const addCustomData = (customData: CustomData) => {
@@ -190,8 +209,8 @@ const addCustomData = (customData: CustomData) => {
 }
 
 /**
- * Apply some transformation lambda to all of the users custom data
- * @param updater - The transformation
+ * Apply some transformation lambda to all of the user's custom data.
+ * @param updater - The transformation.
  */
 const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
   if (!CrashReportingAvailable()) return;
@@ -199,8 +218,8 @@ const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
 }
 
 /**
- * Has the user initialised the client and enabled Crash Reporting.
- * @constructor
+ * Checks if the CrashReporter has been created (during RaygunClient.init) and if the user enabled
+ * the CrashReporter during the init.
  */
 const CrashReportingAvailable = () => {
   if (!initialized) {
@@ -219,10 +238,10 @@ const CrashReportingAvailable = () => {
 //-------------------------------------------------------------------------------------------------
 
 /**
- * Construct a Real User Monitoring Timing Event and send it to the Real User Monitor to be transmitted
- * @param eventType - Type of Real User Monitoring event
- * @param name - Name of this event
- * @param timeUsedInMs - Length of this event
+ * Construct a Real User Monitoring Timing Event and send it to the Real User Monitor to be transmitted.
+ * @param eventType - Type of Real User Monitoring event.
+ * @param name - Name of this event.
+ * @param timeUsedInMs - Length this event took to execute.
  */
 const sendRUMTimingEvent = (eventType: RealUserMonitoringEvents.ActivityLoaded | RealUserMonitoringEvents.NetworkCall, name: string, timeUsedInMs: number) => {
   if (!RealUserMonitoringAvailable()) return;
@@ -234,8 +253,8 @@ const sendRUMTimingEvent = (eventType: RealUserMonitoringEvents.ActivityLoaded |
 };
 
 /**
- * Has the user initialised the client and enabled real USer Monitoring.
- * @constructor
+ * Checks if the RealUserMonitor has been created (during RaygunClient.init) and if the user enabled
+ * the RealUserMonitor during the init.
  */
 const RealUserMonitoringAvailable = () => {
   if (!initialized) {
