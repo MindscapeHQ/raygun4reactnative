@@ -33,7 +33,11 @@ let realUserMonitor: RealUserMonitor;
 let Options: RaygunClientOptions;
 let initialized: boolean = false;
 
-//Extract the users RaygunClientOptions and enable desired features.
+
+/**
+ * Extract the users RaygunClientOptions and enable desired features.
+ * @param options
+ */
 const init = async (options: RaygunClientOptions) => {
   Options = clone(options);
 
@@ -91,6 +95,10 @@ const init = async (options: RaygunClientOptions) => {
 // RAYGUN CLIENT SESSION LOGIC
 //-------------------------------------------------------------------------------------------------
 
+/**
+ * Append a tag to the current session tags.
+ * @param tags - the tag(s) to append
+ */
 const addTag = (...tags: string[]) => {
   tags.forEach(tag => {
     curSession.tags.add(tag);
@@ -100,6 +108,10 @@ const addTag = (...tags: string[]) => {
   }
 };
 
+/**
+ * Overwrite the existing session user with a new one.
+ * @param user - The new name or user object to assign
+ */
 const setUser = (user: User | string) => {
 
   //Discern the type of the user argument and apply it to the user field
@@ -117,6 +129,9 @@ const setUser = (user: User | string) => {
   }
 };
 
+/**
+ * Clear all session data and reset the Crash Reporter and Real User Monitor
+ */
 const clearSession = () => {
   curSession = getCleanSession();
   if (!Options.disableNativeCrashReporting) {
@@ -132,12 +147,22 @@ const clearSession = () => {
 // CRASH REPORTING LOGIC
 //-------------------------------------------------------------------------------------------------
 
+/**
+ * Create and store a new Breadcrumb
+ * @param message - A string to describe what this breadcrumb signifies
+ * @param details - Details about the breadcrumb
+ */
 const recordBreadcrumb = (message: string, details?: BreadcrumbOption) => {
   if (!CrashReportingAvailable()) return;
   crashReporter.recordBreadcrumb(message, details);
 
 };
 
+/**
+ * Construct an error and feed it into the Crash Reporting error handler
+ * @param error - The error
+ * @param params - Custom data or tags alongside the error
+ */
 const sendCustomError = async (error: Error, ...params: any) => {
   if (!CrashReportingAvailable()) return;
 
@@ -153,17 +178,29 @@ const sendCustomError = async (error: Error, ...params: any) => {
   await crashReporter.processUnhandledError(error);
 };
 
+/**
+ * Append some custom data to the current set of custom data.
+ * @param customData - The custom data to append
+ */
 const addCustomData = (customData: CustomData) => {
   if (!CrashReportingAvailable()) return;
   crashReporter.addCustomData(customData);
 
 }
 
+/**
+ * Apply some transformation lambda to all of the users custom data
+ * @param updater - The transformation
+ */
 const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
   if (!CrashReportingAvailable()) return;
   crashReporter.updateCustomData(updater);
 }
 
+/**
+ * Has the user initialised the client and enabled Crash Reporting.
+ * @constructor
+ */
 const CrashReportingAvailable = () => {
   if (!initialized) {
     warn('RaygunClient has not been initialized, please call RaygunClient.init(...) before trying to use Raygun features');
@@ -181,6 +218,12 @@ const CrashReportingAvailable = () => {
 // REAL USER MONITORING LOGIC
 //-------------------------------------------------------------------------------------------------
 
+/**
+ * Construct a Real User Monitoring Timing Event and send it to the Real User Monitor to be transmitted
+ * @param eventType - Type of Real User Monitoring event
+ * @param name - Name of this event
+ * @param timeUsedInMs - Length of this event
+ */
 const sendRUMTimingEvent = (eventType: RealUserMonitoringEvents.ActivityLoaded | RealUserMonitoringEvents.NetworkCall, name: string, timeUsedInMs: number) => {
   if (!RealUserMonitoringAvailable()) return;
   realUserMonitor.sendCustomRUMEvent(
@@ -190,6 +233,10 @@ const sendRUMTimingEvent = (eventType: RealUserMonitoringEvents.ActivityLoaded |
   );
 };
 
+/**
+ * Has the user initialised the client and enabled real USer Monitoring.
+ * @constructor
+ */
 const RealUserMonitoringAvailable = () => {
   if (!initialized) {
     warn('RaygunClient has not been initialized, please call RaygunClient.init(...) before trying to use Raygun features');
