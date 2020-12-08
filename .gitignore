@@ -16,7 +16,7 @@ android/.classpath
 #demo/android/.gradle/
 
 #gitignoring the demo while we arent altering it for the repo, will delete later
-demo/*
+demo/
 #-----------------------------------------#
 .jest/
 coverage/
