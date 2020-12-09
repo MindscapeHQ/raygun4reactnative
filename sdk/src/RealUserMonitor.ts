@@ -1,7 +1,7 @@
-import { RealUserMonitoringEvents, Session, User } from './Types';
-import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
+import { RealUserMonitoringEvents, Session } from './Types';
 import { setupNetworkMonitoring } from './NetworkMonitor';
 import { getDeviceBasedId, log, warn } from './Utils';
+import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
 
 const { RaygunNativeBridge } = NativeModules;
 const { osVersion, platform } = RaygunNativeBridge;

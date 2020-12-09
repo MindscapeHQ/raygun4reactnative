@@ -5,7 +5,6 @@
 
 import {
   BreadcrumbOption,
-  CrashReportPayload,
   CustomData,
   RaygunClientOptions,
   RealUserMonitoringEvents,
@@ -13,11 +12,9 @@ import {
   User
 } from './Types';
 import { clone, getDeviceBasedId, log, warn } from './Utils';
-import { NativeModules } from 'react-native';
 import CrashReporter from './CrashReporter';
 import RealUserMonitor from './RealUserMonitor';
-import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
-import runOnlyPendingTimers = jest.runOnlyPendingTimers;
+import { NativeModules } from 'react-native';
 
 /**
  * The RaygunClient is the interface in which this provider publicly shows. The bottom of this page

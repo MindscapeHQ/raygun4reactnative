@@ -1,7 +1,8 @@
 import { NetworkTimingCallback, RequestMeta } from './Types';
-//@ts-ignore
-import XHRInterceptor from 'react-native/Libraries/Network/XHRInterceptor';
 import { getDeviceBasedId, removeProtocol, shouldIgnore } from './Utils';
+
+// @ts-ignore
+import XHRInterceptor from 'react-native/Libraries/Network/XHRInterceptor';
 
 const requests = new Map<string, RequestMeta>();
 

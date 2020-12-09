@@ -1,6 +1,6 @@
 import { cleanFilePath, clone, error, filterOutReactFrames, log, noAddressAt, upperFirst, warn } from './Utils';
-import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
 import { BeforeSendHandler, Breadcrumb, BreadcrumbOption, CrashReportPayload, CustomData, Session } from './Types';
+import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
 import { NativeModules, Platform } from 'react-native';
 
 const { RaygunNativeBridge } = NativeModules;
