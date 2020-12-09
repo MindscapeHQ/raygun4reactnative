@@ -26,10 +26,9 @@ import runOnlyPendingTimers = jest.runOnlyPendingTimers;
  * CrashReporting or RealUserMonitoring (CrashReporter.ts and RealUserMonitor.ts respectively).
  */
 
-
 //#region ----INITIALIZATION------------------------------------------------------------------------
 
-const {RaygunNativeBridge} = NativeModules;
+const { RaygunNativeBridge } = NativeModules;
 
 const getCleanSession = (): Session => ({
   tags: new Set(['React Native']),
@@ -38,7 +37,6 @@ const getCleanSession = (): Session => ({
     isAnonymous: true
   }
 });
-
 
 let curSession = getCleanSession();
 let crashReporter: CrashReporter;
@@ -119,7 +117,6 @@ const init = async (raygunClientOptions: RaygunClientOptions) => {
 
 //#endregion----------------------------------------------------------------------------------------
 
-
 //#region ----RAYGUN CLIENT SESSION LOGIC-----------------------------------------------------------
 
 /**
@@ -144,19 +141,17 @@ const addTag = (...tags: string[]) => {
 const setUser = (user: User | string) => {
   //Discern the type of the user argument and apply it to the user field
   const userObj = Object.assign(
-    {firstName: '', fullName: '', email: '', isAnonymous: true},
-    typeof user === 'string' ?
-      !!user ?
-        {identifier: user, isAnonymous: true}
-        : {identifier: `anonymous-${getDeviceBasedId()}`, isAnonymous: true}
+    { firstName: '', fullName: '', email: '', isAnonymous: true },
+    typeof user === 'string'
+      ? !!user
+        ? { identifier: user, isAnonymous: true }
+        : { identifier: `anonymous-${getDeviceBasedId()}`, isAnonymous: true }
       : user
   );
   curSession.user = userObj;
   if (!options.disableNativeCrashReporting) {
     RaygunNativeBridge.setUser(userObj);
   }
-};
-
   //TODO Rotate RUM where required
 };
 
@@ -174,7 +169,6 @@ const clearSession = () => {
 
 //#endregion----------------------------------------------------------------------------------------
 
-
 //#region ----CRASH REPORTING LOGIC-----------------------------------------------------------------
 
 /**
@@ -183,7 +177,7 @@ const clearSession = () => {
  * @param details - Details about the breadcrumb.
  */
 const recordBreadcrumb = (message: string, details?: BreadcrumbOption) => {
-  if (!CrashReportingAvailable("recordBreadcrumb")) return;
+  if (!CrashReportingAvailable('recordBreadcrumb')) return;
   crashReporter.recordBreadcrumb(message, details);
 };
 
@@ -207,7 +201,7 @@ const recordBreadcrumb = (message: string, details?: BreadcrumbOption) => {
  * @see CustomData
  */
 const sendError = async (error: Error, ...params: any) => {
-  if (!CrashReportingAvailable("sendError")) return;
+  if (!CrashReportingAvailable('sendError')) return;
 
   const [customData, tags] = params.length == 1 && Array.isArray(params[0]) ? [null, params[0]] : params;
 
@@ -226,7 +220,7 @@ const sendError = async (error: Error, ...params: any) => {
  * @param customData - The custom data to append
  */
 const addCustomData = (customData: CustomData) => {
-  if (!CrashReportingAvailable("addCustomData")) return;
+  if (!CrashReportingAvailable('addCustomData')) return;
   crashReporter.addCustomData(customData);
 };
 
@@ -235,7 +229,7 @@ const addCustomData = (customData: CustomData) => {
  * @param updater - The transformation.
  */
 const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
-  if (!CrashReportingAvailable("updateCustomData")) return;
+  if (!CrashReportingAvailable('updateCustomData')) return;
   crashReporter.updateCustomData(updater);
 };
 
@@ -245,17 +239,20 @@ const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
  */
 const CrashReportingAvailable = (calledFrom: string) => {
   if (!initialized) {
-    warn(`Failed: "${calledFrom}" cannot be called before initialising RaygunClient. Please call RaygunClient.init(...) before trying to call RaygunClient.${calledFrom}(...)`);
+    warn(
+      `Failed: "${calledFrom}" cannot be called before initialising RaygunClient. Please call RaygunClient.init(...) before trying to call RaygunClient.${calledFrom}(...)`
+    );
     return false;
   } else if (!(crashReporter && options.enableCrashReporting)) {
-    warn(`Failed: "${calledFrom}" cannot be called unless Crash Reporting has been enabled, please ensure that you set "enableCrashReporting" to true during RaygunClient.init(...)`);
+    warn(
+      `Failed: "${calledFrom}" cannot be called unless Crash Reporting has been enabled, please ensure that you set "enableCrashReporting" to true during RaygunClient.init(...)`
+    );
     return false;
   }
   return true;
-}
+};
 
 //#endregion----------------------------------------------------------------------------------------
-
 
 //#region ----REAL USER MONITORING LOGIC------------------------------------------------------------
 
@@ -270,7 +267,7 @@ const sendRUMTimingEvent = (
   name: string,
   timeUsedInMs: number
 ) => {
-  if (!RealUserMonitoringAvailable("sendRUMTimingEvent")) return;
+  if (!RealUserMonitoringAvailable('sendRUMTimingEvent')) return;
   realUserMonitor.sendCustomRUMEvent(eventType, name, timeUsedInMs);
 };
 
@@ -280,18 +277,21 @@ const sendRUMTimingEvent = (
  */
 const RealUserMonitoringAvailable = (calledFrom: string) => {
   if (!initialized) {
-    warn(`Failed: "${calledFrom}" cannot be called before initialising RaygunClient. Please call RaygunClient.init(...) before trying to call RaygunClient.${calledFrom}(...)`);
+    warn(
+      `Failed: "${calledFrom}" cannot be called before initialising RaygunClient. Please call RaygunClient.init(...) before trying to call RaygunClient.${calledFrom}(...)`
+    );
     return false;
   }
   if (!(realUserMonitor && options.enableRealUserMonitoring)) {
-    warn(`Failed: "${calledFrom}" cannot be called unless Real User Monitoring has been enabled, please ensure that you set "enableRealUserMonitoring" to true during RaygunClient.init(...)`);
+    warn(
+      `Failed: "${calledFrom}" cannot be called unless Real User Monitoring has been enabled, please ensure that you set "enableRealUserMonitoring" to true during RaygunClient.init(...)`
+    );
     return false;
   }
   return true;
-}
+};
 
 //#endregion----------------------------------------------------------------------------------------
-
 
 export {
   init,

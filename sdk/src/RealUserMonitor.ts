@@ -13,8 +13,6 @@ const SessionRotateThreshold = 30 * 60 * 1000; //milliseconds (equivalent to 30 
  * The Real User Monitor class is responsible for managing all logic for RUM specific tasks.
  */
 export default class RealUserMonitor {
-
-
   //#region ----INITIALIZATION----------------------------------------------------------------------
 
   private readonly currentSession: Session;
@@ -77,7 +75,6 @@ export default class RealUserMonitor {
   }
 
   //#endregion--------------------------------------------------------------------------------------
-
 
   //#region ----ALL RUM LOGIC-----------------------------------------------------------------------
 
@@ -184,11 +181,9 @@ export default class RealUserMonitor {
       this.curRUMSessionId = getDeviceBasedId();
       await this.sendRUMEvent(RealUserMonitoringEvents.SessionStart, {});
     }
-    const data = {name, timing: {type: RealUserMonitoringEvents.ViewLoaded, duration}};
+    const data = { name, timing: { type: RealUserMonitoringEvents.ViewLoaded, duration } };
     return this.sendRUMEvent(RealUserMonitoringEvents.EventTiming, data);
-  };
+  }
 
   //#endregion--------------------------------------------------------------------------------------
-
-
 }

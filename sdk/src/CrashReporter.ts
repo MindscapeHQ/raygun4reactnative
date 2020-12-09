@@ -12,8 +12,6 @@ const { version: clientVersion } = require('../package.json');
  * (breadcrumbs and customData).
  */
 export default class CrashReporter {
-
-
   //#region ----INITIALIZATION----------------------------------------------------------------------
 
   private curSession: Session;
@@ -77,7 +75,6 @@ export default class CrashReporter {
 
   //#endregion--------------------------------------------------------------------------------------
 
-
   //#region ----ALTERING SESSION DATA---------------------------------------------------------------
 
   /**
@@ -124,7 +121,6 @@ export default class CrashReporter {
 
   //#endregion--------------------------------------------------------------------------------------
 
-
   //#region ----LOCAL CACHING OF CRASH REPORTS------------------------------------------------------
 
   //TODO Rename to cacheCrashReport
@@ -170,7 +166,6 @@ export default class CrashReporter {
   }
 
   //#endregion--------------------------------------------------------------------------------------
-
 
   //#region ----CALLBACK HANDLERS-------------------------------------------------------------------
 
@@ -236,7 +231,6 @@ export default class CrashReporter {
 
   //#endregion--------------------------------------------------------------------------------------
 
-
   //#region ----SENDING CRASH REPORTS---------------------------------------------------------------
 
   /**
@@ -284,7 +278,7 @@ export default class CrashReporter {
         Version: this.version || 'Not supplied'
       }
     };
-  };
+  }
 
   /**
    * Clear all custom user data
@@ -325,6 +319,4 @@ export default class CrashReporter {
   }
 
   //#endregion--------------------------------------------------------------------------------------
-
-
 }
