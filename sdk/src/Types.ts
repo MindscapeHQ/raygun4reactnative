@@ -108,7 +108,6 @@ export type CrashReportPayload = {
 
 //#region ----REAL USER MONITORING SPECIFIC TYPES---------------------------------------------------
 
-//TODO Move networkCall and ActivityLoaded into separate type
 export enum RealUserMonitoringEvents {
   SessionStart = 'session_start',
   SessionEnd = 'session_end',

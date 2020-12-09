@@ -149,7 +149,6 @@ const setUser = (user: User | string) => {
   if (!options.disableNativeCrashReporting) {
     RaygunNativeBridge.setUser(userObj);
   }
-  //TODO Rotate RUM where required
 };
 
 /**

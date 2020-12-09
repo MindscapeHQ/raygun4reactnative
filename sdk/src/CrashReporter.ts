@@ -69,7 +69,7 @@ export default class CrashReporter {
     //If NATIVE crash reporting is enabled then the native side will handle caching
     //Otherwise the react native side will need to apply caching logic/
     if (disableNativeCrashReporting) {
-      setTimeout(() => this.sendCachedReports(apiKey, customCrashReportingEndpoint), 10); //TODO not on timer!!!
+      setTimeout(() => this.sendCachedReports(apiKey, customCrashReportingEndpoint), 10);
     }
   }
 
@@ -123,15 +123,12 @@ export default class CrashReporter {
 
   //#region ----LOCAL CACHING OF CRASH REPORTS------------------------------------------------------
 
-  //TODO Rename to cacheCrashReport
   /**
    * Cache a given Report to be sent later.
    * @param report - the Report to cache
    */
   async saveCrashReport(report: CrashReportPayload): Promise<null> {
     return RaygunNativeBridge.saveCrashReport(JSON.stringify(report));
-
-    //TODO React side caching not implemented
   }
 
   /**
@@ -146,11 +143,7 @@ export default class CrashReporter {
         return [];
       }
     });
-
-    //TODO React side caching not implemented
   }
-
-  //TODO clearCachedReports()
 
   /**
    * Transmit cached reports.
@@ -161,8 +154,6 @@ export default class CrashReporter {
     const reports = await this.loadCachedReports();
     log('Load all cached report', reports);
     return Promise.all(reports.map(report => this.sendCrashReport(report, apiKey, customEndpoint, true)));
-
-    //TODO React side caching not implemented && cached reports should be cleared when sent
   }
 
   //#endregion--------------------------------------------------------------------------------------
@@ -306,8 +297,6 @@ export default class CrashReporter {
     }).catch(err => {
       error(err);
       log('Cache report when it failed to send', isRetry);
-
-      //TODO what is isRetry?? Why does it negate caching?
 
       //If the Crash Report fails to send then cache it.
       if (isRetry) {
