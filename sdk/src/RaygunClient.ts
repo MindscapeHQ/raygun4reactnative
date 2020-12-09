@@ -188,9 +188,9 @@ const recordBreadcrumb = (message: string, details?: BreadcrumbOption) => {
  * Also ensure that the custom data is a CustomData instance, all tags will be strings.
  *
  * @example
- * 1)   RaygunClient.sendCustomError(new Error(), {[Date.now()]: `This is just an example`}, "Foo", "Bar");
- * 2)   RaygunClient.sendCustomError(new Error(), {[Date.now()]: `This is just an example`});
- * 3)   RaygunClient.sendCustomError(new Error(), "Foo", "Bar");
+ * 1)   RaygunClient.sendError(new Error(), {[Date.now()]: `This is just an example`}, "Foo", "Bar");
+ * 2)   RaygunClient.sendError(new Error(), {[Date.now()]: `This is just an example`});
+ * 3)   RaygunClient.sendError(new Error(), "Foo", "Bar");
  *
  * @param error - The error.
  * @param params - Custom data or tags alongside the error.
