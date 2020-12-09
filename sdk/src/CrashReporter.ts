@@ -13,6 +13,7 @@ const { version: clientVersion } = require('../package.json');
  */
 export default class CrashReporter {
 
+
   //#region ----INITIALIZATION----------------------------------------------------------------------
 
   private curSession: Session;
@@ -76,6 +77,7 @@ export default class CrashReporter {
 
   //#endregion--------------------------------------------------------------------------------------
 
+
   //#region ----ALTERING SESSION DATA---------------------------------------------------------------
 
   /**
@@ -122,6 +124,7 @@ export default class CrashReporter {
 
   //#endregion--------------------------------------------------------------------------------------
 
+
   //#region ----LOCAL CACHING OF CRASH REPORTS------------------------------------------------------
 
   /**
@@ -158,6 +161,7 @@ export default class CrashReporter {
   }
 
   //#endregion--------------------------------------------------------------------------------------
+
 
   //#region ----CALLBACK HANDLERS-------------------------------------------------------------------
 
@@ -222,6 +226,7 @@ export default class CrashReporter {
   }
 
   //#endregion--------------------------------------------------------------------------------------
+
 
   //#region ----SENDING CRASH REPORTS---------------------------------------------------------------
 
@@ -309,5 +314,6 @@ export default class CrashReporter {
   }
 
   //#endregion--------------------------------------------------------------------------------------
+
 
 }
