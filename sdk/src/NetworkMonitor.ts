@@ -1,7 +1,8 @@
-import {NetworkTimingCallback, RequestMeta} from './Types';
-//@ts-ignore
+import { NetworkTimingCallback, RequestMeta } from './Types';
+import { getDeviceBasedId, removeProtocol, shouldIgnore } from './Utils';
+
+// @ts-ignore
 import XHRInterceptor from 'react-native/Libraries/Network/XHRInterceptor';
-import {getDeviceBasedId, removeProtocol, shouldIgnore} from './Utils';
 
 const requests = new Map<string, RequestMeta>();
 
@@ -12,20 +13,23 @@ const requests = new Map<string, RequestMeta>();
  *
  * @param ignoredURLs - A string array of URLs to ignore
  */
-const handleRequestOpen = (ignoredURLs: string[]) => (method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', url: string, xhr: any) => {
-    // If this URL is on the IGNORE list, then do nothing.
-    if (shouldIgnore(url, ignoredURLs)) {
-        return;
-    }
-    // Obtain the device ID
-    const id = getDeviceBasedId();
-    // Set the ID of the XHRInterceptor to the device ID
-    xhr._id_ = id;
-    // Store the ID and the action taken on the device in a map, ID => REQUEST_META
-    requests.set(id, {name: `${method} ${url}`});
+const handleRequestOpen = (ignoredURLs: string[]) => (
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+  url: string,
+  xhr: any
+) => {
+  // If this URL is on the IGNORE list, then do nothing.
+  if (shouldIgnore(url, ignoredURLs)) {
+    return;
+  }
+  // Obtain the device ID
+  const id = getDeviceBasedId();
+  // Set the ID of the XHRInterceptor to the device ID
+  xhr._id_ = id;
+  // Store the ID and the action taken on the device in a map, ID => REQUEST_META
+  requests.set(id, { name: `${method} ${url}` });
 
-
-    /* NOTE, The method requires the ignoredURLs. Which is parsed into the RealUserMonitor and then parsed to the
+  /* NOTE, The method requires the ignoredURLs. Which is parsed into the RealUserMonitor and then parsed to the
      setupNetworkMonitoring method. For this reason, the method declaration used here is needed. */
 };
 
@@ -36,14 +40,14 @@ const handleRequestOpen = (ignoredURLs: string[]) => (method: 'GET' | 'POST' | '
  * @param xhr - The interceptor that picked up the send request.
  */
 const handleRequestSend = (data: string, xhr: any) => {
-    // Extract the XHRInterceptor's ID (also the Device's base ID). Use that to get the RequestMeta object from the map
-    const {_id_} = xhr;
-    const requestMeta = requests.get(_id_);
+  // Extract the XHRInterceptor's ID (also the Device's base ID). Use that to get the RequestMeta object from the map
+  const { _id_ } = xhr;
+  const requestMeta = requests.get(_id_);
 
-    // If the object exists, then store the current time
-    if (requestMeta) {
-        requestMeta.sendTime = Date.now();
-    }
+  // If the object exists, then store the current time
+  if (requestMeta) {
+    requestMeta.sendTime = Date.now();
+  }
 };
 
 /**
@@ -55,18 +59,25 @@ const handleRequestSend = (data: string, xhr: any) => {
  * response).
  * @param sendNetworkTimingEvent - A NetworkTimingCallback method.
  */
-const handleResponse = (sendNetworkTimingEvent: NetworkTimingCallback) => (status: number, timeout: number, resp: string, respUrl: string, respType: string, xhr: any) => {
-    // Extract the XHRInterceptor's ID (also the Device's base ID). Use that to get the RequestMeta object from the map
-    const {_id_} = xhr;
-    const requestMeta = requests.get(_id_);
+const handleResponse = (sendNetworkTimingEvent: NetworkTimingCallback) => (
+  status: number,
+  timeout: number,
+  resp: string,
+  respUrl: string,
+  respType: string,
+  xhr: any
+) => {
+  // Extract the XHRInterceptor's ID (also the Device's base ID). Use that to get the RequestMeta object from the map
+  const { _id_ } = xhr;
+  const requestMeta = requests.get(_id_);
 
-    // If the object exists, then ...
-    if (requestMeta) {
-        // Extract the name and send time from the Request
-        const {name, sendTime} = requestMeta;
-        const duration = Date.now() - sendTime!;
-        sendNetworkTimingEvent(name, sendTime!, duration);
-    }
+  // If the object exists, then ...
+  if (requestMeta) {
+    // Extract the name and send time from the Request
+    const { name, sendTime } = requestMeta;
+    const duration = Date.now() - sendTime!;
+    sendNetworkTimingEvent(name, sendTime!, duration);
+  }
 };
 
 /**
@@ -75,11 +86,11 @@ const handleResponse = (sendNetworkTimingEvent: NetworkTimingCallback) => (statu
  * @param sendNetworkTimingEvent - A NetworkTimingCallback method.
  */
 export const setupNetworkMonitoring = (ignoredURLs: string[], sendNetworkTimingEvent: NetworkTimingCallback) => {
-    if (typeof sendNetworkTimingEvent === 'function') {
-        const urls = ([] as string[]).concat(ignoredURLs || []).map(removeProtocol);
-        XHRInterceptor.setOpenCallback(handleRequestOpen(urls));
-        XHRInterceptor.setSendCallback(handleRequestSend);
-        XHRInterceptor.setResponseCallback(handleResponse(sendNetworkTimingEvent));
-        XHRInterceptor.enableInterception();
-    }
+  if (typeof sendNetworkTimingEvent === 'function') {
+    const urls = ([] as string[]).concat(ignoredURLs || []).map(removeProtocol);
+    XHRInterceptor.setOpenCallback(handleRequestOpen(urls));
+    XHRInterceptor.setSendCallback(handleRequestSend);
+    XHRInterceptor.setResponseCallback(handleResponse(sendNetworkTimingEvent));
+    XHRInterceptor.enableInterception();
+  }
 };
