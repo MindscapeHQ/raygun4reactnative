@@ -7,7 +7,6 @@ import {
   BreadcrumbOption,
   CustomData,
   RaygunClientOptions,
-  RealUserMonitoringEvents,
   Session,
   User,
   RealUserMonitoringAssetType
@@ -17,6 +16,8 @@ import CrashReporter from './CrashReporter';
 import RealUserMonitor from './RealUserMonitor';
 import { NativeModules } from 'react-native';
 
+const { RaygunNativeBridge } = NativeModules;
+
 /**
  * The RaygunClient is the interface in which this provider publicly shows. The bottom of this page
  * has an 'export' statement which exports the methods defined in the RaygunClient.ts file. Some
@@ -25,10 +26,7 @@ import { NativeModules } from 'react-native';
  */
 
 
-
 //#region ----INITIALIZATION------------------------------------------------------------------------
-
-const { RaygunNativeBridge } = NativeModules;
 
 const getCleanSession = (): Session => ({
   tags: new Set(['React Native']),
@@ -92,14 +90,13 @@ const init = async (raygunClientOptions: RaygunClientOptions) => {
     crashReporter = new CrashReporter(
       curSession,
       apiKey,
-      disableNetworkMonitoring,
+      disableNativeCrashReporting,
       customCrashReportingEndpoint || '',
       onBeforeSendingCrashReport,
       version
     );
-
-
   }
+
   //Enable Real User Monitoring
   if (enableRealUserMonitoring) {
     realUserMonitor = new RealUserMonitor(
