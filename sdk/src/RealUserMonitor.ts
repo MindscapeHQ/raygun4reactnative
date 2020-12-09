@@ -1,20 +1,18 @@
-import {RealUserMonitoringEvents, Session, User} from "./Types";
-import {NativeEventEmitter, NativeModules, Platform} from 'react-native';
-import {setupNetworkMonitoring} from "./NetworkMonitor";
-import {getDeviceBasedId, log, warn} from "./Utils";
+import { RealUserMonitoringEvents, Session, User } from './Types';
+import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
+import { setupNetworkMonitoring } from './NetworkMonitor';
+import { getDeviceBasedId, log, warn } from './Utils';
 
-const {RaygunNativeBridge} = NativeModules;
-const {osVersion, platform} = RaygunNativeBridge;
+const { RaygunNativeBridge } = NativeModules;
+const { osVersion, platform } = RaygunNativeBridge;
 
 const defaultURLIgnoreList = ['api.raygun.com', 'localhost:8081/symbolicate'];
 const SessionRotateThreshold = 30 * 60 * 100;
-
 
 /**
  * The Real User Monitor class is responsible for managing all logic for RUM specific tasks.
  */
 export default class RealUserMonitor {
-
   private readonly currentSession: Session;
   private readonly apiKey: string;
   private readonly version: string;
@@ -34,8 +32,14 @@ export default class RealUserMonitor {
    * @param customRealUserMonitoringEndpoint - The custom API URL endpoint where this API should send data to.
    * @param version - The Version number of this application. (User provided)
    */
-  constructor(currentSession: Session, apiKey: string, disableNetworkMonitoring = true, ignoredURLs: string[], customRealUserMonitoringEndpoint: string, version: string) {
-
+  constructor(
+    currentSession: Session,
+    apiKey: string,
+    disableNetworkMonitoring = true,
+    ignoredURLs: string[],
+    customRealUserMonitoringEndpoint: string,
+    version: string
+  ) {
     // Assign the values parsed in (assuming initiation is the only time these are altered).
     this.apiKey = apiKey;
     this.disableNetworkMonitoring = disableNetworkMonitoring;
@@ -66,9 +70,7 @@ export default class RealUserMonitor {
       eventEmitter.removeAllListeners(RaygunNativeBridge.ON_RESUME);
       eventEmitter.removeAllListeners(RaygunNativeBridge.ON_DESTROY);
     });
-
-  };
-
+  }
 
   /**
    * Sends a RUMEvent with the parameters parsed into this method. Utilizing the JSON layout sent
@@ -80,10 +82,9 @@ export default class RealUserMonitor {
    * @param duration - The time taken for this event to fully execute.
    */
   sendNetworkTimingEventCallback(name: string, sendTime: number, duration: number) {
-    const data = {name, timing: {type: RealUserMonitoringEvents.NetworkCall, duration}};
+    const data = { name, timing: { type: RealUserMonitoringEvents.NetworkCall, duration } };
     this.sendRUMEvent(RealUserMonitoringEvents.EventTiming, data, sendTime).catch();
-  };
-
+  }
 
   /**
    * Updates the time since last activity to be NOW.
@@ -105,7 +106,6 @@ export default class RealUserMonitor {
     name: string,
     duration: number
   ) {
-
     if (eventType === RealUserMonitoringEvents.ActivityLoaded) {
       this.reportStartupTime(name, duration);
       return;
@@ -115,8 +115,7 @@ export default class RealUserMonitor {
       return;
     }
     warn('Unknown RUM event type:', eventType);
-  };
-
+  }
 
   /**
    * "Rotating" a RUM session is to close down the current session and open another. Instances where
@@ -132,8 +131,7 @@ export default class RealUserMonitor {
       this.curRUMSessionId = getDeviceBasedId();
       return this.sendRUMEvent(RealUserMonitoringEvents.SessionStart, {});
     }
-  };
-
+  }
 
   /**
    * Sends a POST request to the custom || default RUM Endpoint, creating an object (later
@@ -158,13 +156,12 @@ export default class RealUserMonitor {
 
     return fetch(this.customRealUserMonitoringEndpoint || this.RAYGUN_RUM_ENDPOINT, {
       method: 'POST',
-      headers: {'X-ApiKey': this.apiKey, 'Content-Type': 'application/json'},
-      body: JSON.stringify({eventData: [rumMessage]})
+      headers: { 'X-ApiKey': this.apiKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ eventData: [rumMessage] })
     }).catch(err => {
       log(err);
     });
-  };
-
+  }
 
   /**
    * This method sends a mobile event timing message to the raygun server. If the current session
@@ -178,8 +175,7 @@ export default class RealUserMonitor {
       this.curRUMSessionId = getDeviceBasedId();
       await this.sendRUMEvent(RealUserMonitoringEvents.SessionStart, {});
     }
-    const data = {name, timing: {type: RealUserMonitoringEvents.ActivityLoaded, duration}};
+    const data = { name, timing: { type: RealUserMonitoringEvents.ActivityLoaded, duration } };
     return this.sendRUMEvent(RealUserMonitoringEvents.EventTiming, data);
-  };
-
+  }
 }

@@ -8,12 +8,12 @@ type BasicType = string | number | boolean;
 
 export type CustomData = {
   [key: string]: BasicType | CustomData | BasicType[] | CustomData[];
-}
+};
 
 export type Session = {
   tags: Set<string>;
   user: User;
-}
+};
 
 export type User = {
   identifier: string;
@@ -22,7 +22,7 @@ export type User = {
   firstName?: string;
   fullName?: string;
   uuid?: string;
-}
+};
 
 export type RaygunClientOptions = {
   apiKey: string;
@@ -35,7 +35,7 @@ export type RaygunClientOptions = {
   customRealUserMonitoringEndpoint?: string;
   onBeforeSendingCrashReport?: BeforeSendHandler;
   ignoredURLs?: string[];
-}
+};
 
 //-------------------------------------------------------------------------------------------------
 // CRASH REPORTING SPECIFIC TYPES
@@ -47,7 +47,7 @@ type RaygunStackFrame = {
   ColumnNumber: number | null;
   MethodName: string;
   ClassName: string;
-}
+};
 
 type Environment = {
   UtcOffset: number;
@@ -72,7 +72,7 @@ type Environment = {
   Board?: string;
   DeviceCode?: string;
   JailBroken?: boolean;
-}
+};
 
 export type Breadcrumb = {
   message: string;
@@ -80,7 +80,7 @@ export type Breadcrumb = {
   level?: 'debug' | 'info' | 'warning' | 'error';
   customData?: CustomData;
   timestamp?: number;
-}
+};
 
 export type BreadcrumbOption = Omit<Breadcrumb, 'message' | 'timestamp'>;
 
@@ -106,7 +106,7 @@ export type CrashReportPayload = {
     Breadcrumbs?: Breadcrumb[];
     Version: string;
   };
-}
+};
 
 //-------------------------------------------------------------------------------------------------
 // REAL USER MONITORING SPECIFIC TYPES
@@ -128,11 +128,9 @@ export enum RealUserMonitoringEvents {
 export type RequestMeta = {
   name: string;
   sendTime?: number;
-}
+};
 
 export type NetworkTimingCallback = (name: string, sendTime: number, duration: number) => void;
-
-
 
 //-------------------------------------------------------------------------------------------------
 // NAMESPACE DECLARATION
@@ -143,6 +141,6 @@ declare global {
     type Global = {
       HermesInternal?: Record<string, string>;
       ErrorUtils: ErrorUtils;
-    }
+    };
   }
 }

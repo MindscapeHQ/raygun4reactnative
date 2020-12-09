@@ -1,7 +1,7 @@
-import {NativeModules} from 'react-native';
-import {StackFrame} from 'react-native/Libraries/Core/Devtools/parseErrorStack';
+import { NativeModules } from 'react-native';
+import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
 
-const {RaygunNativeBridge} = NativeModules;
+const { RaygunNativeBridge } = NativeModules;
 
 const SOURCE_MAP_PREFIX = 'file://reactnative.local/';
 const devicePathPattern = /^(.*@)?.*\/[^\.]+(\.app|CodePush)\/?(.*)/;
@@ -15,7 +15,9 @@ const internalTrace = new RegExp('ReactNativeRenderer-dev\\.js$|MessageQueue\\.j
  * Constructs an ID specific for the current device being used.
  */
 export const getDeviceBasedId = () =>
-  `${RaygunNativeBridge.DEVICE_ID}-${Date.now().toString(32)}-${(Math.random() * 100000).toString(16).replace('.', '')}`;
+  `${RaygunNativeBridge.DEVICE_ID}-${Date.now().toString(32)}-${(Math.random() * 100000)
+    .toString(16)
+    .replace('.', '')}`;
 
 /**
  * Makes a deep clone of some object.
@@ -37,7 +39,7 @@ export const cleanFilePath = (frames: StackFrame[]): StackFrame[] =>
     const result = devicePathPattern.exec(frame.file);
     if (result) {
       const [_, __, ___, fileName] = result;
-      return {...frame, file: SOURCE_MAP_PREFIX + fileName};
+      return { ...frame, file: SOURCE_MAP_PREFIX + fileName };
     }
     return frame;
   });
@@ -55,8 +57,8 @@ export const upperFirst = (obj: any | any[]): any | any[] => {
       (all, [key, val]) => ({
         ...all,
         ...(key !== 'customData'
-          ? {[key.slice(0, 1).toUpperCase() + key.slice(1)]: upperFirst(val)}
-          : {CustomData: val})
+          ? { [key.slice(0, 1).toUpperCase() + key.slice(1)]: upperFirst(val) }
+          : { CustomData: val })
       }),
       {}
     );
@@ -68,7 +70,7 @@ export const upperFirst = (obj: any | any[]): any | any[] => {
  * Remove the '(address at' suffix added by stacktrace-parser which used by React
  * @param frame StackFrame
  */
-export const noAddressAt = ({methodName, ...rest}: StackFrame): StackFrame => {
+export const noAddressAt = ({ methodName, ...rest }: StackFrame): StackFrame => {
   const pos = methodName.indexOf('(address at');
   return {
     ...rest,

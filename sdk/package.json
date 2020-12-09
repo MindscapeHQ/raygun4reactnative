@@ -23,7 +23,8 @@
     "local_send_sdk": "copyfiles *.tgz ../demo",
     "build_demo": "cd ../demo && npm i",
     "run_demo": "cd ../demo && npx react-native run-android",
-    "fully-automated": "npm run clean_dir_all && npm run build_sdk && npm run local_send_sdk && npm run build_demo && npm run run_demo"
+    "fully-automated": "npm run clean_dir_all && npm run build_sdk && npm run local_send_sdk && npm run build_demo && npm run run_demo",
+    "prettier": "npx prettier --write src"
   },
   "repository": {
     "type": "git",
