@@ -7,12 +7,16 @@ const { RaygunNativeBridge } = NativeModules;
 const { osVersion, platform } = RaygunNativeBridge;
 
 const defaultURLIgnoreList = ['api.raygun.com', 'localhost:8081/symbolicate'];
-const SessionRotateThreshold = 30 * 60 * 100;
+const SessionRotateThreshold = 30 * 60 * 1000; //milliseconds (equivalent to 30 minutes)
 
 /**
  * The Real User Monitor class is responsible for managing all logic for RUM specific tasks.
  */
 export default class RealUserMonitor {
+
+
+  //#region ----INITIALIZATION----------------------------------------------------------------------
+
   private readonly currentSession: Session;
   private readonly apiKey: string;
   private readonly version: string;
@@ -72,6 +76,11 @@ export default class RealUserMonitor {
     });
   }
 
+  //#endregion--------------------------------------------------------------------------------------
+
+
+  //#region ----ALL RUM LOGIC-----------------------------------------------------------------------
+
   /**
    * Sends a RUMEvent with the parameters parsed into this method. Utilizing the JSON layout sent
    * to api.raygun.com, the name and duration are added as parameters to the "DATA" field in the
@@ -102,11 +111,11 @@ export default class RealUserMonitor {
    * @param duration - How long this event took to execute.
    */
   sendCustomRUMEvent(
-    eventType: RealUserMonitoringEvents.ActivityLoaded | RealUserMonitoringEvents.NetworkCall,
+    eventType: RealUserMonitoringEvents.ViewLoaded | RealUserMonitoringEvents.NetworkCall,
     name: string,
     duration: number
   ) {
-    if (eventType === RealUserMonitoringEvents.ActivityLoaded) {
+    if (eventType === RealUserMonitoringEvents.ViewLoaded) {
       this.reportStartupTime(name, duration);
       return;
     }
@@ -175,7 +184,11 @@ export default class RealUserMonitor {
       this.curRUMSessionId = getDeviceBasedId();
       await this.sendRUMEvent(RealUserMonitoringEvents.SessionStart, {});
     }
-    const data = { name, timing: { type: RealUserMonitoringEvents.ActivityLoaded, duration } };
+    const data = {name, timing: {type: RealUserMonitoringEvents.ViewLoaded, duration}};
     return this.sendRUMEvent(RealUserMonitoringEvents.EventTiming, data);
-  }
+  };
+
+  //#endregion--------------------------------------------------------------------------------------
+
+
 }

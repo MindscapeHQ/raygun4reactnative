@@ -7,7 +7,7 @@ import {
   updateCustomData,
   clearSession,
   sendRUMTimingEvent,
-  sendCustomError
+  sendError
 } from './RaygunClient';
 
 export default {
@@ -19,5 +19,5 @@ export default {
   updateCustomData,
   clearSession,
   sendRUMTimingEvent,
-  sendCustomError
+  sendError
 };

@@ -12,6 +12,10 @@ const { version: clientVersion } = require('../package.json');
  * (breadcrumbs and customData).
  */
 export default class CrashReporter {
+
+
+  //#region ----INITIALIZATION----------------------------------------------------------------------
+
   private curSession: Session;
   private breadcrumbs: Breadcrumb[] = [];
   private customData: CustomData = {};
@@ -41,7 +45,15 @@ export default class CrashReporter {
     onBeforeSendingCrashReport: BeforeSendHandler | null,
     version: string
   ) {
-    //Setup error handler to divert errors to crash reporter
+    // Assign the values parsed in (assuming initiation is the only time these are altered).
+    this.curSession = curSession;
+    this.apiKey = apiKey;
+    this.disableNativeCrashReporting = disableNativeCrashReporting;
+    this.customCrashReportingEndpoint = customCrashReportingEndpoint;
+    this.onBeforeSendingCrashReport = onBeforeSendingCrashReport;
+    this.version = version;
+
+    //Set up error handler to divert errors to crash reporter
     const prevHandler = ErrorUtils.getGlobalHandler();
     ErrorUtils.setGlobalHandler(async (error: Error, isFatal?: boolean) => {
       await this.processUnhandledError(error, isFatal);
@@ -61,19 +73,12 @@ export default class CrashReporter {
     if (disableNativeCrashReporting) {
       setTimeout(() => this.sendCachedReports(apiKey, customCrashReportingEndpoint), 10); //TODO not on timer!!!
     }
-
-    // Store the values parsed in (assuming initiation is the only time these are altered).
-    this.curSession = curSession;
-    this.apiKey = apiKey;
-    this.disableNativeCrashReporting = disableNativeCrashReporting;
-    this.customCrashReportingEndpoint = customCrashReportingEndpoint;
-    this.onBeforeSendingCrashReport = onBeforeSendingCrashReport;
-    this.version = version;
   }
 
-  //-------------------------------------------------------------------------------------------------
-  // ALTERING CUSTOM USER DATA
-  //-------------------------------------------------------------------------------------------------
+  //#endregion--------------------------------------------------------------------------------------
+
+
+  //#region ----ALTERING SESSION DATA---------------------------------------------------------------
 
   /**
    * Append some custom data to the users current set of custom data.
@@ -117,17 +122,10 @@ export default class CrashReporter {
     }
   }
 
-  /**
-   * Clear all custom user data
-   */
-  resetCrashReporter() {
-    this.breadcrumbs = [];
-    this.customData = {};
-  }
+  //#endregion--------------------------------------------------------------------------------------
 
-  //-------------------------------------------------------------------------------------------------
-  // LOCAL CACHING OF CRASH REPORTS
-  //-------------------------------------------------------------------------------------------------
+
+  //#region ----LOCAL CACHING OF CRASH REPORTS------------------------------------------------------
 
   //TODO Rename to cacheCrashReport
   /**
@@ -171,9 +169,10 @@ export default class CrashReporter {
     //TODO React side caching not implemented && cached reports should be cleared when sent
   }
 
-  //-------------------------------------------------------------------------------------------------
-  // CALLBACK HANDLERS
-  //-------------------------------------------------------------------------------------------------
+  //#endregion--------------------------------------------------------------------------------------
+
+
+  //#region ----CALLBACK HANDLERS-------------------------------------------------------------------
 
   /**
    * The error handler method to catch react errors and route them to the CrashReporter.
@@ -235,9 +234,10 @@ export default class CrashReporter {
     this.processUnhandledError(error, false);
   }
 
-  //-------------------------------------------------------------------------------------------------
-  // SENDING CRASH REPORTS
-  //-------------------------------------------------------------------------------------------------
+  //#endregion--------------------------------------------------------------------------------------
+
+
+  //#region ----SENDING CRASH REPORTS---------------------------------------------------------------
 
   /**
    * Format an error into the standard Crash Reporting structure.
@@ -262,8 +262,8 @@ export default class CrashReporter {
       OccurredOn: new Date(),
       Details: {
         Error: {
-          ClassName: error?.name || '',
-          Message: error?.message || '',
+          ClassName: error?.name || 'Unknown',
+          Message: error?.message || 'Unknown',
           StackTrace: Array.isArray(stackTrace)
             ? stackTrace.map(convertToCrashReportingStackFrame)
             : [convertToCrashReportingStackFrame(stackTrace)],
@@ -271,7 +271,6 @@ export default class CrashReporter {
         },
         Environment: {
           UtcOffset: new Date().getTimezoneOffset() / 60.0,
-          JailBroken: false,
           ...environmentDetails
         },
         Client: {
@@ -285,6 +284,14 @@ export default class CrashReporter {
         Version: this.version || 'Not supplied'
       }
     };
+  };
+
+  /**
+   * Clear all custom user data
+   */
+  resetCrashReporter() {
+    this.breadcrumbs = [];
+    this.customData = {};
   }
 
   /**
@@ -316,4 +323,8 @@ export default class CrashReporter {
       return this.saveCrashReport(report);
     });
   }
+
+  //#endregion--------------------------------------------------------------------------------------
+
+
 }

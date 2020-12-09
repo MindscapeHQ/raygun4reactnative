@@ -1,19 +1,18 @@
 import { ErrorUtils } from 'react-native';
 
-//-------------------------------------------------------------------------------------------------
-// RAYGUN CLIENT SESSION TYPES
-//-------------------------------------------------------------------------------------------------
+
+//#region ----RAYGUN CLIENT SESSION TYPES-----------------------------------------------------------
 
 type BasicType = string | number | boolean;
 
 export type CustomData = {
   [key: string]: BasicType | CustomData | BasicType[] | CustomData[];
-};
+}
 
 export type Session = {
   tags: Set<string>;
   user: User;
-};
+}
 
 export type User = {
   identifier: string;
@@ -22,7 +21,7 @@ export type User = {
   firstName?: string;
   fullName?: string;
   uuid?: string;
-};
+}
 
 export type RaygunClientOptions = {
   apiKey: string;
@@ -35,11 +34,12 @@ export type RaygunClientOptions = {
   customRealUserMonitoringEndpoint?: string;
   onBeforeSendingCrashReport?: BeforeSendHandler;
   ignoredURLs?: string[];
-};
+}
 
-//-------------------------------------------------------------------------------------------------
-// CRASH REPORTING SPECIFIC TYPES
-//-------------------------------------------------------------------------------------------------
+//#endregion----------------------------------------------------------------------------------------
+
+
+//#region ----CRASH REPORTING SPECIFIC TYPES--------------------------------------------------------
 
 type RaygunStackFrame = {
   FileName: string;
@@ -47,7 +47,7 @@ type RaygunStackFrame = {
   ColumnNumber: number | null;
   MethodName: string;
   ClassName: string;
-};
+}
 
 type Environment = {
   UtcOffset: number;
@@ -72,7 +72,7 @@ type Environment = {
   Board?: string;
   DeviceCode?: string;
   JailBroken?: boolean;
-};
+}
 
 export type Breadcrumb = {
   message: string;
@@ -80,7 +80,7 @@ export type Breadcrumb = {
   level?: 'debug' | 'info' | 'warning' | 'error';
   customData?: CustomData;
   timestamp?: number;
-};
+}
 
 export type BreadcrumbOption = Omit<Breadcrumb, 'message' | 'timestamp'>;
 
@@ -106,41 +106,46 @@ export type CrashReportPayload = {
     Breadcrumbs?: Breadcrumb[];
     Version: string;
   };
-};
+}
 
-//-------------------------------------------------------------------------------------------------
-// REAL USER MONITORING SPECIFIC TYPES
-//-------------------------------------------------------------------------------------------------
+//#endregion----------------------------------------------------------------------------------------
+
+
+//#region ----REAL USER MONITORING SPECIFIC TYPES---------------------------------------------------
 
 //TODO Move networkCall and ActivityLoaded into separate type
 export enum RealUserMonitoringEvents {
   SessionStart = 'session_start',
   SessionEnd = 'session_end',
   EventTiming = 'mobile_event_timing',
-  ActivityLoaded = 'p',
+  ViewLoaded = 'p',
   NetworkCall = 'n'
 }
 
-//-------------------------------------------------------------------------------------------------
-// NETWORK MONITORING SPECIFIC TYPES
-//-------------------------------------------------------------------------------------------------
+//#endregion----------------------------------------------------------------------------------------
+
+
+//#region ----NETWORK MONITORING SPECIFIC TYPES-----------------------------------------------------
 
 export type RequestMeta = {
   name: string;
   sendTime?: number;
-};
+}
 
 export type NetworkTimingCallback = (name: string, sendTime: number, duration: number) => void;
 
-//-------------------------------------------------------------------------------------------------
-// NAMESPACE DECLARATION
-//-------------------------------------------------------------------------------------------------
+//#endregion----------------------------------------------------------------------------------------
+
+
+//#region ----NAMESPACE DECLARATION-----------------------------------------------------------------
 
 declare global {
   namespace NodeJS {
     type Global = {
       HermesInternal?: Record<string, string>;
       ErrorUtils: ErrorUtils;
-    };
+    }
   }
 }
+
+//#endregion----------------------------------------------------------------------------------------
