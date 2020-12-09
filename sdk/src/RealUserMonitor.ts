@@ -13,6 +13,7 @@ const SessionRotateThreshold = 30 * 60 * 1000; //milliseconds (equivalent to 30 
  * The Real User Monitor class is responsible for managing all logic for RUM specific tasks.
  */
 export default class RealUserMonitor {
+
   //#region ----INITIALIZATION----------------------------------------------------------------------
 
   private readonly currentSession: Session;
@@ -76,6 +77,7 @@ export default class RealUserMonitor {
 
   //#endregion--------------------------------------------------------------------------------------
 
+
   //#region ----ALL RUM LOGIC-----------------------------------------------------------------------
 
   /**
@@ -95,7 +97,7 @@ export default class RealUserMonitor {
   /**
    * Updates the time since last activity to be NOW.
    */
-  markLastActiveTime = async () => {
+  markLastActiveTime() {
     this.lastActiveAt = Date.now();
   };
 
@@ -186,4 +188,5 @@ export default class RealUserMonitor {
   }
 
   //#endregion--------------------------------------------------------------------------------------
+
 }
