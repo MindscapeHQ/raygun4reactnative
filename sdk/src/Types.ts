@@ -37,6 +37,7 @@ export type RaygunClientOptions = {
 
 //#endregion----------------------------------------------------------------------------------------
 
+
 //#region ----CRASH REPORTING SPECIFIC TYPES--------------------------------------------------------
 
 type RaygunStackFrame = {
@@ -106,12 +107,18 @@ export type CrashReportPayload = {
   };
 };
 
+//#endregion----------------------------------------------------------------------------------------
+
+
 //#region ----REAL USER MONITORING SPECIFIC TYPES---------------------------------------------------
 
 export enum RealUserMonitoringEvents {
   SessionStart = 'session_start',
   SessionEnd = 'session_end',
-  EventTiming = 'mobile_event_timing',
+  EventTiming = 'mobile_event_timing'
+}
+
+export enum RealUserMonitoringAssetType {
   ViewLoaded = 'p',
   NetworkCall = 'n'
 }

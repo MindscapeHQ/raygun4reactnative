@@ -1,4 +1,4 @@
-import { RealUserMonitoringEvents, Session } from './Types';
+import { RealUserMonitoringEvents, RealUserMonitoringAssetType, Session } from './Types';
 import { setupNetworkMonitoring } from './NetworkMonitor';
 import { getDeviceBasedId, log, warn } from './Utils';
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
@@ -88,7 +88,7 @@ export default class RealUserMonitor {
    * @param duration - The time taken for this event to fully execute.
    */
   sendNetworkTimingEventCallback(name: string, sendTime: number, duration: number) {
-    const data = { name, timing: { type: RealUserMonitoringEvents.NetworkCall, duration } };
+    const data = { name, timing: { type: RealUserMonitoringAssetType.NetworkCall, duration } };
     this.sendRUMEvent(RealUserMonitoringEvents.EventTiming, data, sendTime).catch();
   }
 
@@ -108,15 +108,15 @@ export default class RealUserMonitor {
    * @param duration - How long this event took to execute.
    */
   sendCustomRUMEvent(
-    eventType: RealUserMonitoringEvents.ViewLoaded | RealUserMonitoringEvents.NetworkCall,
+    eventType: RealUserMonitoringAssetType.ViewLoaded | RealUserMonitoringAssetType.NetworkCall,
     name: string,
     duration: number
   ) {
-    if (eventType === RealUserMonitoringEvents.ViewLoaded) {
+    if (eventType === RealUserMonitoringAssetType.ViewLoaded) {
       this.reportStartupTime(name, duration);
       return;
     }
-    if (eventType === RealUserMonitoringEvents.NetworkCall) {
+    if (eventType === RealUserMonitoringAssetType.NetworkCall) {
       this.sendNetworkTimingEventCallback(name, Date.now() - duration, duration);
       return;
     }
@@ -181,7 +181,7 @@ export default class RealUserMonitor {
       this.curRUMSessionId = getDeviceBasedId();
       await this.sendRUMEvent(RealUserMonitoringEvents.SessionStart, {});
     }
-    const data = { name, timing: { type: RealUserMonitoringEvents.ViewLoaded, duration } };
+    const data = { name, timing: { type: RealUserMonitoringAssetType.ViewLoaded, duration } };
     return this.sendRUMEvent(RealUserMonitoringEvents.EventTiming, data);
   }
 
