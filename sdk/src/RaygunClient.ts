@@ -39,6 +39,7 @@ const getCleanSession = (): Session => ({
   }
 });
 
+
 let curSession = getCleanSession();
 let crashReporter: CrashReporter;
 let realUserMonitor: RealUserMonitor;
@@ -154,6 +155,7 @@ const setUser = (user: User | string) => {
   if (!options.disableNativeCrashReporting) {
     RaygunNativeBridge.setUser(userObj);
   }
+};
 
   //TODO Rotate RUM where required
 };

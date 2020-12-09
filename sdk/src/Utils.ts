@@ -77,23 +77,12 @@ export const noAddressAt = ({ methodName, ...rest }: StackFrame): StackFrame => 
     };
 };
 
-/**
- * Removes the HTTP || HTTPS protocols from some URL (string).
- * @param url - The URL to remove the protocol from.
- */
 export const removeProtocol = (url: string) => url.replace(/^http(s)?:\/\//i, '');
 
-//#endregion----------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+// FILTERING
+//-------------------------------------------------------------------------------------------------
 
-
-//#region ----FILTERING-----------------------------------------------------------------------------
-
-/**
- * Used as a boolean filtering method, returns true if the 'url' exists in the list of urls
- * to ignore ('ignoredURLs')
- * @param url - Current URL to determine.
- * @param ignoredURLs - All URLs that should be ignored.
- */
 export const shouldIgnore = (url: string, ignoredURLs: string[]): boolean => {
     const target = removeProtocol(url);
     return ignoredURLs.some(ignored => target.startsWith(ignored));
@@ -101,10 +90,9 @@ export const shouldIgnore = (url: string, ignoredURLs: string[]): boolean => {
 
 export const filterOutReactFrames = (frame: StackFrame): boolean => !!frame.file && !frame.file.match(internalTrace);
 
-//#endregion----------------------------------------------------------------------------------------
-
-
-//#region ----LOGGING-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+// LOGGING
+//-------------------------------------------------------------------------------------------------
 
 const getLogger = (output: (...args: any[]) => void) => (...args: any[]) => {
     if (__DEV__) {
@@ -118,5 +106,3 @@ export const log = getLogger(console.log);
 export const warn = getLogger(console.warn);
 
 export const error = getLogger(console.error);
-
-//#endregion----------------------------------------------------------------------------------------
