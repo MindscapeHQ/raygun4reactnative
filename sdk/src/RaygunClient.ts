@@ -9,7 +9,8 @@ import {
   RaygunClientOptions,
   RealUserMonitoringEvents,
   Session,
-  User
+  User,
+  RealUserMonitoringAssetType
 } from './Types';
 import { clone, getDeviceBasedId, log, warn } from './Utils';
 import CrashReporter from './CrashReporter';
@@ -22,6 +23,8 @@ import { NativeModules } from 'react-native';
  * of the logical components have been separated out from this file and into classes specific to
  * CrashReporting or RealUserMonitoring (CrashReporter.ts and RealUserMonitor.ts respectively).
  */
+
+
 
 //#region ----INITIALIZATION------------------------------------------------------------------------
 
@@ -94,6 +97,8 @@ const init = async (raygunClientOptions: RaygunClientOptions) => {
       onBeforeSendingCrashReport,
       version
     );
+
+
   }
   //Enable Real User Monitoring
   if (enableRealUserMonitoring) {
@@ -113,6 +118,8 @@ const init = async (raygunClientOptions: RaygunClientOptions) => {
 };
 
 //#endregion----------------------------------------------------------------------------------------
+
+
 
 //#region ----RAYGUN CLIENT SESSION LOGIC-----------------------------------------------------------
 
@@ -164,6 +171,8 @@ const clearSession = () => {
 };
 
 //#endregion----------------------------------------------------------------------------------------
+
+
 
 //#region ----CRASH REPORTING LOGIC-----------------------------------------------------------------
 
@@ -250,6 +259,8 @@ const CrashReportingAvailable = (calledFrom: string) => {
 
 //#endregion----------------------------------------------------------------------------------------
 
+
+
 //#region ----REAL USER MONITORING LOGIC------------------------------------------------------------
 
 /**
@@ -259,7 +270,7 @@ const CrashReportingAvailable = (calledFrom: string) => {
  * @param timeUsedInMs - Length this event took to execute.
  */
 const sendRUMTimingEvent = (
-  eventType: RealUserMonitoringEvents.ViewLoaded | RealUserMonitoringEvents.NetworkCall,
+  eventType: RealUserMonitoringAssetType.ViewLoaded | RealUserMonitoringAssetType.NetworkCall,
   name: string,
   timeUsedInMs: number
 ) => {
