@@ -177,11 +177,11 @@ export default class CrashReporter {
 
     //Clean the stack trace and check for empty stack trace
     const symbolicateStackTrace = require('react-native/Libraries/Core/Devtools/symbolicateStackTrace');
-    const cleanedstackTrace: StackFrame[] = __DEV__
+    const cleanedStackTrace: StackFrame[] = __DEV__
       ? await symbolicateStackTrace(stackTrace)
       : { stack: cleanFilePath(stackTrace) };
 
-    const stack = cleanedstackTrace || [].filter(filterOutReactFrames).map(noAddressAt);
+    const stack = cleanedStackTrace || [].filter(filterOutReactFrames).map(noAddressAt);
 
     //Add specific tag if this error is fatal
     if (isFatal) {
