@@ -106,10 +106,6 @@ export type CrashReportPayload = {
   };
 };
 
-//-------------------------------------------------------------------------------------------------
-// REAL USER MONITORING SPECIFIC TYPES
-//-------------------------------------------------------------------------------------------------
-
 //#region ----REAL USER MONITORING SPECIFIC TYPES---------------------------------------------------
 
 //TODO Move networkCall and ActivityLoaded into separate type
@@ -122,6 +118,7 @@ export enum RealUserMonitoringEvents {
 }
 
 //#endregion----------------------------------------------------------------------------------------
+
 
 //#region ----NETWORK MONITORING SPECIFIC TYPES-----------------------------------------------------
 
