@@ -12,6 +12,7 @@ const { version: clientVersion } = require('../package.json');
  * (breadcrumbs and customData).
  */
 export default class CrashReporter {
+
   //#region ----INITIALIZATION----------------------------------------------------------------------
 
   private curSession: Session;
@@ -308,4 +309,5 @@ export default class CrashReporter {
   }
 
   //#endregion--------------------------------------------------------------------------------------
+
 }

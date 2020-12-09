@@ -78,20 +78,22 @@ export default class RealUserMonitor {
   //#endregion--------------------------------------------------------------------------------------
 
 
-  //#region ----ALL RUM LOGIC-----------------------------------------------------------------------
+  //#region ----RUM SESSION MANAGEMENT--------------------------------------------------------------
 
   /**
-   * Sends a RUMEvent with the parameters parsed into this method. Utilizing the JSON layout sent
-   * to api.raygun.com, the name and duration are added as parameters to the "DATA" field in the
-   * RUM message.
-   * @param name - The event name (note this is not the event type), used in the "DATA" param of a
-   * RUM message
-   * @param sendTime - The time at which the event occurred.
-   * @param duration - The time taken for this event to fully execute.
+   * "Rotating" a RUM session is to close down the current session and open another. Instances where
+   * a rotation is needed:
+   *  anon_user -> user = NO (login)
+   *  user1 -> user2 = YES (switch accounts)
+   *  user -> anon = YES (logout)
    */
-  sendNetworkTimingEventCallback(name: string, sendTime: number, duration: number) {
-    const data = { name, timing: { type: RealUserMonitoringAssetType.NetworkCall, duration } };
-    this.sendRUMEvent(RealUserMonitoringEvents.EventTiming, data, sendTime).catch();
+  async rotateRUMSession() {
+    if (Date.now() - this.lastActiveAt > SessionRotateThreshold) {
+      this.lastActiveAt = Date.now();
+      await this.sendRUMEvent(RealUserMonitoringEvents.SessionEnd, {});
+      this.curRUMSessionId = getDeviceBasedId();
+      return this.sendRUMEvent(RealUserMonitoringEvents.SessionStart, {});
+    }
   }
 
   /**
@@ -100,6 +102,11 @@ export default class RealUserMonitor {
   markLastActiveTime() {
     this.lastActiveAt = Date.now();
   };
+
+  //#endregion--------------------------------------------------------------------------------------
+
+
+  //#region ----RUM EVENT HANDLERS------------------------------------------------------------------
 
   /**
    * Enables the ability to send a custom RUM message. Utilizing the parameters described below,
@@ -126,19 +133,33 @@ export default class RealUserMonitor {
   }
 
   /**
-   * "Rotating" a RUM session is to close down the current session and open another. Instances where
-   * a rotation is needed:
-   *  anon_user -> user = NO (login)
-   *  user1 -> user2 = YES (switch accounts)
-   *  user -> anon = YES (logout)
+   * Sends a RUMEvent with the parameters parsed into this method. Utilizing the JSON layout sent
+   * to api.raygun.com, the name and duration are added as parameters to the "DATA" field in the
+   * RUM message.
+   * @param name - The event name (note this is not the event type), used in the "DATA" param of a
+   * RUM message
+   * @param sendTime - The time at which the event occurred.
+   * @param duration - The time taken for this event to fully execute.
    */
-  async rotateRUMSession() {
-    if (Date.now() - this.lastActiveAt > SessionRotateThreshold) {
-      this.lastActiveAt = Date.now();
-      await this.sendRUMEvent(RealUserMonitoringEvents.SessionEnd, {});
+  sendNetworkTimingEventCallback(name: string, sendTime: number, duration: number) {
+    const data = { name, timing: { type: RealUserMonitoringAssetType.NetworkCall, duration } };
+    this.sendRUMEvent(RealUserMonitoringEvents.EventTiming, data, sendTime).catch();
+  }
+
+  /**
+   * This method sends a mobile event timing message to the raygun server. If the current session
+   * has not been setup, this method will also ensure that the session has been allocated an ID
+   * before sending away any data.
+   * @param name - Name of the event (specific to the event).
+   * @param duration - How long the event took.
+   */
+  async reportStartupTime(name: string, duration: number) {
+    if (!this.curRUMSessionId) {
       this.curRUMSessionId = getDeviceBasedId();
-      return this.sendRUMEvent(RealUserMonitoringEvents.SessionStart, {});
+      await this.sendRUMEvent(RealUserMonitoringEvents.SessionStart, {});
     }
+    const data = { name, timing: { type: RealUserMonitoringAssetType.ViewLoaded, duration } };
+    return this.sendRUMEvent(RealUserMonitoringEvents.EventTiming, data);
   }
 
   /**
@@ -169,22 +190,6 @@ export default class RealUserMonitor {
     }).catch(err => {
       log(err);
     });
-  }
-
-  /**
-   * This method sends a mobile event timing message to the raygun server. If the current session
-   * has not been setup, this method will also ensure that the session has been allocated an ID
-   * before sending away any data.
-   * @param name - Name of the event (specific to the event).
-   * @param duration - How long the event took.
-   */
-  async reportStartupTime(name: string, duration: number) {
-    if (!this.curRUMSessionId) {
-      this.curRUMSessionId = getDeviceBasedId();
-      await this.sendRUMEvent(RealUserMonitoringEvents.SessionStart, {});
-    }
-    const data = { name, timing: { type: RealUserMonitoringAssetType.ViewLoaded, duration } };
-    return this.sendRUMEvent(RealUserMonitoringEvents.EventTiming, data);
   }
 
   //#endregion--------------------------------------------------------------------------------------
