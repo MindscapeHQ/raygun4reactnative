@@ -55,7 +55,7 @@ export default class RealUserMonitor {
     if (!disableNetworkMonitoring) {
       setupNetworkMonitoring(
         ignoredURLs.concat(defaultURLIgnoreList, customRealUserMonitoringEndpoint || []),
-        this.sendNetworkTimingEventCallback.bind(this)
+        this.sendNetworkTimingEvent.bind(this)
       );
     }
 
@@ -64,7 +64,7 @@ export default class RealUserMonitor {
 
     // Create native event listeners on this device
     const eventEmitter = new NativeEventEmitter(RaygunNativeBridge);
-    eventEmitter.addListener(RaygunNativeBridge.ON_START, this.reportStartupTime.bind(this));
+    eventEmitter.addListener(RaygunNativeBridge.ON_START, this.sendViewLoadedEvent.bind(this));
     eventEmitter.addListener(RaygunNativeBridge.ON_PAUSE, this.markLastActiveTime.bind(this));
     eventEmitter.addListener(RaygunNativeBridge.ON_RESUME, this.rotateRUMSession.bind(this));
     eventEmitter.addListener(RaygunNativeBridge.ON_DESTROY, () => {
@@ -90,9 +90,9 @@ export default class RealUserMonitor {
   async rotateRUMSession() {
     if (Date.now() - this.lastActiveAt > SessionRotateThreshold) {
       this.lastActiveAt = Date.now();
-      await this.sendRUMEvent(RealUserMonitoringEvents.SessionEnd, {});
+      await this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionEnd, {});
       this.curRUMSessionId = getDeviceBasedId();
-      return this.sendRUMEvent(RealUserMonitoringEvents.SessionStart, {});
+      return this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
     }
   }
 
@@ -110,7 +110,7 @@ export default class RealUserMonitor {
 
   /**
    * Enables the ability to send a custom RUM message. Utilizing the parameters described below,
-   * each one is used in constructing a RUM message, which is ultimately fed to the sendRUMEvent
+   * each one is used in constructing a RUM message, which is ultimately fed to the transmitRealUserMonitoringEvent
    * method.
    * @param eventType - A small description of the event (used to categorize events)
    * @param name - The name of the event (makes the event individual from it's category)
@@ -122,11 +122,11 @@ export default class RealUserMonitor {
     duration: number
   ) {
     if (eventType === RealUserMonitoringAssetType.ViewLoaded) {
-      this.reportStartupTime(name, duration);
+      this.sendViewLoadedEvent(name, duration);
       return;
     }
     if (eventType === RealUserMonitoringAssetType.NetworkCall) {
-      this.sendNetworkTimingEventCallback(name, Date.now() - duration, duration);
+      this.sendNetworkTimingEvent(name, Date.now() - duration, duration);
       return;
     }
     warn('Unknown RUM event type:', eventType);
@@ -141,9 +141,9 @@ export default class RealUserMonitor {
    * @param sendTime - The time at which the event occurred.
    * @param duration - The time taken for this event to fully execute.
    */
-  sendNetworkTimingEventCallback(name: string, sendTime: number, duration: number) {
+  sendNetworkTimingEvent(name: string, sendTime: number, duration: number) {
     const data = { name, timing: { type: RealUserMonitoringAssetType.NetworkCall, duration } };
-    this.sendRUMEvent(RealUserMonitoringEvents.EventTiming, data, sendTime).catch();
+    this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.EventTiming, data, sendTime).catch();
   }
 
   /**
@@ -153,13 +153,13 @@ export default class RealUserMonitor {
    * @param name - Name of the event (specific to the event).
    * @param duration - How long the event took.
    */
-  async reportStartupTime(name: string, duration: number) {
+  async sendViewLoadedEvent(name: string, duration: number) {
     if (!this.curRUMSessionId) {
       this.curRUMSessionId = getDeviceBasedId();
-      await this.sendRUMEvent(RealUserMonitoringEvents.SessionStart, {});
+      await this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
     }
     const data = { name, timing: { type: RealUserMonitoringAssetType.ViewLoaded, duration } };
-    return this.sendRUMEvent(RealUserMonitoringEvents.EventTiming, data);
+    return this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.EventTiming, data);
   }
 
   /**
@@ -169,7 +169,7 @@ export default class RealUserMonitor {
    * @param data - Extra information to send in the RUM message, under "DATA".
    * @param timeAt - The time at which this event occurred, defaults to NOW if undefined/null.
    */
-  async sendRUMEvent(eventName: string, data: Record<string, any>, timeAt?: number) {
+  async transmitRealUserMonitoringEvent(eventName: string, data: Record<string, any>, timeAt?: number) {
     const timestamp = timeAt ? new Date(timeAt) : new Date();
     const rumMessage = {
       type: eventName,
