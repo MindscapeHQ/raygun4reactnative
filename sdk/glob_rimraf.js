@@ -6,7 +6,6 @@ console.log(args);
 
 console.log("[REMOVING DIRECTORIES!!!]:\n");
 
-
 for (let i = 0; i < args.length; ++i) {
   glob(args[i], {}, function (er, files) {
     // Log an error
