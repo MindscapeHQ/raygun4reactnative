@@ -11,7 +11,7 @@
 import React from 'react';
 import { SafeAreaView, StyleSheet, ScrollView, View, StatusBar, Button } from 'react-native';
 
-import { throwUndefinedError, throwCustomError, promiseRejection, reInitialize, makeNetworkCall } from './helper';
+import { throwUndefinedError, throwCustomError, promiseRejection, reInitialize, makeNetworkCall } from './Helper';
 
 import { Header, Colors } from 'react-native/Libraries/NewAppScreen';
 
@@ -21,11 +21,9 @@ import RaygunClient from 'raygun4reactnative';
 
 RaygunClient.init({
   apiKey: '', // YOUR APIKEY
-  version: '', // YOUR APP VERSION
-  customCrashReportingEndpoint: '',
-  customRUMEndpoint: '',
-  enableNativeCrashReporting: true,
-  enableRUM: true
+  version: '0.0.1', // YOUR APP VERSION
+  enableCrashReporting: true,
+  enableRealUserMonitoring: true
 });
 
 const App = () => {

@@ -69,8 +69,9 @@ RaygunClient.init({
   //RaygunClientOptions
   apiKey: YOUR_RAYGUN_APIKEY,
   version: YOUR_APP_VERSION,
-  enableNativeCrashReporting: true,
-  enableRUM: true,
+  enableRealUserMonitoring: true,
+  enableCrashReporting: true,
+  disableNativeCrashReporting: false,
   onBeforeSend: null
 });
 ```
