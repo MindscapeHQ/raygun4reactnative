@@ -3,7 +3,7 @@
  * Crash Reporting functionality as well as managing Session specific data.
  */
 
-import { BreadcrumbOption, CustomData, RaygunClientOptions, Session, User, RealUserMonitoringTimingType } from './Types';
+import { BreadcrumbOption, CustomData, RaygunClientOptions, Session, User, RealUserMonitoringTimings } from './Types';
 import { clone, getDeviceBasedId, log, warn } from './Utils';
 import CrashReporter from './CrashReporter';
 import RealUserMonitor from './RealUserMonitor';
@@ -253,7 +253,7 @@ const CrashReportingAvailable = (calledFrom: string) => {
  * @param timeUsedInMs - Length this event took to execute.
  */
 const sendRUMTimingEvent = (
-  eventType: RealUserMonitoringTimingType.ViewLoaded | RealUserMonitoringTimingType.NetworkCall,
+  eventType: RealUserMonitoringTimings.ViewLoaded | RealUserMonitoringTimings.NetworkCall,
   name: string,
   timeUsedInMs: number
 ) => {

@@ -1,4 +1,4 @@
-import { ErrorUtils, Platform } from 'react-native';
+import { ErrorUtils } from 'react-native';
 
 //#region ----RAYGUN CLIENT SESSION TYPES-----------------------------------------------------------
 
@@ -116,7 +116,7 @@ export enum RealUserMonitoringEvents {
   EventTiming = 'mobile_event_timing'
 }
 
-export enum RealUserMonitoringTimingType {
+export enum RealUserMonitoringTimings {
   ViewLoaded = 'p',
   NetworkCall = 'n'
 }
