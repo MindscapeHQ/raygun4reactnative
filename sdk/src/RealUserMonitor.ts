@@ -6,13 +6,13 @@ import {
   NetworkTimingCallback,
   RequestMeta
 } from './Types';
-import {getDeviceBasedId, log, warn, removeProtocol, shouldIgnore} from './Utils';
+import { getDeviceBasedId, log, warn, removeProtocol, shouldIgnore } from './Utils';
 // @ts-ignore
 import XHRInterceptor from 'react-native/Libraries/Network/XHRInterceptor';
-import {NativeEventEmitter, NativeModules, Platform} from 'react-native';
+import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
 
-const {RaygunNativeBridge} = NativeModules;
-const {osVersion, platform} = RaygunNativeBridge;
+const { RaygunNativeBridge } = NativeModules;
+const { osVersion, platform } = RaygunNativeBridge;
 
 const defaultURLIgnoreList = ['api.raygun.com', 'localhost:8081/symbolicate'];
 const SessionRotateThreshold = 30 * 60 * 1000; //milliseconds (equivalent to 30 minutes)
@@ -21,8 +21,6 @@ const SessionRotateThreshold = 30 * 60 * 1000; //milliseconds (equivalent to 30 
  * The Real User Monitor class is responsible for managing all logic for RUM specific tasks.
  */
 export default class RealUserMonitor {
-
-
   //#region ----INITIALIZATION----------------------------------------------------------------------
 
   private readonly currentSession: Session;
@@ -30,7 +28,7 @@ export default class RealUserMonitor {
   private readonly version: string;
   private readonly disableNetworkMonitoring: boolean;
   private readonly customRealUserMonitoringEndpoint: string;
-  private ignoredURLs : string[];
+  private ignoredURLs: string[];
   private RAYGUN_RUM_ENDPOINT = 'https://api.raygun.com/events';
 
   lastActiveAt = Date.now();
@@ -85,7 +83,6 @@ export default class RealUserMonitor {
 
   //#endregion--------------------------------------------------------------------------------------
 
-
   //#region ----RUM SESSION MANAGEMENT--------------------------------------------------------------
 
   /**
@@ -109,10 +106,9 @@ export default class RealUserMonitor {
    */
   markLastActiveTime() {
     this.lastActiveAt = Date.now();
-  };
+  }
 
   //#endregion--------------------------------------------------------------------------------------
-
 
   //#region ----RUM EVENT HANDLERS------------------------------------------------------------------
 
@@ -150,7 +146,7 @@ export default class RealUserMonitor {
    * @param duration - The time taken for this event to fully execute.
    */
   sendNetworkTimingEvent(name: string, sendTime: number, duration: number) {
-    const data = {name, timing: {type: RealUserMonitoringAssetType.NetworkCall, duration}};
+    const data = { name, timing: { type: RealUserMonitoringAssetType.NetworkCall, duration } };
     this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.EventTiming, data, sendTime).catch();
   }
 
@@ -166,16 +162,19 @@ export default class RealUserMonitor {
       this.curRUMSessionId = getDeviceBasedId();
       await this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
     }
-    const data = {name, timing: {type: RealUserMonitoringAssetType.ViewLoaded, duration}};
+    const data = { name, timing: { type: RealUserMonitoringAssetType.ViewLoaded, duration } };
     return this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.EventTiming, data);
   }
 
   //#endregion--------------------------------------------------------------------------------------
 
-
   //#region ----RUM PAYLOAD MANAGEMENT--------------------------------------------------------------
 
-  generateRealUserMonitorPayload(eventName: string, data: Record<string, any>, timeAt?: number): RealUserMonitorPayload {
+  generateRealUserMonitorPayload(
+    eventName: string,
+    data: Record<string, any>,
+    timeAt?: number
+  ): RealUserMonitorPayload {
     const timestamp = timeAt ? new Date(timeAt) : new Date();
     return {
       type: eventName,
@@ -201,15 +200,14 @@ export default class RealUserMonitor {
     const rumMessage = this.generateRealUserMonitorPayload(eventName, data, timeAt);
     return fetch(this.customRealUserMonitoringEndpoint || this.RAYGUN_RUM_ENDPOINT, {
       method: 'POST',
-      headers: {'X-ApiKey': this.apiKey, 'Content-Type': 'application/json'},
-      body: JSON.stringify({eventData: [rumMessage]})
+      headers: { 'X-ApiKey': this.apiKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ eventData: [rumMessage] })
     }).catch(err => {
       log(err);
     });
   }
 
   //#endregion--------------------------------------------------------------------------------------
-
 
   //#region ----NETWORK MONITORING------------------------------------------------------------------
 
@@ -224,12 +222,7 @@ export default class RealUserMonitor {
    * @param url
    * @param xhr
    */
-  handleRequestOpen(
-    method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
-    url: string,
-    xhr: any
-  ) {
-
+  handleRequestOpen(method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', url: string, xhr: any) {
     // If this URL is on the IGNORE list, then do nothing.
     if (shouldIgnore(url, this.ignoredURLs)) {
       return;
@@ -241,8 +234,8 @@ export default class RealUserMonitor {
     xhr._id_ = id;
 
     // Store the ID and the action taken on the device in a map, ID => REQUEST_META
-    this.requests.set(id, {name: `${method} ${url}`});
-  };
+    this.requests.set(id, { name: `${method} ${url}` });
+  }
 
   /**
    * When the XHRInterceptor receives a send request, this method is called. It stores the current time in the relevant
@@ -250,16 +243,16 @@ export default class RealUserMonitor {
    * @param data - UNUSED.
    * @param xhr - The interceptor that picked up the send request.
    */
-  handleRequestSend(data: string, xhr: any){
+  handleRequestSend(data: string, xhr: any) {
     // Extract the XHRInterceptor's ID (also the Device's base ID). Use that to get the RequestMeta object from the map
-    const {_id_} = xhr;
+    const { _id_ } = xhr;
     const requestMeta = this.requests.get(_id_);
 
     // If the object exists, then store the current time
     if (requestMeta) {
       requestMeta.sendTime = Date.now();
     }
-  };
+  }
 
   /**
    * This method returns a callback method to utilize in the XHRInterceptor.setResponseCallback method.
@@ -275,38 +268,29 @@ export default class RealUserMonitor {
    * @param respType
    * @param xhr
    */
-  handleResponse(
-    status: number,
-    timeout: number,
-    resp: string,
-    respUrl: string,
-    respType: string,
-    xhr: any
-  ){
+  handleResponse(status: number, timeout: number, resp: string, respUrl: string, respType: string, xhr: any) {
     // Extract the XHRInterceptor's ID (also the Device's base ID). Use that to get the RequestMeta object from the map
-    const {_id_} = xhr;
+    const { _id_ } = xhr;
     const requestMeta = this.requests.get(_id_);
 
     // If the object exists, then ...
     if (requestMeta) {
       // Extract the name and send time from the Request
-      const {name, sendTime} = requestMeta;
+      const { name, sendTime } = requestMeta;
       const duration = Date.now() - sendTime!;
       this.sendNetworkTimingEvent(name, sendTime!, duration);
     }
-  };
+  }
 
   /**
    * Instantiates the Open, Send and Response callback methods for the XHRInterceptor.
    */
-  setupNetworkMonitoring () {
+  setupNetworkMonitoring() {
     XHRInterceptor.setOpenCallback(this.handleRequestOpen.bind(this));
     XHRInterceptor.setSendCallback(this.handleRequestSend.bind(this));
     XHRInterceptor.setResponseCallback(this.handleResponse.bind(this));
     XHRInterceptor.enableInterception();
-  };
+  }
 
   //#endregion--------------------------------------------------------------------------------------
-
-
 }

@@ -21,7 +21,6 @@ export const clone = <T>(object: T): T => JSON.parse(JSON.stringify(object));
 
 //#endregion----------------------------------------------------------------------------------------
 
-
 //#region ----REGEX REFACTORING---------------------------------------------------------------------
 
 const SOURCE_MAP_PREFIX = 'file://reactnative.local/';
@@ -82,7 +81,6 @@ export const removeProtocol = (url: string) => url.replace(/^http(s)?:\/\//i, ''
 
 //#endregion----------------------------------------------------------------------------------------
 
-
 //#region ----FILTERING-----------------------------------------------------------------------------
 
 export const shouldIgnore = (url: string, ignoredURLs: string[]): boolean => {
@@ -93,7 +91,6 @@ export const shouldIgnore = (url: string, ignoredURLs: string[]): boolean => {
 export const filterOutReactFrames = (frame: StackFrame): boolean => !!frame.file && !frame.file.match(internalTrace);
 
 //#endregion----------------------------------------------------------------------------------------
-
 
 //#region ----LOGGING-------------------------------------------------------------------------------
 

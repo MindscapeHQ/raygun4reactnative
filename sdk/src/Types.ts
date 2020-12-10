@@ -1,4 +1,4 @@
-import {ErrorUtils, Platform} from 'react-native';
+import { ErrorUtils, Platform } from 'react-native';
 
 //#region ----RAYGUN CLIENT SESSION TYPES-----------------------------------------------------------
 
@@ -36,7 +36,6 @@ export type RaygunClientOptions = {
 };
 
 //#endregion----------------------------------------------------------------------------------------
-
 
 //#region ----CRASH REPORTING SPECIFIC TYPES--------------------------------------------------------
 
@@ -109,7 +108,6 @@ export type CrashReportPayload = {
 
 //#endregion----------------------------------------------------------------------------------------
 
-
 //#region ----REAL USER MONITORING SPECIFIC TYPES---------------------------------------------------
 
 export enum RealUserMonitoringEvents {
@@ -126,18 +124,16 @@ export enum RealUserMonitoringAssetType {
 export type RealUserMonitorPayload = {
   type: string;
   timestamp: string;
-  user: User,
-  sessionId: string,
-  version: string,
-  os: "ios" | "android" | "windows" | "macos" | "web",
-  osVersion: any,
-  platform: any,
-  data: string
+  user: User;
+  sessionId: string;
+  version: string;
+  os: 'ios' | 'android' | 'windows' | 'macos' | 'web';
+  osVersion: any;
+  platform: any;
+  data: string;
 };
 
-
 //#endregion----------------------------------------------------------------------------------------
-
 
 //#region ----NETWORK MONITORING SPECIFIC TYPES-----------------------------------------------------
 
@@ -149,7 +145,6 @@ export type RequestMeta = {
 export type NetworkTimingCallback = (name: string, sendTime: number, duration: number) => void;
 
 //#endregion----------------------------------------------------------------------------------------
-
 
 //#region ----NAMESPACE DECLARATION-----------------------------------------------------------------
 
