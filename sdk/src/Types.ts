@@ -2,28 +2,8 @@ import { ErrorUtils } from 'react-native';
 
 //#region ----RAYGUN CLIENT SESSION TYPES-----------------------------------------------------------
 
-type BasicType = string | number | boolean;
-
-export type CustomData = {
-  [key: string]: BasicType | CustomData | BasicType[] | CustomData[];
-};
-
-export type Session = {
-  tags: Set<string>;
-  user: User;
-};
-
-export type User = {
-  identifier: string;
-  isAnonymous?: boolean;
-  email?: string;
-  firstName?: string;
-  fullName?: string;
-  uuid?: string;
-};
-
 export type RaygunClientOptions = {
-  apiKey: string;
+  apiKey?: string;
   version?: string;
   enableCrashReporting?: boolean;
   disableNativeCrashReporting?: boolean;
@@ -33,6 +13,21 @@ export type RaygunClientOptions = {
   customRealUserMonitoringEndpoint?: string;
   onBeforeSendingCrashReport?: BeforeSendHandler;
   ignoredURLs?: string[];
+};
+
+type BasicType = string | number | boolean;
+
+export type CustomData = {
+  [key: string]: BasicType | CustomData | BasicType[] | CustomData[];
+};
+
+export type User = {
+  identifier: string;
+  isAnonymous?: boolean;
+  email?: string;
+  firstName?: string;
+  fullName?: string;
+  uuid?: string;
 };
 
 //#endregion----------------------------------------------------------------------------------------

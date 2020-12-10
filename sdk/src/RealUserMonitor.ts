@@ -4,7 +4,7 @@ import {
   Session,
   RealUserMonitorPayload,
   NetworkTimingCallback,
-  RequestMeta
+  RequestMeta, User
 } from './Types';
 import { getDeviceBasedId, log, warn, removeProtocol, shouldIgnore } from './Utils';
 // @ts-ignore
@@ -22,8 +22,9 @@ const SessionRotateThreshold = 30 * 60 * 1000; //milliseconds (equivalent to 30 
  */
 export default class RealUserMonitor {
   //#region ----INITIALIZATION----------------------------------------------------------------------
-  private readonly currentSession: Session;
 
+  private user: User;
+  private tags: Set<string>;
   private readonly apiKey: string;
   private readonly version: string;
   private readonly disableNetworkMonitoring: boolean;
@@ -37,16 +38,18 @@ export default class RealUserMonitor {
 
   /**
    * RealUserMonitor: Manages RUM specific logic tasks.
-   * @param currentSession - The session shared between the CrashReporter and RaygunClient.
    * @param apiKey - The User's API key that gives them access to RUM. (User provided)
+   * @param user
+   * @param tags
    * @param disableNetworkMonitoring - If true, XHRInterceptor is not switched on. All requests go through without monitoring.
    * @param ignoredURLs - A string array of URLs to ignore when watching the network.
    * @param customRealUserMonitoringEndpoint - The custom API URL endpoint where this API should send data to.
    * @param version - The Version number of this application. (User provided)
    */
   constructor(
-    currentSession: Session,
     apiKey: string,
+    user: User,
+    tags: Set<string>,
     disableNetworkMonitoring = true,
     ignoredURLs: string[],
     customRealUserMonitoringEndpoint: string,
@@ -54,9 +57,10 @@ export default class RealUserMonitor {
   ) {
     // Assign the values parsed in (assuming initiation is the only time these are altered).
     this.apiKey = apiKey;
+    this.user = user;
+    this.tags = tags;
     this.disableNetworkMonitoring = disableNetworkMonitoring;
     this.customRealUserMonitoringEndpoint = customRealUserMonitoringEndpoint;
-    this.currentSession = currentSession;
     this.version = version;
     this.ignoredURLs = ignoredURLs.concat(defaultURLIgnoreList, customRealUserMonitoringEndpoint || []);
 
@@ -180,7 +184,7 @@ export default class RealUserMonitor {
     return {
       type: eventName,
       timestamp: timestamp.toISOString(),
-      user: this.currentSession.user,
+      user: this.user,
       sessionId: this.curRUMSessionId,
       version: this.version,
       os: Platform.OS,
