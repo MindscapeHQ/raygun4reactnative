@@ -1,6 +1,6 @@
 import {
   RealUserMonitoringEvents,
-  RealUserMonitoringAssetType,
+  RealUserMonitoringTimingType,
   Session,
   RealUserMonitorPayload,
   NetworkTimingCallback,
@@ -121,15 +121,15 @@ export default class RealUserMonitor {
    * @param duration - How long this event took to execute.
    */
   sendCustomRUMEvent(
-    eventType: RealUserMonitoringAssetType.ViewLoaded | RealUserMonitoringAssetType.NetworkCall,
+    eventType: RealUserMonitoringTimingType.ViewLoaded | RealUserMonitoringTimingType.NetworkCall,
     name: string,
     duration: number
   ) {
-    if (eventType === RealUserMonitoringAssetType.ViewLoaded) {
+    if (eventType === RealUserMonitoringTimingType.ViewLoaded) {
       this.sendViewLoadedEvent(name, duration);
       return;
     }
-    if (eventType === RealUserMonitoringAssetType.NetworkCall) {
+    if (eventType === RealUserMonitoringTimingType.NetworkCall) {
       this.sendNetworkTimingEvent(name, Date.now() - duration, duration);
       return;
     }
@@ -146,7 +146,7 @@ export default class RealUserMonitor {
    * @param duration - The time taken for this event to fully execute.
    */
   sendNetworkTimingEvent(name: string, sendTime: number, duration: number) {
-    const data = { name, timing: { type: RealUserMonitoringAssetType.NetworkCall, duration } };
+    const data = { name, timing: { type: RealUserMonitoringTimingType.NetworkCall, duration } };
     this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.EventTiming, data, sendTime).catch();
   }
 
@@ -162,7 +162,7 @@ export default class RealUserMonitor {
       this.curRUMSessionId = getDeviceBasedId();
       await this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
     }
-    const data = { name, timing: { type: RealUserMonitoringAssetType.ViewLoaded, duration } };
+    const data = { name, timing: { type: RealUserMonitoringTimingType.ViewLoaded, duration } };
     return this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.EventTiming, data);
   }
 

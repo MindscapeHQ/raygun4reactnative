@@ -116,7 +116,7 @@ export enum RealUserMonitoringEvents {
   EventTiming = 'mobile_event_timing'
 }
 
-export enum RealUserMonitoringAssetType {
+export enum RealUserMonitoringTimingType {
   ViewLoaded = 'p',
   NetworkCall = 'n'
 }
