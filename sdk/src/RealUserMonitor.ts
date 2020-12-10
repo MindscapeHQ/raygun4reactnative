@@ -22,13 +22,14 @@ const SessionRotateThreshold = 30 * 60 * 1000; //milliseconds (equivalent to 30 
  */
 export default class RealUserMonitor {
   //#region ----INITIALIZATION----------------------------------------------------------------------
-
   private readonly currentSession: Session;
+
   private readonly apiKey: string;
   private readonly version: string;
   private readonly disableNetworkMonitoring: boolean;
   private readonly customRealUserMonitoringEndpoint: string;
   private ignoredURLs: string[];
+  private requests = new Map<string, RequestMeta>();
   private RAYGUN_RUM_ENDPOINT = 'https://api.raygun.com/events';
 
   lastActiveAt = Date.now();
@@ -210,8 +211,6 @@ export default class RealUserMonitor {
   //#endregion--------------------------------------------------------------------------------------
 
   //#region ----NETWORK MONITORING------------------------------------------------------------------
-
-  private requests = new Map<string, RequestMeta>();
 
   /**
    * This method returns a callback method to utilize in the XHRInterceptor.setOpenCallback method.
