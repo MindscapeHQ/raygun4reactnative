@@ -3,18 +3,13 @@
  * Crash Reporting functionality as well as managing Session specific data.
  */
 
-import {
-  BreadcrumbOption,
-  CustomData,
-  RaygunClientOptions,
-  RealUserMonitoringEvents,
-  Session,
-  User
-} from './Types';
+import { BreadcrumbOption, CustomData, RaygunClientOptions, Session, User, RealUserMonitoringTimings } from './Types';
 import { clone, getDeviceBasedId, log, warn } from './Utils';
 import CrashReporter from './CrashReporter';
 import RealUserMonitor from './RealUserMonitor';
 import { NativeModules } from 'react-native';
+
+const { RaygunNativeBridge } = NativeModules;
 
 /**
  * The RaygunClient is the interface in which this provider publicly shows. The bottom of this page
@@ -24,8 +19,6 @@ import { NativeModules } from 'react-native';
  */
 
 //#region ----INITIALIZATION------------------------------------------------------------------------
-
-const { RaygunNativeBridge } = NativeModules;
 
 const getCleanSession = (): Session => ({
   tags: new Set(['React Native']),
@@ -89,12 +82,13 @@ const init = async (raygunClientOptions: RaygunClientOptions) => {
     crashReporter = new CrashReporter(
       curSession,
       apiKey,
-      disableNetworkMonitoring,
+      disableNativeCrashReporting,
       customCrashReportingEndpoint || '',
       onBeforeSendingCrashReport,
       version
     );
   }
+
   //Enable Real User Monitoring
   if (enableRealUserMonitoring) {
     realUserMonitor = new RealUserMonitor(
@@ -259,7 +253,7 @@ const CrashReportingAvailable = (calledFrom: string) => {
  * @param timeUsedInMs - Length this event took to execute.
  */
 const sendRUMTimingEvent = (
-  eventType: RealUserMonitoringEvents.ViewLoaded | RealUserMonitoringEvents.NetworkCall,
+  eventType: RealUserMonitoringTimings.ViewLoaded | RealUserMonitoringTimings.NetworkCall,
   name: string,
   timeUsedInMs: number
 ) => {

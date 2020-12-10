@@ -106,18 +106,34 @@ export type CrashReportPayload = {
   };
 };
 
+//#endregion----------------------------------------------------------------------------------------
+
 //#region ----REAL USER MONITORING SPECIFIC TYPES---------------------------------------------------
 
 export enum RealUserMonitoringEvents {
   SessionStart = 'session_start',
   SessionEnd = 'session_end',
-  EventTiming = 'mobile_event_timing',
+  EventTiming = 'mobile_event_timing'
+}
+
+export enum RealUserMonitoringTimings {
   ViewLoaded = 'p',
   NetworkCall = 'n'
 }
 
-//#endregion----------------------------------------------------------------------------------------
+export type RealUserMonitorPayload = {
+  type: string;
+  timestamp: string;
+  user: User;
+  sessionId: string;
+  version: string;
+  os: 'ios' | 'android' | 'windows' | 'macos' | 'web';
+  osVersion: any;
+  platform: any;
+  data: string;
+};
 
+//#endregion----------------------------------------------------------------------------------------
 
 //#region ----NETWORK MONITORING SPECIFIC TYPES-----------------------------------------------------
 
