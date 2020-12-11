@@ -5,7 +5,6 @@ import {
   BreadcrumbOption,
   CrashReportPayload,
   CustomData,
-  Session,
   User
 } from './Types';
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
@@ -177,43 +176,39 @@ export default class CrashReporter {
    * @param error - The caught error
    * @param isFatal - Whether or not the error was fatal
    */
-  async processUnhandledError(error: Error, isFatal?: boolean) {
-    if (!error || !error.stack) {
-      warn('Unrecognized error occurred');
-      return;
-    }
+  async processUnhandledError(error: Error, isFatal?: boolean) { if (!error || !error.stack) {
+    warn('Unrecognized error occurred');
+    return;
+  }
 
     //Extract the errors stack trace
     const parseErrorStack = require('react-native/Libraries/Core/Devtools/parseErrorStack');
-    const stackTrace = parseErrorStack(error);
+    const stackFrames = parseErrorStack(error);
 
     //Clean the stack trace and check for empty stack trace
     const symbolicateStackTrace = require('react-native/Libraries/Core/Devtools/symbolicateStackTrace');
-    const cleanedStackTrace: StackFrame[] = __DEV__
-      ? await symbolicateStackTrace(stackTrace)
-      : { stack: cleanFilePath(stackTrace) };
+    const cleanedStackFrames: StackFrame[] = __DEV__
+      ? await symbolicateStackTrace(stackFrames)
+      : {stack: cleanFilePath(stackFrames)};
 
-    const stack = cleanedStackTrace || [].filter(filterOutReactFrames).map(noAddressAt);
+    const stack = cleanedStackFrames || [].filter(filterOutReactFrames).map(noAddressAt);
 
-    //Add specific tag if this error is fatal
+    log("HERE");
+
     if (isFatal) {
-      this.tags.add('UnhandledError');
+      this.tags.add('Fatal');
     }
 
-    //Create the Crash Reporting payload structure to be send
     const payload = await this.generateCrashReportPayload(error, stack);
 
-    //Apply any specified preprocessing to the Crash Report
-    const modifiedPayload =
-      this.onBeforeSendingCrashReport && typeof this.onBeforeSendingCrashReport === 'function'
-        ? this.onBeforeSendingCrashReport(Object.freeze(payload))
-        : payload;
+    const modifiedPayload = (this.onBeforeSendingCrashReport && typeof this.onBeforeSendingCrashReport === 'function')
+      ? this.onBeforeSendingCrashReport(Object.freeze(payload))
+      : payload;
 
     if (!modifiedPayload) {
       return;
     }
 
-    //Assign transmitting responsibility to native side if available
     if (!this.disableNativeCrashReporting) {
       log('Send crash report via Native');
       RaygunNativeBridge.sendCrashReport(JSON.stringify(modifiedPayload), this.apiKey);
@@ -222,6 +217,7 @@ export default class CrashReporter {
 
     log('Send crash report via JS');
     this.sendCrashReport(modifiedPayload, this.apiKey, this.customCrashReportingEndpoint);
+
   }
 
   /**
@@ -229,7 +225,7 @@ export default class CrashReporter {
    * @param error - the caught rejection
    */
   processUnhandledRejection(error: any) {
-    this.processUnhandledError(error, false);
+    this.processUnhandledError(error, false).then();
   }
 
   //#endregion--------------------------------------------------------------------------------------

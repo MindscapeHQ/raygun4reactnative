@@ -1,9 +1,7 @@
 import {
   RealUserMonitoringEvents,
   RealUserMonitoringTimings,
-  Session,
   RealUserMonitorPayload,
-  NetworkTimingCallback,
   RequestMeta, User
 } from './Types';
 import { getDeviceBasedId, log, warn, removeProtocol, shouldIgnore } from './Utils';
