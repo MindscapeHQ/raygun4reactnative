@@ -26,12 +26,17 @@ const {RaygunNativeBridge} = NativeModules;
 
 //#region ----INITIALIZATION------------------------------------------------------------------------
 
-let currentUser: User;
-let currentTags: Set<string>;
+
 let crashReporter: CrashReporter;
 let realUserMonitor: RealUserMonitor;
 let options: RaygunClientOptions;
+// Raygun Client Global Variables
 let initialized: boolean = false;
+let currentTags: Set<string> = new Set(['React Native']);
+let currentUser: User = {
+  identifier: `anonymous-${getDeviceBasedId()}`,
+  isAnonymous: true
+};
 
 /**
  * Initializes the RaygunClient with customized options parse in through an instance of a
@@ -41,6 +46,13 @@ let initialized: boolean = false;
  * @param raygunClientOptions
  */
 const init = async (raygunClientOptions: RaygunClientOptions) => {
+
+  //Do not reinitialize
+  if (initialized) {
+    log('Already initialized');
+    return false;
+  }
+
   options = clone(raygunClientOptions);
 
   //Cleans options with defaults
@@ -56,14 +68,6 @@ const init = async (raygunClientOptions: RaygunClientOptions) => {
     onBeforeSendingCrashReport = null,
     ignoredURLs = []
   } = options;
-
-  //Do not reinitialize
-  if (initialized) {
-    log('Already initialized');
-    return false;
-  }
-
-  cleanRaygunClient();
 
   const nativeBridgeAvailable = RaygunNativeBridge && typeof RaygunNativeBridge.init === 'function';
   const crashReportingRequiresNative = enableCrashReporting && !disableNativeCrashReporting;
@@ -113,14 +117,6 @@ const init = async (raygunClientOptions: RaygunClientOptions) => {
 
 //#region ----RAYGUN CLIENT SESSION LOGIC-----------------------------------------------------------
 
-const cleanRaygunClient = () => {
-  currentTags = new Set(['React Native']);
-  currentUser = {
-    identifier: `anonymous-${getDeviceBasedId()}`,
-    isAnonymous: true
-  }
-};
-
 /**
  * Append a tag to the current session tags. These tags will be attached to both Crash Reporting
  * errors AND Real User Monitoring requests.
@@ -160,11 +156,14 @@ const setUser = (user: User | string) => {
  * Clear all session data and reset the Crash Reporter and Real User Monitor.
  */
 const clearSession = () => {
-  cleanRaygunClient();
+  currentTags = new Set(['React Native']);
+  currentUser = {
+    identifier: `anonymous-${getDeviceBasedId()}`,
+    isAnonymous: true
+  };
   if (!options.disableNativeCrashReporting) {
     RaygunNativeBridge.clearSession();
   }
-
   crashReporter.resetCrashReporter();
 };
 
