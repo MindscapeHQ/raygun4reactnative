@@ -3,7 +3,7 @@
  * Crash Reporting functionality as well as managing Session specific data.
  */
 
-import { BreadcrumbOption, CustomData, RaygunClientOptions, Session, User, RealUserMonitoringTimings } from './Types';
+import { BreadcrumbOption, CustomData, RaygunClientOptions, User, RealUserMonitoringTimings } from './Types';
 import { clone, getDeviceBasedId, log, warn } from './Utils';
 import CrashReporter from './CrashReporter';
 import RealUserMonitor from './RealUserMonitor';
@@ -20,19 +20,16 @@ const { RaygunNativeBridge } = NativeModules;
 
 //#region ----INITIALIZATION------------------------------------------------------------------------
 
-const getCleanSession = (): Session => ({
-  tags: new Set(['React Native']),
-  user: {
-    identifier: `anonymous-${getDeviceBasedId()}`,
-    isAnonymous: true
-  }
-});
-
-let curSession = getCleanSession();
 let crashReporter: CrashReporter;
 let realUserMonitor: RealUserMonitor;
 let options: RaygunClientOptions;
+// Raygun Client Global Variables
 let initialized: boolean = false;
+let currentTags: Set<string> = new Set([]);
+let currentUser: User = {
+  identifier: `anonymous-${getDeviceBasedId()}`,
+  isAnonymous: true
+};
 
 /**
  * Initializes the RaygunClient with customized options parse in through an instance of a
@@ -42,6 +39,12 @@ let initialized: boolean = false;
  * @param raygunClientOptions
  */
 const init = async (raygunClientOptions: RaygunClientOptions) => {
+  //Do not reinitialize
+  if (initialized) {
+    log('Already initialized');
+    return false;
+  }
+
   options = clone(raygunClientOptions);
 
   //Cleans options with defaults
@@ -57,12 +60,6 @@ const init = async (raygunClientOptions: RaygunClientOptions) => {
     onBeforeSendingCrashReport = null,
     ignoredURLs = []
   } = options;
-
-  //Do not reinitialize
-  if (initialized) {
-    log('Already initialized');
-    return false;
-  }
 
   const nativeBridgeAvailable = RaygunNativeBridge && typeof RaygunNativeBridge.init === 'function';
   const crashReportingRequiresNative = enableCrashReporting && !disableNativeCrashReporting;
@@ -80,8 +77,9 @@ const init = async (raygunClientOptions: RaygunClientOptions) => {
   //Enable Crash Reporting
   if (enableCrashReporting) {
     crashReporter = new CrashReporter(
-      curSession,
       apiKey,
+      currentUser,
+      currentTags,
       disableNativeCrashReporting,
       customCrashReportingEndpoint || '',
       onBeforeSendingCrashReport,
@@ -92,8 +90,9 @@ const init = async (raygunClientOptions: RaygunClientOptions) => {
   //Enable Real User Monitoring
   if (enableRealUserMonitoring) {
     realUserMonitor = new RealUserMonitor(
-      curSession,
       apiKey,
+      currentUser,
+      currentTags,
       disableNetworkMonitoring,
       ignoredURLs,
       customRealUserMonitoringEndpoint,
@@ -117,10 +116,10 @@ const init = async (raygunClientOptions: RaygunClientOptions) => {
  */
 const addTag = (...tags: string[]) => {
   tags.forEach(tag => {
-    curSession.tags.add(tag);
+    currentTags.add(tag);
   });
   if (!options.disableNativeCrashReporting) {
-    RaygunNativeBridge.setTags([...curSession.tags]);
+    RaygunNativeBridge.setTags([...currentTags]);
   }
 };
 
@@ -139,7 +138,7 @@ const setUser = (user: User | string) => {
         : { identifier: `anonymous-${getDeviceBasedId()}`, isAnonymous: true }
       : user
   );
-  curSession.user = userObj;
+  currentUser = userObj;
   if (!options.disableNativeCrashReporting) {
     RaygunNativeBridge.setUser(userObj);
   }
@@ -149,11 +148,14 @@ const setUser = (user: User | string) => {
  * Clear all session data and reset the Crash Reporter and Real User Monitor.
  */
 const clearSession = () => {
-  curSession = getCleanSession();
+  currentTags = new Set([]);
+  currentUser = {
+    identifier: `anonymous-${getDeviceBasedId()}`,
+    isAnonymous: true
+  };
   if (!options.disableNativeCrashReporting) {
     RaygunNativeBridge.clearSession();
   }
-
   crashReporter.resetCrashReporter();
 };
 
