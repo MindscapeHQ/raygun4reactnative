@@ -244,7 +244,7 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     }
 
     @ReactMethod
-    public void clearSession(String userId) {
+    public void clearSession() {
         RaygunClient.clearBreadcrumbs();
         RaygunClient.setCustomData(new HashMap());
         RaygunClient.setUser("");
