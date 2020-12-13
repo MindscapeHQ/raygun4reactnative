@@ -77,11 +77,7 @@ export default class CrashReporter {
       onUnhandled: this.processUnhandledRejection
     });
 
-    //If NATIVE crash reporting is enabled then the native side will handle caching
-    //Otherwise the react native side will need to apply caching logic/
-    if (disableNativeCrashReporting) {
-      setTimeout(() => this.sendCachedReports(apiKey, customCrashReportingEndpoint), 10);
-    }
+    this.sendCachedReports(apiKey, customCrashReportingEndpoint).then();
   }
 
   //#endregion--------------------------------------------------------------------------------------
