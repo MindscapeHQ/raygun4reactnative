@@ -37,8 +37,8 @@ export default class CrashReporter {
    * Javascript side should be responsible for caching Crash Reports.
    *
    * @param apiKey - Access key for Raygun API
-   * @param user
-   * @param tags
+   * @param user - A User object that represents the current user.
+   * @param tags - A set of strings, where each string is a tag.
    * @param disableNativeCrashReporting - Whether or not to enable Native side error reporting
    * @param customCrashReportingEndpoint - Custom endpoint for crash reports (may be empty or null)
    * @param onBeforeSendingCrashReport - A lambda to execute before each Crash Report transmission

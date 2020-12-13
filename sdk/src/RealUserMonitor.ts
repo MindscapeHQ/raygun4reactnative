@@ -37,8 +37,8 @@ export default class RealUserMonitor {
   /**
    * RealUserMonitor: Manages RUM specific logic tasks.
    * @param apiKey - The User's API key that gives them access to RUM. (User provided)
-   * @param user
-   * @param tags
+   * @param user - A User object that represents the current user.
+   * @param tags - A set of strings, where each string is a tag.
    * @param disableNetworkMonitoring - If true, XHRInterceptor is not switched on. All requests go through without monitoring.
    * @param ignoredURLs - A string array of URLs to ignore when watching the network.
    * @param customRealUserMonitoringEndpoint - The custom API URL endpoint where this API should send data to.
