@@ -25,7 +25,7 @@ let realUserMonitor: RealUserMonitor;
 let options: RaygunClientOptions;
 // Raygun Client Global Variables
 let initialized: boolean = false;
-let currentTags: Set<string> = new Set(['React Native']);
+let currentTags: Set<string> = new Set([]);
 let currentUser: User = {
   identifier: `anonymous-${getDeviceBasedId()}`,
   isAnonymous: true
@@ -148,7 +148,7 @@ const setUser = (user: User | string) => {
  * Clear all session data and reset the Crash Reporter and Real User Monitor.
  */
 const clearSession = () => {
-  currentTags = new Set(['React Native']);
+  currentTags = new Set([]);
   currentUser = {
     identifier: `anonymous-${getDeviceBasedId()}`,
     isAnonymous: true
