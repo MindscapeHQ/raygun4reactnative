@@ -189,8 +189,6 @@ export default class CrashReporter {
 
     const stack = cleanedStackFrames || [].filter(filterOutReactFrames).map(noAddressAt);
 
-    log("HERE");
-
     if (isFatal) {
       this.tags.add('Fatal');
     }
