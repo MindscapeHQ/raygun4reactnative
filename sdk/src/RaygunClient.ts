@@ -3,19 +3,13 @@
  * Crash Reporting functionality as well as managing Session specific data.
  */
 
-import {
-  BreadcrumbOption,
-  CustomData,
-  RaygunClientOptions,
-  User,
-  RealUserMonitoringTimings
-} from './Types';
-import {clone, getDeviceBasedId, log, warn} from './Utils';
+import { BreadcrumbOption, CustomData, RaygunClientOptions, User, RealUserMonitoringTimings } from './Types';
+import { clone, getDeviceBasedId, log, warn } from './Utils';
 import CrashReporter from './CrashReporter';
 import RealUserMonitor from './RealUserMonitor';
-import {NativeModules} from 'react-native';
+import { NativeModules } from 'react-native';
 
-const {RaygunNativeBridge} = NativeModules;
+const { RaygunNativeBridge } = NativeModules;
 
 /**
  * The RaygunClient is the interface in which this provider publicly shows. The bottom of this page
@@ -25,7 +19,6 @@ const {RaygunNativeBridge} = NativeModules;
  */
 
 //#region ----INITIALIZATION------------------------------------------------------------------------
-
 
 let crashReporter: CrashReporter;
 let realUserMonitor: RealUserMonitor;
@@ -46,7 +39,6 @@ let currentUser: User = {
  * @param raygunClientOptions
  */
 const init = async (raygunClientOptions: RaygunClientOptions) => {
-
   //Do not reinitialize
   if (initialized) {
     log('Already initialized');
@@ -139,11 +131,11 @@ const addTag = (...tags: string[]) => {
 const setUser = (user: User | string) => {
   //Discern the type of the user argument and apply it to the user field
   const userObj = Object.assign(
-    {firstName: '', fullName: '', email: '', isAnonymous: true},
+    { firstName: '', fullName: '', email: '', isAnonymous: true },
     typeof user === 'string'
       ? !!user
-      ? {identifier: user, isAnonymous: true}
-      : {identifier: `anonymous-${getDeviceBasedId()}`, isAnonymous: true}
+        ? { identifier: user, isAnonymous: true }
+        : { identifier: `anonymous-${getDeviceBasedId()}`, isAnonymous: true }
       : user
   );
   currentUser = userObj;

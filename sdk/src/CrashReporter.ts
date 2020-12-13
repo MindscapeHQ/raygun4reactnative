@@ -1,12 +1,5 @@
 import { cleanFilePath, clone, error, filterOutReactFrames, log, noAddressAt, upperFirst, warn } from './Utils';
-import {
-  BeforeSendHandler,
-  Breadcrumb,
-  BreadcrumbOption,
-  CrashReportPayload,
-  CustomData,
-  User
-} from './Types';
+import { BeforeSendHandler, Breadcrumb, BreadcrumbOption, CrashReportPayload, CustomData, User } from './Types';
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
 import { NativeModules, Platform } from 'react-native';
 
@@ -172,10 +165,11 @@ export default class CrashReporter {
    * @param error - The caught error
    * @param isFatal - Whether or not the error was fatal
    */
-  async processUnhandledError(error: Error, isFatal?: boolean) { if (!error || !error.stack) {
-    warn('Unrecognized error occurred');
-    return;
-  }
+  async processUnhandledError(error: Error, isFatal?: boolean) {
+    if (!error || !error.stack) {
+      warn('Unrecognized error occurred');
+      return;
+    }
 
     //Extract the errors stack trace
     const parseErrorStack = require('react-native/Libraries/Core/Devtools/parseErrorStack');
@@ -185,7 +179,7 @@ export default class CrashReporter {
     const symbolicateStackTrace = require('react-native/Libraries/Core/Devtools/symbolicateStackTrace');
     const cleanedStackFrames: StackFrame[] = __DEV__
       ? await symbolicateStackTrace(stackFrames)
-      : {stack: cleanFilePath(stackFrames)};
+      : { stack: cleanFilePath(stackFrames) };
 
     const stack = cleanedStackFrames || [].filter(filterOutReactFrames).map(noAddressAt);
 
@@ -195,9 +189,10 @@ export default class CrashReporter {
 
     const payload = await this.generateCrashReportPayload(error, stack);
 
-    const modifiedPayload = (this.onBeforeSendingCrashReport && typeof this.onBeforeSendingCrashReport === 'function')
-      ? this.onBeforeSendingCrashReport(Object.freeze(payload))
-      : payload;
+    const modifiedPayload =
+      this.onBeforeSendingCrashReport && typeof this.onBeforeSendingCrashReport === 'function'
+        ? this.onBeforeSendingCrashReport(Object.freeze(payload))
+        : payload;
 
     if (!modifiedPayload) {
       return;
@@ -211,7 +206,6 @@ export default class CrashReporter {
 
     log('Send crash report via JS');
     this.sendCrashReport(modifiedPayload, this.apiKey, this.customCrashReportingEndpoint);
-
   }
 
   /**
@@ -287,7 +281,12 @@ export default class CrashReporter {
    * @param customEndpoint
    * @param isAlreadyCached
    */
-  async sendCrashReport(report: CrashReportPayload, apiKey: string, customEndpoint?: string, isAlreadyCached?: boolean) {
+  async sendCrashReport(
+    report: CrashReportPayload,
+    apiKey: string,
+    customEndpoint?: string,
+    isAlreadyCached?: boolean
+  ) {
     return fetch(customEndpoint || this.RAYGUN_CRASH_REPORT_ENDPOINT + '?apiKey=' + encodeURIComponent(apiKey), {
       method: 'POST',
       mode: 'cors',

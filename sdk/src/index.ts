@@ -1,23 +1,23 @@
 import {
   init,
+  addTag,
   setUser,
+  clearSession,
   recordBreadcrumb,
   addCustomData,
-  addTag,
+  sendError,
   updateCustomData,
-  clearSession,
-  sendRUMTimingEvent,
-  sendError
+  sendRUMTimingEvent
 } from './RaygunClient';
 
 export default {
   init,
+  addTag,
   setUser,
+  clearSession,
   recordBreadcrumb,
   addCustomData,
-  addTag,
+  sendError,
   updateCustomData,
-  clearSession,
-  sendRUMTimingEvent,
-  sendError
+  sendRUMTimingEvent
 };

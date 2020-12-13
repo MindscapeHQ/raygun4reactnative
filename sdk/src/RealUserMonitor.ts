@@ -2,7 +2,8 @@ import {
   RealUserMonitoringEvents,
   RealUserMonitoringTimings,
   RealUserMonitorPayload,
-  RequestMeta, User
+  RequestMeta,
+  User
 } from './Types';
 import { getDeviceBasedId, log, warn, removeProtocol, shouldIgnore } from './Utils';
 // @ts-ignore
