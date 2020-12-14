@@ -6,13 +6,29 @@
     <h1>Raygun SDK for React Native</h1>
 </p>
 
-## Requirements
+# Table of Contents
+1. [Requirements](#requirements)
+2. [Installations](#installation)
+    - [Additional Step for IOS](#additional-step-for-ios)
+    - [Additional Step for ANDROID](#additional-step-for-android)
+3. [Importing and Instantiation](#importing-and-instantiation)
+    - [Example Setup](#example-setup)
+4. [API Guide](#api-guide)
+    - [Init](#initraygunclientoptions)
+        - [Example](#example-init)
+    - 
+
+---
+
+# Requirements
 
 ```typescript
 "react-native": ^0.60.0
 ```
 
-## Installation and Usage
+---
+
+# Installation
 
 To install the package:
 
@@ -22,7 +38,7 @@ npm install --save raygun4reactnative
 yarn add raygun4reactnative
 ```
 
-### Additional step - iOS
+## Additional Step for iOS
 
 Since our SDK supports native crashes, we need to link the SDK to your native projects.
 
@@ -37,9 +53,7 @@ cd ios && pod install
 npx pod-install ios
 ```
 
-### Additional step - Android
-
-#### **android/app/src/main/AndroidManifest.xml**
+## Additional Step for Android
 
 Modify the app's **android/app/src/main/AndroidManifest.xml** to include the following line to enable the background Crash Reporting Service & Real-time User monitoring
 
@@ -62,31 +76,23 @@ Modify the app's **android/app/src/main/AndroidManifest.xml** to include the fol
 </application>
 ```
 
-### How to use it:
+---
+
+# Importing and Instantiation
+
+Import the RaygunClient using:
 
 ```typescript
 import RaygunClient from 'raygun4reactnative';
-
-RaygunClient.init(raygunClientOtions);
 ```
 
-The init function has one argument, RaygunClientOptions, which is constructed as follows:
+Initialize the RaygunClient using the `init(RaygunClientOption)` function.
+
 ```typescript
-export type RaygunClientOptions = {
-  apiKey?: string;
-  version?: string;
-  enableCrashReporting?: boolean;
-  disableNativeCrashReporting?: boolean;
-  enableRealUserMonitoring?: boolean;
-  disableNetworkMonitoring?: boolean;
-  customCrashReportingEndpoint?: string;
-  customRealUserMonitoringEndpoint?: string;
-  onBeforeSendingCrashReport?: BeforeSendHandler;
-  ignoredURLs?: string[];
-};
+RaygunClient.init(RaygunClientOptions);
 ```
 
-#### In table form
+The RaygunClientOptions is constructed with the following fields:
 
 | Options | Required | Default Value | Description |
 | :--- | :------: | :------------ | :---------- |
@@ -101,23 +107,74 @@ export type RaygunClientOptions = {
 | onBeforeSendingCrashReport | false | null | A handler for crash reports before they are sent (more below) |
 | ignoredURLs | false | [] | An array of URLs to ignore. This is utilized with network monitoring, which will be useless without enabling Real User Monitoring (and leaving Network Monitoring enabled) |
 
+It looks a little something like:
+
+```typescript
+export type RaygunClientOptions = {
+  apiKey?: string;
+  version?: string;
+  enableCrashReporting?: boolean;
+  disableNativeCrashReporting?: boolean;
+  enableRealUserMonitoring?: boolean;
+  disableNetworkMonitoring?: boolean;
+  customCrashReportingEndpoint?: string;
+  customRealUserMonitoringEndpoint?: string;
+  onBeforeSendingCrashReport?: BeforeSendHandler;
+  ignoredURLs?: string[];
+}
+```
+
 Note: All parameters in the RaygunClientOptions are NOT required.
 Any parameter that is not specified will be set to their default / empty values (based on their
 type). Thus, you can initialize a client with the like the following example shows:
 
-#### Examples
-
+## Example Setup:
 ```typescript
 // EXAMPLE
 import RaygunClient from 'raygun4reactnative'
 
-let options: RaygunClientOptions = {
-apiKey: "abcd1234",
-enableCrashReporting: true,
-ignoredURLs: ["http://example.com"]
-};
+RaygunClient.init({
+  apiKey: "abcd1234",
+  enableCrashReporting: true,
+  ignoredURLs: ["http://example.com"]
+});
+```
 
-RaygunClient.init(options);
-``` 
+---
 
-#### RaygunClientOptions explained:
+# API Guide
+
+## init(RaygunClientOptions)
+The `init` method is used BEFORE doing anything else with the RaygunClient. This is important, as 
+all other functionality within the client will rely on the options parsed to it with this method.
+
+#### Example Init:
+
+```typescript
+RaygunClient.init({
+  apiKey: "This_Is_My_Key",
+  version: "0.1.2-beta",
+  enableCrashReporting: true,
+  disableNativeCrashReporting: false,
+  enableRealUserMonitoring: true,
+  disableNetworkMonitoring: false,
+  customCrashReportingEndpoint: "https://myCrashReportingEndpoint.com",
+  customRealUserMonitoringEndpoint: "https://myRealUserMonitoringEndpoint.com",
+  onBeforeSendingCrashReport: (crashReport) => console.log(crashReport),
+  ignoredURLs: ["http://thisIsAnInternalCall.com", "http://thisIsAnotherInternalCall.com"]
+})
+```
+
+## addTag(... tags: string[])
+The `addTag` method adds tags to the Crash Reports and Real User Monitor. Within the Raygun application, 
+you can use these tags to group particular errors together in a manner that aligns with what 
+you want.
+
+#### Example addTags
+
+```typescript
+RaygunClient.addTag("Invalid_User_Entry", "Caught_Exception");
+```
+
+
+## setUser(user: User | string)
