@@ -10,6 +10,17 @@ import {
   sendRUMTimingEvent
 } from './RaygunClient';
 
+import {
+  BeforeSendHandler,
+  Breadcrumb,
+  BreadcrumbOption,
+  CrashReportPayload,
+  CustomData,
+  RaygunClientOptions,
+  RealUserMonitoringTimings,
+  User,
+} from "./Types";
+
 export default {
   init,
   addTag,
@@ -20,4 +31,15 @@ export default {
   sendError,
   updateCustomData,
   sendRUMTimingEvent
+};
+
+export type {
+  BeforeSendHandler,
+  Breadcrumb,
+  BreadcrumbOption,
+  CrashReportPayload,
+  CustomData,
+  RaygunClientOptions,
+  RealUserMonitoringTimings,
+  User,
 };

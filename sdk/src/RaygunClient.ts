@@ -38,7 +38,7 @@ let currentUser: User = {
  *
  * @param raygunClientOptions
  */
-const init = async (raygunClientOptions: RaygunClientOptions) => {
+const init = (raygunClientOptions: RaygunClientOptions) => {
   //Do not reinitialize
   if (initialized) {
     log('Already initialized');
@@ -66,7 +66,7 @@ const init = async (raygunClientOptions: RaygunClientOptions) => {
 
   //Initialise native if it is available and a service is utilising native side logic
   if (nativeBridgeAvailable && (crashReportingRequiresNative || enableRealUserMonitoring)) {
-    await RaygunNativeBridge.init({
+    RaygunNativeBridge.init({
       apiKey,
       enableRealUserMonitoring,
       version,

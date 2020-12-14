@@ -17,14 +17,16 @@ import { Header, Colors } from 'react-native/Libraries/NewAppScreen';
 
 declare const global: { HermesInternal: null | {} };
 
-import RaygunClient from 'raygun4reactnative';
+import RaygunClient, {RaygunClientOptions} from 'raygun4reactnative';
 
-RaygunClient.init({
+let options: RaygunClientOptions = {
   apiKey: '', // YOUR APIKEY
   version: '0.0.2', // YOUR APP VERSION
   enableCrashReporting: true,
   enableRealUserMonitoring: true
-});
+}
+
+RaygunClient.init(options);
 
 const App = () => {
   return (
