@@ -21,7 +21,7 @@ import RaygunClient from 'raygun4reactnative';
 
 RaygunClient.init({
   apiKey: '', // YOUR APIKEY
-  version: '0.0.1', // YOUR APP VERSION
+  version: '0.0.2', // YOUR APP VERSION
   enableCrashReporting: true,
   enableRealUserMonitoring: true
 });
