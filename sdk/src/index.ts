@@ -12,7 +12,6 @@ import {
 
 import {
   BeforeSendHandler,
-  Breadcrumb,
   BreadcrumbOption,
   CrashReportPayload,
   CustomData,
@@ -35,7 +34,6 @@ export default {
 
 export type {
   BeforeSendHandler,
-  Breadcrumb,
   BreadcrumbOption,
   CrashReportPayload,
   CustomData,
