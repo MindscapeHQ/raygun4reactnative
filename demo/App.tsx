@@ -9,11 +9,9 @@
  */
 
 import React from 'react';
-import { SafeAreaView, StyleSheet, ScrollView, View, StatusBar, Button } from 'react-native';
+import {SafeAreaView, StyleSheet, ScrollView, View, StatusBar, Button} from 'react-native';
 
-import { throwUndefinedError, throwCustomError, promiseRejection, reInitialize, makeNetworkCall } from './Helper';
-
-import { Header, Colors } from 'react-native/Libraries/NewAppScreen';
+import {Header, Colors} from 'react-native/Libraries/NewAppScreen';
 
 declare const global: { HermesInternal: null | {} };
 
@@ -31,10 +29,10 @@ RaygunClient.init(options);
 const App = () => {
   return (
     <>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="dark-content"/>
       <SafeAreaView>
         <ScrollView contentInsetAdjustmentBehavior="automatic" style={styles.scrollView}>
-          <Header />
+          <Header/>
 
           <View
             style={{
@@ -54,7 +52,10 @@ const App = () => {
               <Button
                 testID="triggerUndefinedErrorBtn"
                 accessibilityLabel="triggerUndefinedErrorBtn"
-                onPress={() => throwUndefinedError()}
+                onPress={ () => {
+                  //@ts-ignore
+                  global.undefinedFn();
+                }}
                 title="Trigger undefined error"
               />
             </View>
@@ -67,7 +68,9 @@ const App = () => {
               <Button
                 testID="triggerCustomErrorBtn"
                 accessibilityLabel="triggerCustomErrorBtn"
-                onPress={() => throwCustomError('Custom Error Message')}
+                onPress={() => {
+                  throw new Error("CUSTOM MESSAGE!");
+                }}
                 title="Trigger custom error"
               />
             </View>
@@ -80,7 +83,9 @@ const App = () => {
               <Button
                 testID="triggerPromiseRejectionBtn"
                 accessibilityLabel="triggerPromiseRejectionBtn"
-                onPress={() => promiseRejection()}
+                onPress={async () => {
+                  throw Error('Rejection')
+                }}
                 title="Trigger Promise rejection"
               />
             </View>
@@ -197,7 +202,12 @@ const App = () => {
                 color="green"
                 testID="reInitializeBtn"
                 accessibilityLabel="reInitializeBtn"
-                onPress={() => reInitialize()}
+                onPress={() => {
+                  RaygunClient.init({
+                    apiKey: 't2IwCSF44QbvhJLwDKL7Kw',
+                    version: 'App-version',
+                  });
+                }}
                 title="Trigger re-initialize native side"
               />
             </View>
@@ -210,7 +220,13 @@ const App = () => {
                 color="green"
                 testID="makeNetworkCallBtn"
                 accessibilityLabel="makeNetworkCallBtn"
-                onPress={() => makeNetworkCall()}
+                onPress={() => {
+                  fetch('https://www.google.com')
+                  .then(({headers}) =>
+                    console.log('Fetch call completed', headers.get('date')),
+                  )
+                  .catch(console.log);
+                }}
                 title="Make network call"
               />
             </View>
