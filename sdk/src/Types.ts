@@ -34,7 +34,7 @@ export type User = {
 
 //#region ----CRASH REPORTING SPECIFIC TYPES--------------------------------------------------------
 
-type RaygunStackFrame = {
+export type RaygunStackFrame = {
   FileName: string;
   LineNumber: number;
   ColumnNumber: number | null;
