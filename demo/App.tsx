@@ -9,30 +9,35 @@
  */
 
 import React from 'react';
-import { SafeAreaView, StyleSheet, ScrollView, View, StatusBar, Button } from 'react-native';
+import {SafeAreaView, StyleSheet, ScrollView, View, StatusBar, Button} from 'react-native';
 
-import { throwUndefinedError, throwCustomError, promiseRejection, reInitialize, makeNetworkCall } from './Helper';
-
-import { Header, Colors } from 'react-native/Libraries/NewAppScreen';
+import {Header, Colors} from 'react-native/Libraries/NewAppScreen';
 
 declare const global: { HermesInternal: null | {} };
 
-import RaygunClient from 'raygun4reactnative';
+import RaygunClient, {
+  BreadcrumbOption,
+  CustomData,
+  RaygunClientOptions,
+  User
+} from 'raygun4reactnative';
 
-RaygunClient.init({
+const options: RaygunClientOptions = {
   apiKey: '', // YOUR APIKEY
   version: '0.0.2', // YOUR APP VERSION
   enableCrashReporting: true,
   enableRealUserMonitoring: true
-});
+}
+
+RaygunClient.init(options);
 
 const App = () => {
   return (
     <>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="dark-content"/>
       <SafeAreaView>
         <ScrollView contentInsetAdjustmentBehavior="automatic" style={styles.scrollView}>
-          <Header />
+          <Header/>
 
           <View
             style={{
@@ -52,7 +57,10 @@ const App = () => {
               <Button
                 testID="triggerUndefinedErrorBtn"
                 accessibilityLabel="triggerUndefinedErrorBtn"
-                onPress={() => throwUndefinedError()}
+                onPress={() => {
+                  //@ts-ignore
+                  global.undefinedFn();
+                }}
                 title="Trigger undefined error"
               />
             </View>
@@ -65,7 +73,9 @@ const App = () => {
               <Button
                 testID="triggerCustomErrorBtn"
                 accessibilityLabel="triggerCustomErrorBtn"
-                onPress={() => throwCustomError('Custom Error Message')}
+                onPress={() => {
+                  throw new Error("CUSTOM MESSAGE!");
+                }}
                 title="Trigger custom error"
               />
             </View>
@@ -78,7 +88,9 @@ const App = () => {
               <Button
                 testID="triggerPromiseRejectionBtn"
                 accessibilityLabel="triggerPromiseRejectionBtn"
-                onPress={() => promiseRejection()}
+                onPress={async () => {
+                  throw Error('Rejection')
+                }}
                 title="Trigger Promise rejection"
               />
             </View>
@@ -105,7 +117,7 @@ const App = () => {
                 color="green"
                 testID="setUserByIdentifierBtn"
                 accessibilityLabel="setUserByIdentifierBtn"
-                onPress={() => RaygunClient.setUser('user@email.com')}
+                onPress={() => RaygunClient.setUser('user_by_string@email.com')}
                 title="Set User By Identifier"
               />
             </View>
@@ -118,15 +130,17 @@ const App = () => {
                 color="green"
                 testID="setUserBtn"
                 accessibilityLabel="setUserBtn"
-                onPress={() =>
-                  RaygunClient.setUser({
+                onPress={() => {
+                  const user: User = {
                     identifier: 'identifier',
                     isAnonymous: false,
-                    email: 'user@email.com',
+                    email: 'user_by_object@email.com',
                     firstName: 'first name',
                     fullName: 'full name',
                     uuid: 'uuid'
-                  })
+                  }
+                  RaygunClient.setUser(user);
+                }
                 }
                 title="Set User Object"
               />
@@ -140,13 +154,14 @@ const App = () => {
                 color="green"
                 testID="replaceCustomDataBtn"
                 accessibilityLabel="replaceCustomDataBtn"
-                onPress={() =>
-                  RaygunClient.updateCustomData(data => {
-                    console.log('Existing customData', data);
-                    return {
-                      replaceAllData: true
-                    };
-                  })
+                onPress={() => {
+                  const updater = (data: CustomData) => {
+                    // Do something with the custom data if you wish
+                    console.log("DATA:", data);
+                    return data
+                  }
+                  RaygunClient.updateCustomData(updater)
+                }
                 }
                 title="Replace Custom Data"
               />
@@ -160,10 +175,18 @@ const App = () => {
                 color="green"
                 testID="addCustomDataBtn"
                 accessibilityLabel="addCustomDataBtn"
-                onPress={() =>
-                  RaygunClient.addCustomData({
-                    [Date.now()]: `Random: ${Math.random() * 1000}`
-                  })
+                onPress={() => {
+                  const customData1: CustomData = {"Key_1": "Value"};
+                  const customData2: CustomData = {"Key_2": 401};
+                  const customData3: CustomData = {"Key_3": ["Value", "Another Value"] };
+                  const customData4: CustomData = {"Key_4": [42, 65] };
+                  const customData5: CustomData = {"Key_5": customData4};
+                  RaygunClient.addCustomData(customData1);
+                  RaygunClient.addCustomData(customData2);
+                  RaygunClient.addCustomData(customData3);
+                  RaygunClient.addCustomData(customData4);
+                  RaygunClient.addCustomData(customData5);
+                }
                 }
                 title="Add Random Custom Data"
               />
@@ -177,11 +200,14 @@ const App = () => {
                 color="green"
                 testID="addBreadcrumbBtn"
                 accessibilityLabel="addBreadcrumbBtn"
-                onPress={() =>
-                  RaygunClient.recordBreadcrumb('Breadcrumb Message', {
-                    category: 'Simulation',
-                    level: 'debug'
-                  })
+                onPress={() => {
+                  const breadcrumbOption: BreadcrumbOption = {
+                    category: 'Some String you choose',
+                    level: 'debug',
+                    customData: {"Key_6": "My Data is bland"},
+                  }
+                  RaygunClient.recordBreadcrumb('Breadcrumb Message', breadcrumbOption)
+                }
                 }
                 title="Add Simple Breadcrumbs Data"
               />
@@ -195,7 +221,13 @@ const App = () => {
                 color="green"
                 testID="reInitializeBtn"
                 accessibilityLabel="reInitializeBtn"
-                onPress={() => reInitialize()}
+                onPress={() => {
+                  const options: RaygunClientOptions = {
+                    apiKey: 'notAValidKey',
+                    version: '42',
+                  }
+                  RaygunClient.init(options);
+                }}
                 title="Trigger re-initialize native side"
               />
             </View>
@@ -208,7 +240,13 @@ const App = () => {
                 color="green"
                 testID="makeNetworkCallBtn"
                 accessibilityLabel="makeNetworkCallBtn"
-                onPress={() => makeNetworkCall()}
+                onPress={() => {
+                  fetch('https://www.google.com')
+                  .then(({headers}) =>
+                    console.log('Fetch call completed', headers.get('date')),
+                  )
+                  .catch(console.log);
+                }}
                 title="Make network call"
               />
             </View>
