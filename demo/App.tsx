@@ -22,7 +22,7 @@ import RaygunClient, {
   User
 } from 'raygun4reactnative';
 
-let options: RaygunClientOptions = {
+const options: RaygunClientOptions = {
   apiKey: '', // YOUR APIKEY
   version: '0.0.2', // YOUR APP VERSION
   enableCrashReporting: true,
@@ -131,7 +131,7 @@ const App = () => {
                 testID="setUserBtn"
                 accessibilityLabel="setUserBtn"
                 onPress={() => {
-                  let user: User = {
+                  const user: User = {
                     identifier: 'identifier',
                     isAnonymous: false,
                     email: 'user_by_object@email.com',
@@ -155,7 +155,7 @@ const App = () => {
                 testID="replaceCustomDataBtn"
                 accessibilityLabel="replaceCustomDataBtn"
                 onPress={() => {
-                  let updater = (data: CustomData) => {
+                  const updater = (data: CustomData) => {
                     // Do something with the custom data if you wish
                     console.log("DATA:", data);
                     return data
@@ -176,11 +176,11 @@ const App = () => {
                 testID="addCustomDataBtn"
                 accessibilityLabel="addCustomDataBtn"
                 onPress={() => {
-                  let customData1: CustomData = {"Key_1": "Value"};
-                  let customData2: CustomData = {"Key_2": 401};
-                  let customData3: CustomData = {"Key_3": ["Value", "Another Value"] };
-                  let customData4: CustomData = {"Key_4": [42, 65] };
-                  let customData5: CustomData = {"Key_5": customData4};
+                  const customData1: CustomData = {"Key_1": "Value"};
+                  const customData2: CustomData = {"Key_2": 401};
+                  const customData3: CustomData = {"Key_3": ["Value", "Another Value"] };
+                  const customData4: CustomData = {"Key_4": [42, 65] };
+                  const customData5: CustomData = {"Key_5": customData4};
                   RaygunClient.addCustomData(customData1);
                   RaygunClient.addCustomData(customData2);
                   RaygunClient.addCustomData(customData3);
@@ -201,7 +201,7 @@ const App = () => {
                 testID="addBreadcrumbBtn"
                 accessibilityLabel="addBreadcrumbBtn"
                 onPress={() => {
-                  let breadcrumbOption: BreadcrumbOption = {
+                  const breadcrumbOption: BreadcrumbOption = {
                     category: 'Some String you choose',
                     level: 'debug',
                     customData: {"Key_6": "My Data is bland"},
@@ -222,7 +222,7 @@ const App = () => {
                 testID="reInitializeBtn"
                 accessibilityLabel="reInitializeBtn"
                 onPress={() => {
-                  let options: RaygunClientOptions = {
+                  const options: RaygunClientOptions = {
                     apiKey: 'notAValidKey',
                     version: '42',
                   }
