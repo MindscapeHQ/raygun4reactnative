@@ -17,8 +17,8 @@ import {
   CustomData,
   RaygunClientOptions,
   RealUserMonitoringTimings,
-  User,
-} from "./Types";
+  User
+} from './Types';
 
 export default {
   init,
@@ -39,5 +39,5 @@ export type {
   CustomData,
   RaygunClientOptions,
   RealUserMonitoringTimings,
-  User,
+  User
 };
