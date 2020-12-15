@@ -2,9 +2,11 @@
     <a href="https://raygun.com/" target="_blank" align="center">
         <img src="https://brandfolder.com/raygun/logo/raygun-primary-logo.png" width="500">
     </a>
-    <br/>
-    <h1>Raygun SDK for React Native</h1>
 </p>
+
+# Raygun SDK for React Native
+
+---
 
 # Table of Contents
 1. [Requirements](#requirements)
@@ -12,10 +14,28 @@
     - [Additional Step for IOS](#additional-step-for-ios)
     - [Additional Step for ANDROID](#additional-step-for-android)
 3. [API Guide](#api-guide)
-    - [Instantiation](#instantiating-the-client)
-    - [Init](#initraygunclientoptions)
-    - 
-
+    - [Important Information](#important-information)
+    - [Raygun Specific Types](#raygun-specific-types)
+        - [RaygunClientOptions](#raygunclientoptions)
+        - [BeforeSendHandler](#beforesendhandler)
+        - [Breadcrumb](#breadcrumb)
+        - [BreadcrumbOption](#breadcrumboption)
+        - [CrashReportPayload](#crashreportpayload)
+        - [CustomData](#customdata)
+        - [RaygunStackFrame](#raygunstackframe)
+        - [RealUserMonitoringTimings](#realusermonitoringtimings)
+        - [User](#user)
+    - [Instantiating the client](#instantiating-the-client)
+        - [Init](#initraygunclientoptions)
+        - [AddTag](#addtag-tags-string)
+        - [SetUser](#setuseruser-user--string)
+        - [ClearSession](#clearsession)
+        - [RecordBreadcrumb](#recordbreadcrumbmessage-string-details-breadcrumboption)
+        - [SendError](#senderrorerror-error-params-any)
+        - [AddCustomData](#addcustomdatacustomdata-customdata)
+        - [UpdateCustomData](#updatecustomdataupdater-customdata-customdata--customdata)
+        - [SendRumTimingEvent](#sendrumtimingeventeventtype-realusermonitoringtimings-name-string-timeusedinms-number)
+    
 ---
 
 # Requirements
@@ -36,7 +56,9 @@ npm install --save raygun4reactnative
 yarn add raygun4reactnative
 ```
 
-## Additional Step for iOS
+<br/>
+
+### <u> Additional Step for iOS </u>
 
 Since our SDK supports native crashes, we need to link the SDK to your native projects.
 
@@ -51,7 +73,10 @@ cd ios && pod install
 npx pod-install ios
 ```
 
-## Additional Step for Android
+<br/>
+<br/>
+
+### <u> Additional Step for Android </u>
 
 Modify the app's **android/app/src/main/AndroidManifest.xml** to include the following line to enable the background Crash Reporting Service & Real-time User monitoring
 
@@ -78,7 +103,7 @@ Modify the app's **android/app/src/main/AndroidManifest.xml** to include the fol
 
 # API Guide
 
-**IMPORTANT INFORMATION**
+## Important Information 
 The client must be instantiated and initialized before using the rest of the API. Failing to do so
 will result in a lack of functionality (this will be logged out to the system - this means that
 during testing it will appear where console.logs appear).
@@ -88,7 +113,9 @@ This segment outlines the type declarations for some Raygun4ReactNative specific
 these object types can be imported into your program and used (as the examples throughout the
 rest of the API guide show).
 
-#### RaygunClientOptions
+<br/>
+
+### <u> RaygunClientOptions </u>
 The RaygunClientOptions type gets used to parse information into the RaygunClient during the [init](#initraygunclientoptions)
 function. Each field within the object is optional, however, failing to declare a field will result
 in the option defaulting to its type specific default value (except for custom Endpoints
@@ -109,7 +136,10 @@ export type RaygunClientOptions = {
 };
 ```
 
-#### BeforeSendHandler
+<br/>
+<br/>
+
+### <u> BeforeSendHandler </u>
 The BeforeSendHandler acts as an intermediate function between your application and Raygun. This
 function gets parsed a [CrashReportPayload](#crashreportpayload) and returns a [CrashReportPayload](#crashreportpayload). 
 Before the [CrashReportPayload](#crashreportpayload) is sent to Raygun, this function will interfere 
@@ -119,7 +149,10 @@ with the report. If `null` is returned, then the report gets ignored (not sent t
 export type BeforeSendHandler = (payload: CrashReportPayload) => CrashReportPayload | null;
 ```
 
-#### Breadcrumb
+<br/>
+<br/>
+
+### <u> Breadcrumb </u>
 A Breadcrumb is a container for simple pieces of information that are used to aid with identifying
 issues. These are sent away with a [CrashReportPayload](#crashreportpayload).
 
@@ -133,7 +166,10 @@ export type Breadcrumb = {
 };
 ```
 
-#### BreadcrumbOption
+<br/>
+<br/>
+
+### <u> BreadcrumbOption </u>
 The BreadcrumbOption is similar to the Breadcrumb (see above) however it only has three fields.
 `category`, `level`, and `customData` are the only fields used in this object type. This object
 type gets used as a parameter for [recordBreadcrumb](#rec)
@@ -141,7 +177,10 @@ type gets used as a parameter for [recordBreadcrumb](#rec)
 export type BreadcrumbOption = Omit<Breadcrumb, 'message' | 'timestamp'>;
 ```
 
-##### CrashReportPayload
+<br/>
+<br/>
+
+### <u> CrashReportPayload </u>
 This object is only accessible within the [BeforeSendHandler](#beforesendhandler) function. 
 This reference should aid in designing an intermediate function. It acts as a container for basic 
 information about some crash.
@@ -175,7 +214,10 @@ export type CrashReportPayload = {
 };
 ```
 
-#### CustomData
+<br/>
+<br/>
+
+### <u> CustomData </u>
 CustomData is a type that can be nearly any object. As long as it applies to the following declaration
 rules.
 e.g. {"hello": "world"} is a perfectly valid CustomData object. 
@@ -189,7 +231,10 @@ export type CustomData = {
 const BasicType = string | number | boolean;
 ```
 
-#### RaygunStackFrame
+<br/>
+<br/>
+
+### <u> RaygunStackFrame </u>
 The RaygunStackFrame is a container which maintains information found in one frame of a StackTrace.
 The only access to a RaygunStackFrame is through the [CrashReportPayload](#crashreportpayload). 
 This object would only be used in a [BeforeSendHandler](#beforesendhandler) function.
@@ -203,7 +248,10 @@ export type RaygunStackFrame = {
 };
 ```
 
-#### RealUserMonitoringTimings
+<br/>
+<br/>
+
+### <u> RealUserMonitoringTimings </u>
 Use this enum as a parameter in the [sendRUMTimingEvent](#sendrumtimingeventeventtype-realusermonitoringtimings-name-string-timeusedinms-number)
 method.
 ```typescript
@@ -212,8 +260,11 @@ export enum RealUserMonitoringTimings {
   NetworkCall = 'n'
 }
 ```
+
+<br/>
+<br/>
   
-#### User
+### <u> User </u>
 The Raygun `User` type gets used to record session data, and maintain information for Real User Monitoring.
 This object type gets used as a parameter for the [setUser](#setuseruser-user--string) method.
 ```typescript
@@ -226,6 +277,10 @@ export type User = {
   uuid?: string;
 };
 ```
+
+<br/>
+<br/>
+
 ---
 
 ## Instantiating the client
@@ -238,8 +293,10 @@ import RaygunClient from "raygun4reactnative"
 This instance will be used to call action upon the rest of the API interface. Be sure to `init` your
 instance BEFORE using the other functions within the API.  
 
+<br/>
+<br/>
 
-## init(RaygunClientOptions)
+### <u> init(RaygunClientOptions) </u>
 The `init` function must be used BEFORE doing anything else with the RaygunClient. This is important, as 
 all other functionality within the client will rely on the options parsed to it with this function.
 
@@ -270,7 +327,10 @@ RaygunClient.init(options);
 After successfully calling the init function, the client has been instantiated and initialized. 
 Now the other functions provided by the client will be able to run. 
 
-## addTag(... tags: string[])
+<br/>
+<br/>
+
+### <u> addTag(... tags: string[]) </u>
 The `addTag` function adds tags to the Crash Reports and Real User Monitor. Within the Raygun application, 
 you can use these tags to group particular errors together in a manner that aligns with what 
 you want.
@@ -280,8 +340,10 @@ import RaygunClient from "raygun4reactnative"
 RaygunClient.addTag("Invalid_User_Entry", "Caught_Exception");
 ```
 
+<br/>
+<br/>
 
-## setUser(user: User | string)
+### <u> setUser(user: User | string) </u>
 The `setUser` function get parse a [User](#user) object, or a string (used as an ID). Updating the user
 will aid in Real User and Network monitoring session data. To reset the user back to ANON, simply call
 this method with `null` as the 'user' parameter.
@@ -306,7 +368,10 @@ RaygunClient.setUser("identifier");
 RaygunClient.setUser(null);
 ```
 
-## clearSession()
+<br/>
+<br/>
+
+### <u> clearSession() </u>
 Clears all information about the user and tags that have been set to this point.
 ```typescript
 import RaygunClient from "raygun4reactnative"
@@ -314,7 +379,10 @@ import RaygunClient from "raygun4reactnative"
 RaygunClient.clearSession();
 ```
 
-## recordBreadcrumb(message: string, details?: BreadcrumbOption)
+<br/>
+<br/>
+
+### <u> recordBreadcrumb(message: string, details?: BreadcrumbOption) </u>
 Records Breadcrumbs that will be sent away with the CrashReportPayload.
 ```typescript
 import RaygunClient, {BreadcrumbOption} from "raygun4reactnative"
@@ -328,7 +396,10 @@ const bco: BreadcrumbOption = {
 RaygunClient.recordBreadcrumb("Some message", bco);
 ```
 
-## sendError(error: Error, ...params: any)
+<br/>
+<br/>
+
+### <u> sendError(error: Error, ...params: any) </u>
 Allows for an error to be sent to the Crash Reporting error handler along with some customized
 data. 'params' can be configured in the following ways:
     1) data: CustomData, ... tags: string
@@ -352,7 +423,10 @@ RaygunClient.sendError(error, customData);
 RaygunClient.sendError(error, "tag1", "tag2", "tag3");
 ```
 
-## addCustomData(customData: CustomData)
+<br/>
+<br/>
+
+### <u> addCustomData(customData: CustomData) </u>
 Appends custom data to the current set of custom data.
 ```typescript
 import RaygunClient, {CustomData} from "raygun4reactnative"
@@ -362,8 +436,10 @@ const customData: CustomData = {"KEY_2": "VALUE_2"};
 RaygunClient.addCustomData(customData);
 ```
 
+<br/>
+<br/>
 
-## updateCustomData(updater: (customData: CustomData) => CustomData)
+### <u> updateCustomData(updater: (customData: CustomData) => CustomData) </u>
 Apply some transformation lambda to all the custom data.
 
 ```typescript
@@ -377,7 +453,10 @@ const updater = (customData: CustomData) => {
 RaygunClient.addCustomData(updater);
 ```
 
-## sendRUMTimingEvent(eventType: RealUserMonitoringTimings, name: string, timeUsedInMs: number)
+<br/>
+<br/>
+
+### <u> sendRUMTimingEvent(eventType: RealUserMonitoringTimings, name: string, timeUsedInMs: number) </u>
 Construct a Real User Monitoring Timing Event and send it to the Real User Monitor to be transmitted.
 
 ```typescript
