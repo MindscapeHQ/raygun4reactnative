@@ -42,7 +42,7 @@ export type RaygunStackFrame = {
   ClassName: string;
 };
 
-type Environment = {
+export type Environment = {
   UtcOffset: number;
   Cpu?: string;
   Architecture?: string;
