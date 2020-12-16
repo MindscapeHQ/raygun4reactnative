@@ -255,7 +255,7 @@ const CrashReportingAvailable = (calledFrom: string) => {
  * @param timeUsedInMs - Length this event took to execute.
  */
 const sendRUMTimingEvent = (
-  eventType: RealUserMonitoringTimings.ViewLoaded | RealUserMonitoringTimings.NetworkCall,
+  eventType: RealUserMonitoringTimings,
   name: string,
   timeUsedInMs: number
 ) => {

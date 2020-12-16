@@ -34,7 +34,7 @@ export type User = {
 
 //#region ----CRASH REPORTING SPECIFIC TYPES--------------------------------------------------------
 
-type RaygunStackFrame = {
+export type RaygunStackFrame = {
   FileName: string;
   LineNumber: number;
   ColumnNumber: number | null;
@@ -42,7 +42,7 @@ type RaygunStackFrame = {
   ClassName: string;
 };
 
-type Environment = {
+export type Environment = {
   UtcOffset: number;
   Cpu?: string;
   Architecture?: string;

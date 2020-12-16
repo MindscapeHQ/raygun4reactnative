@@ -12,10 +12,13 @@ import {
 
 import {
   BeforeSendHandler,
+  Breadcrumb,
   BreadcrumbOption,
   CrashReportPayload,
   CustomData,
+  Environment,
   RaygunClientOptions,
+  RaygunStackFrame,
   RealUserMonitoringTimings,
   User
 } from './Types';
@@ -34,10 +37,13 @@ export default {
 
 export type {
   BeforeSendHandler,
+  Breadcrumb,
   BreadcrumbOption,
   CrashReportPayload,
   CustomData,
+  Environment,
   RaygunClientOptions,
+  RaygunStackFrame,
   RealUserMonitoringTimings,
   User
 };

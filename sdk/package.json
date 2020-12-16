@@ -26,7 +26,7 @@
     "run_demo": "cd ../demo && npx react-native run-android",
     "build_no_run_win": "npm run clean_dir_all && npm run build_sdk && npm run local_copy_sdk && npm run build_demo_win",
     "fully_automated_win": "npm run clean_dir_all && npm run build_sdk && npm run local_copy_sdk && npm run build_demo_win && npm run run_demo",
-    "fully_automated_mac,lin": "npm run clean_dir_all && npm run build_sdk && npm run local_copy_sdk && npm run build_demo_mac_lin && npm run run_demo",
+    "fully_automated_mac_lin": "npm run clean_dir_all && npm run build_sdk && npm run local_copy_sdk && npm run build_demo_mac_lin && npm run run_demo",
     "prettier": "npx prettier --write src"
   },
   "repository": {

@@ -125,7 +125,7 @@ export default class RealUserMonitor {
    * @param duration - How long this event took to execute.
    */
   sendCustomRUMEvent(
-    eventType: RealUserMonitoringTimings.ViewLoaded | RealUserMonitoringTimings.NetworkCall,
+    eventType: RealUserMonitoringTimings,
     name: string,
     duration: number
   ) {
