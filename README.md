@@ -478,8 +478,8 @@ export type Environment = {
 ###  RaygunClientOptions 
 The RaygunClientOptions type is used to parse information into the RaygunClient during the `init`
 function. Each field within the object is optional, however, failing to declare a field will result
-in the option defaulting to its type specific default value (except for custom Endpoints
-which will default to the Raygun application Endpoint). 
+in the option defaulting to its type specific default value (except for custom end points
+which will default to the Raygun application end point). 
 
 See also:<br/>
 [BeforeSendHandler](#beforesendhandler)
