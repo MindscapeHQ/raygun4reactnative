@@ -104,8 +104,8 @@ const App = () => {
                 color="green"
                 testID="addTagsBtn"
                 accessibilityLabel="addTagsBtn"
-                onPress={() => RaygunClient.addTag(`${new Date().toISOString()}`)}
-                title="Add DateString as Tags"
+                onPress={() => RaygunClient.addTag(`${new Date().toISOString()}`, "Testing")}
+                title="Add Testing Tags"
               />
             </View>
             <View

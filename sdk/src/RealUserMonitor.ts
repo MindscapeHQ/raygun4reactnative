@@ -122,7 +122,7 @@ export default class RealUserMonitor {
    */
   sendCustomRUMEvent(eventType: RealUserMonitoringTimings, name: string, duration: number) {
     if (eventType === RealUserMonitoringTimings.ViewLoaded) {
-      this.sendViewLoadedEvent(name, duration).then();
+      this.sendViewLoadedEvent(name, duration);
       return;
     }
     if (eventType === RealUserMonitoringTimings.NetworkCall) {
