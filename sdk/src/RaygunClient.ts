@@ -92,7 +92,6 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
     realUserMonitor = new RealUserMonitor(
       apiKey,
       currentUser,
-      currentTags,
       disableNetworkMonitoring,
       ignoredURLs,
       customRealUserMonitoringEndpoint,
@@ -254,11 +253,7 @@ const CrashReportingAvailable = (calledFrom: string) => {
  * @param name - Name of this event.
  * @param timeUsedInMs - Length this event took to execute.
  */
-const sendRUMTimingEvent = (
-  eventType: RealUserMonitoringTimings,
-  name: string,
-  timeUsedInMs: number
-) => {
+const sendRUMTimingEvent = (eventType: RealUserMonitoringTimings, name: string, timeUsedInMs: number) => {
   if (!RealUserMonitoringAvailable('sendRUMTimingEvent')) return;
   realUserMonitor.sendCustomRUMEvent(eventType, name, timeUsedInMs);
 };

@@ -155,15 +155,27 @@ const App = () => {
                 testID="replaceCustomDataBtn"
                 accessibilityLabel="replaceCustomDataBtn"
                 onPress={() => {
-                  const updater = (data: CustomData) => {
+                  const updater = (customData: CustomData) => {
                     // Do something with the custom data if you wish
-                    console.log("DATA:", data);
-                    return data
+                    console.log("DATA - BEFORE:", customData, "\n");
+
+                    console.log("Removing all number and array properties...", "\n");
+
+                    for (let key in customData) {
+                      if (typeof customData[key] === "number"
+                      || Array.isArray(customData[key])) {
+                        delete customData[key];
+                      }
+                    }
+
+                    console.log("DATA - AFTER:", customData);
+
+                    return customData;
                   }
-                  RaygunClient.updateCustomData(updater)
+                  RaygunClient.updateCustomData(updater);
                 }
                 }
-                title="Replace Custom Data"
+                title="Update Custom Data"
               />
             </View>
             <View
@@ -188,7 +200,7 @@ const App = () => {
                   RaygunClient.addCustomData(customData5);
                 }
                 }
-                title="Add Random Custom Data"
+                title="Add Custom Data"
               />
             </View>
             <View
@@ -225,7 +237,7 @@ const App = () => {
                   const options: RaygunClientOptions = {
                     apiKey: 'notAValidKey',
                     version: '42',
-                  }
+                  };
                   RaygunClient.init(options);
                 }}
                 title="Trigger re-initialize native side"
