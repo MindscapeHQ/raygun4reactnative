@@ -1,6 +1,6 @@
 {
   "name": "raygun4reactnativedemo",
-  "version": "0.0.1-alpha",
+  "version": "0.0.2-alpha",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -10,7 +10,7 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "dependencies": {
-    "raygun4reactnative": "file:raygun4reactnative-0.0.1-alpha.tgz",
+    "raygun4reactnative": "file:raygun4reactnative-0.0.2-alpha.tgz",
     "react": "16.13.1",
     "react-native": "0.63.0"
   },
@@ -27,8 +27,8 @@
     "eslint": "^6.5.1",
     "jest": "^25.1.0",
     "metro-react-native-babel-preset": "^0.59.0",
+    "prettier": "^2.2.1",
     "react-test-renderer": "16.13.1",
-    "prettier": "^2.0.4",
     "typescript": "^3.8.3"
   },
   "jest": {

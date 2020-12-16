@@ -5,7 +5,7 @@ import {
   RequestMeta,
   User
 } from './Types';
-import { getDeviceBasedId, log, warn, removeProtocol, shouldIgnore } from './Utils';
+import { getDeviceBasedId, log, warn, shouldIgnore } from './Utils';
 // @ts-ignore
 import XHRInterceptor from 'react-native/Libraries/Network/XHRInterceptor';
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
@@ -22,13 +22,12 @@ const SessionRotateThreshold = 30 * 60 * 1000; //milliseconds (equivalent to 30 
 export default class RealUserMonitor {
   //#region ----INITIALIZATION----------------------------------------------------------------------
 
-  private user: User;
-  private tags: Set<string>;
+  private readonly user: User;
   private readonly apiKey: string;
   private readonly version: string;
   private readonly disableNetworkMonitoring: boolean;
   private readonly customRealUserMonitoringEndpoint: string;
-  private ignoredURLs: string[];
+  private readonly ignoredURLs: string[];
   private requests = new Map<string, RequestMeta>();
   private RAYGUN_RUM_ENDPOINT = 'https://api.raygun.com/events';
 
@@ -39,7 +38,6 @@ export default class RealUserMonitor {
    * RealUserMonitor: Manages RUM specific logic tasks.
    * @param apiKey - The User's API key that gives them access to RUM. (User provided)
    * @param user - A User object that represents the current user.
-   * @param tags - A set of strings, where each string is a tag.
    * @param disableNetworkMonitoring - If true, XHRInterceptor is not switched on. All requests go through without monitoring.
    * @param ignoredURLs - A string array of URLs to ignore when watching the network.
    * @param customRealUserMonitoringEndpoint - The custom API URL endpoint where this API should send data to.
@@ -48,7 +46,6 @@ export default class RealUserMonitor {
   constructor(
     apiKey: string,
     user: User,
-    tags: Set<string>,
     disableNetworkMonitoring = true,
     ignoredURLs: string[],
     customRealUserMonitoringEndpoint: string,
@@ -57,7 +54,6 @@ export default class RealUserMonitor {
     // Assign the values parsed in (assuming initiation is the only time these are altered).
     this.apiKey = apiKey;
     this.user = user;
-    this.tags = tags;
     this.disableNetworkMonitoring = disableNetworkMonitoring;
     this.customRealUserMonitoringEndpoint = customRealUserMonitoringEndpoint;
     this.version = version;
@@ -124,13 +120,9 @@ export default class RealUserMonitor {
    * @param name - The name of the event (makes the event individual from it's category)
    * @param duration - How long this event took to execute.
    */
-  sendCustomRUMEvent(
-    eventType: RealUserMonitoringTimings.ViewLoaded | RealUserMonitoringTimings.NetworkCall,
-    name: string,
-    duration: number
-  ) {
+  sendCustomRUMEvent(eventType: RealUserMonitoringTimings, name: string, duration: number) {
     if (eventType === RealUserMonitoringTimings.ViewLoaded) {
-      this.sendViewLoadedEvent(name, duration);
+      this.sendViewLoadedEvent(name, duration).then();
       return;
     }
     if (eventType === RealUserMonitoringTimings.NetworkCall) {

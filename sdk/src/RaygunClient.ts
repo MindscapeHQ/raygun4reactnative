@@ -38,7 +38,7 @@ let currentUser: User = {
  *
  * @param raygunClientOptions
  */
-const init = async (raygunClientOptions: RaygunClientOptions) => {
+const init = (raygunClientOptions: RaygunClientOptions) => {
   //Do not reinitialize
   if (initialized) {
     log('Already initialized');
@@ -66,7 +66,7 @@ const init = async (raygunClientOptions: RaygunClientOptions) => {
 
   //Initialise native if it is available and a service is utilising native side logic
   if (nativeBridgeAvailable && (crashReportingRequiresNative || enableRealUserMonitoring)) {
-    await RaygunNativeBridge.init({
+    RaygunNativeBridge.init({
       apiKey,
       enableRealUserMonitoring,
       version,
@@ -92,7 +92,6 @@ const init = async (raygunClientOptions: RaygunClientOptions) => {
     realUserMonitor = new RealUserMonitor(
       apiKey,
       currentUser,
-      currentTags,
       disableNetworkMonitoring,
       ignoredURLs,
       customRealUserMonitoringEndpoint,
@@ -254,11 +253,7 @@ const CrashReportingAvailable = (calledFrom: string) => {
  * @param name - Name of this event.
  * @param timeUsedInMs - Length this event took to execute.
  */
-const sendRUMTimingEvent = (
-  eventType: RealUserMonitoringTimings.ViewLoaded | RealUserMonitoringTimings.NetworkCall,
-  name: string,
-  timeUsedInMs: number
-) => {
+const sendRUMTimingEvent = (eventType: RealUserMonitoringTimings, name: string, timeUsedInMs: number) => {
   if (!RealUserMonitoringAvailable('sendRUMTimingEvent')) return;
   realUserMonitor.sendCustomRUMEvent(eventType, name, timeUsedInMs);
 };
