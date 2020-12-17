@@ -70,7 +70,7 @@ export default class CrashReporter {
       onUnhandled: this.processUnhandledRejection
     });
 
-    this.sendCachedReports(apiKey, customCrashReportingEndpoint).then();
+    this.sendCachedReports(apiKey, customCrashReportingEndpoint);
   }
 
   //#endregion--------------------------------------------------------------------------------------
@@ -184,7 +184,7 @@ export default class CrashReporter {
     const stack = cleanedStackFrames || [].filter(filterOutReactFrames).map(noAddressAt);
 
     if (isFatal) {
-      this.tags.add('Fatal');
+      this.tags.add('UnhandledError');
     }
 
     const payload = await this.generateCrashReportPayload(error, stack);
@@ -213,7 +213,7 @@ export default class CrashReporter {
    * @param error - the caught rejection
    */
   processUnhandledRejection(error: any) {
-    this.processUnhandledError(error, false).then();
+    this.processUnhandledError(error, false);
   }
 
   //#endregion--------------------------------------------------------------------------------------
