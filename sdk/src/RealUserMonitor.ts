@@ -122,7 +122,7 @@ export default class RealUserMonitor {
    */
   sendCustomRUMEvent(eventType: RealUserMonitoringTimings, name: string, duration: number) {
     if (eventType === RealUserMonitoringTimings.ViewLoaded) {
-      this.sendViewLoadedEvent(name, duration);
+      this.sendViewLoadedEvent({ "duration": duration, "name": name});
       return;
     }
     if (eventType === RealUserMonitoringTimings.NetworkCall) {
@@ -150,13 +150,14 @@ export default class RealUserMonitor {
    * This method sends a mobile event timing message to the raygun server. If the current session
    * has not been setup, this method will also ensure that the session has been allocated an ID
    * before sending away any data.
-   * @param name - Name of the event (specific to the event).
-   * @param duration - How long the event took.
+   * @param payload
    */
-  async sendViewLoadedEvent(name: string, duration: number) {
+  async sendViewLoadedEvent(payload: Record<string, any>) {
+    const {name, duration} = payload;
     if (!this.curRUMSessionId) {
+      log(name, duration, this.curRUMSessionId);
       this.curRUMSessionId = getDeviceBasedId();
-      await this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
+      await this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {})
     }
     const data = { name, timing: { type: RealUserMonitoringTimings.ViewLoaded, duration } };
     return this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.EventTiming, data);
