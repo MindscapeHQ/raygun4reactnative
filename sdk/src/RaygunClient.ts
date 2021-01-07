@@ -11,6 +11,7 @@ import { NativeModules } from 'react-native';
 
 const { RaygunNativeBridge } = NativeModules;
 
+
 /**
  * The RaygunClient is the interface in which this provider publicly shows. The bottom of this page
  * has an 'export' statement which exports the methods defined in the RaygunClient.ts file. Some
