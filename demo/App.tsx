@@ -9,7 +9,15 @@
  */
 
 import React from 'react';
-import {SafeAreaView, StyleSheet, ScrollView, View, StatusBar, Button} from 'react-native';
+import {
+  SafeAreaView,
+  StyleSheet,
+  ScrollView,
+  View,
+  StatusBar,
+  Button,
+  NativeModules
+} from 'react-native';
 
 import {Header, Colors} from 'react-native/Libraries/NewAppScreen';
 
@@ -22,11 +30,13 @@ import RaygunClient, {
   User
 } from 'raygun4reactnative';
 
+const {RaygunDemoBridge} = NativeModules;
+
 const options: RaygunClientOptions = {
   apiKey: '', // YOUR APIKEY
   version: '0.0.2', // YOUR APP VERSION
   enableCrashReporting: true,
-  enableRealUserMonitoring: true
+  enableRealUserMonitoring: true,
 }
 
 RaygunClient.init(options);
@@ -273,6 +283,19 @@ const App = () => {
                 accessibilityLabel="clearSessionBtn"
                 onPress={() => RaygunClient.clearSession()}
                 title="Clear Session"
+              />
+            </View>
+            <View
+              style={{
+                width: '45%',
+                marginBottom: 15
+              }}>
+              <Button
+                color="red"
+                testID="runNativeError"
+                accessibilityLabel="runNativeError"
+                onPress={() => RaygunDemoBridge.runNativeError()}
+                title="Run Native Error"
               />
             </View>
           </View>
