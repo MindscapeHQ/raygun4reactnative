@@ -70,7 +70,7 @@ export default class CrashReporter {
       onUnhandled: this.processUnhandledRejection
     });
 
-    this.resendCachedReports(apiKey, customCrashReportingEndpoint);
+    this.resendCachedReports(apiKey, customCrashReportingEndpoint).then(r => {log("Cache cleared")});
   }
 
   //#endregion--------------------------------------------------------------------------------------
@@ -138,6 +138,7 @@ export default class CrashReporter {
    * @param customEndpoint
    */
   async resendCachedReports(apiKey: string, customEndpoint?: string) {
+
     //Extract cached reports from the native side
     const cache : CrashReportPayload[] = await RaygunNativeBridge.flushCrashReportCache()
     .then((reportsJson: string) => {
