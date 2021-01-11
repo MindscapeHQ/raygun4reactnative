@@ -296,6 +296,7 @@ export {
   recordBreadcrumb,
   addCustomData,
   sendError,
+  setCrashReportCacheSize,
   updateCustomData,
   sendRUMTimingEvent
 };
