@@ -301,7 +301,8 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
 
     @ReactMethod
     public void setCacheSize(int newSize, Promise promise) {
-        cacheSize = newSize;
+        //Set the cache size to the new value clamped between the min and max
+        cacheSize = Math.max(0, Math.min(newSize, 64));
     }
 
     private class OnBeforeSendHandler implements CrashReportingOnBeforeSend {
