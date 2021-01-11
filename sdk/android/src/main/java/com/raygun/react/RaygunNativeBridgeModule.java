@@ -211,20 +211,6 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     }
 
     @ReactMethod
-    public void sendCrashReport(String jsonPayload, String apiKey) {
-        Log.i("sendCrashReport", "jsonPayload:\n" + jsonPayload);
-        Intent intent = new Intent(RaygunClient.getApplicationContext(), CrashReportingPostService.class);
-        intent.setAction("com.raygun.raygun4android.intent.action.LAUNCH_CRASHREPORTING_POST_SERVICE");
-        intent.setPackage("com.raygun.raygun4android");
-        intent.setComponent(new ComponentName(RaygunClient.getApplicationContext(), CrashReportingPostService.class));
-        intent.putExtra("msg", jsonPayload);
-        intent.putExtra("apikey", apiKey);
-
-        CrashReportingPostService.enqueueWork(RaygunClient.getApplicationContext(), intent);
-        Log.i("enqueue", "intent: "+ intent);
-    }
-
-    @ReactMethod
     public void setUser(ReadableMap userObj) {
         RaygunUserInfo user = new RaygunUserInfo(
                 userObj.getString("identifier"),
