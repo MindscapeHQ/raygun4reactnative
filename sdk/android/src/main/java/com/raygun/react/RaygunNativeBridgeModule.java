@@ -52,6 +52,7 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     private static ReactApplicationContext reactContext;
     private boolean initialized = false;
     private long startedTime;
+    private int cacheSize = 10;
 
     private static final String ON_RESUME = "ON_RESUME";
     private static final String ON_PAUSE = "ON_PAUSE";
@@ -300,8 +301,8 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
         String reportsJson = preferences.getString("reports", "[]");
         try {
             JSONArray reports = new JSONArray(reportsJson);
-            if (reports.length() >= 10) {
                 reports.remove(0);
+            if (reports.length() >= cacheSize) {
             }
             reports.put(new JSONObject(report));
             preferences.edit().putString("reports", reports.toString()).commit();
