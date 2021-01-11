@@ -304,7 +304,7 @@ RCT_EXPORT_METHOD(loadCrashReports:(RCTPromiseResolveBlock)resolve onError:(RCTP
     resolve(@"[]");
 }
 
-RCT_EXPORT_METHOD(saveCrashReport:(NSString *)jsonString withResolver: (RCTPromiseResolveBlock)resolve rejecter: (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(cacheCrashReport:(NSString *)jsonString withResolver: (RCTPromiseResolveBlock)resolve rejecter: (RCTPromiseRejectBlock)reject)
 {
     NSError *jsonParseError;
     NSError *jsonSerializeError;

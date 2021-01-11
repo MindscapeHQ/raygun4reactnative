@@ -127,8 +127,8 @@ export default class CrashReporter {
    * Cache a given Report to be sent later.
    * @param report - the Report to cache
    */
-  async saveCrashReport(report: CrashReportPayload): Promise<null> {
-    return RaygunNativeBridge.saveCrashReport(JSON.stringify(report));
+  async cacheCrashReport(report: CrashReportPayload): Promise<null> {
+    return RaygunNativeBridge.cacheCrashReport(JSON.stringify(report));
   }
 
   /**
@@ -303,7 +303,7 @@ export default class CrashReporter {
         log('Skip cache saved reports');
         return;
       }
-      return this.saveCrashReport(report);
+      return this.cacheCrashReport(report);
     });
   }
 

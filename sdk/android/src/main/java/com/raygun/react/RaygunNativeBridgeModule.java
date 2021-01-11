@@ -286,7 +286,7 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @ReactMethod
-    public void saveCrashReport(String report, Promise promise) {
+    public void cacheCrashReport(String report, Promise promise) {
         Log.d("Save Report", report);
         SharedPreferences preferences = reactContext.getSharedPreferences(STORAGE_KEY, Context.MODE_PRIVATE);
         String reportsJson = preferences.getString("reports", "[]");
