@@ -134,8 +134,8 @@ export default class CrashReporter {
   /**
    * Load and return cached reports.
    */
-  async loadCachedReports(): Promise<CrashReportPayload[]> {
-    return RaygunNativeBridge.loadCrashReports().then((reportsJson: string) => {
+  async flushCrashReportCache(): Promise<CrashReportPayload[]> {
+    return RaygunNativeBridge.flushCrashReportCache().then((reportsJson: string) => {
       try {
         return JSON.parse(reportsJson).filter(Boolean);
       } catch (err) {
@@ -151,7 +151,7 @@ export default class CrashReporter {
    * @param customEndpoint
    */
   async sendCachedReports(apiKey: string, customEndpoint?: string) {
-    const reports = await this.loadCachedReports();
+    const reports = await this.flushCrashReportCache();
     log('Load all cached report', reports);
     return Promise.all(reports.map(report => this.sendCrashReport(report, apiKey, customEndpoint, true)));
   }

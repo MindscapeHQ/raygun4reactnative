@@ -278,7 +278,7 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     }
 
     @ReactMethod
-    public void loadCrashReports(Promise promise) {
+    public void flushCrashReportCache(Promise promise) {
         SharedPreferences preferences = reactContext.getSharedPreferences(STORAGE_KEY, Context.MODE_PRIVATE);
         String reportsJson = preferences.getString("reports", "[]");
         promise.resolve(reportsJson);
