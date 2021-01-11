@@ -153,7 +153,7 @@ export default class CrashReporter {
   async sendCachedReports(apiKey: string, customEndpoint?: string) {
     const reports = await this.flushCrashReportCache();
     log('Load all cached report', reports);
-    return Promise.all(reports.map(report => this.sendCrashReport(report, apiKey, customEndpoint, true)));
+    return Promise.all(reports.map(report => this.sendCrashReport(report, apiKey, customEndpoint)));
   }
 
   //#endregion--------------------------------------------------------------------------------------
@@ -284,8 +284,7 @@ export default class CrashReporter {
   async sendCrashReport(
     report: CrashReportPayload,
     apiKey: string,
-    customEndpoint?: string,
-    isAlreadyCached?: boolean
+    customEndpoint?: string
   ) {
     return fetch(customEndpoint || this.RAYGUN_CRASH_REPORT_ENDPOINT + '?apiKey=' + encodeURIComponent(apiKey), {
       method: 'POST',
@@ -296,13 +295,7 @@ export default class CrashReporter {
       body: JSON.stringify(report)
     }).catch(err => {
       error(err);
-      log('Cache report when it failed to send', isAlreadyCached);
 
-      //If the Crash Report fails to send then cache it.
-      if (isAlreadyCached) {
-        log('Skip cache saved reports');
-        return;
-      }
       return this.cacheCrashReport(report);
     });
   }
