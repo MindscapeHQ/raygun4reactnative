@@ -43,6 +43,7 @@ import org.json.JSONObject;
 import static android.provider.Settings.Secure.getString;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -296,14 +297,13 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @ReactMethod
     public void cacheCrashReport(String report, Promise promise) {
-        Log.d("Save Report", report);
+        Log.d("Cached Report", report);
         SharedPreferences preferences = reactContext.getSharedPreferences(STORAGE_KEY, Context.MODE_PRIVATE);
-        String reportsJson = preferences.getString("reports", "[]");
+        String reportsJson = preferences.getString("reports", "[]"); //Retrieve the cache
         try {
             JSONArray reports = new JSONArray(reportsJson);
-                reports.remove(0);
-            if (reports.length() >= cacheSize) {
-            }
+            while (reports.length() >= cacheSize) reports.remove(0); //Clip to max size cache
+            //Add the new report and store the new cache
             reports.put(new JSONObject(report));
             preferences.edit().putString("reports", reports.toString()).commit();
             promise.resolve(null);
