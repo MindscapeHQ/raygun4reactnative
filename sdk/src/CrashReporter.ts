@@ -131,7 +131,6 @@ export default class CrashReporter {
     return RaygunNativeBridge.cacheCrashReport(JSON.stringify(report));
   }
 
-
   /**
    * Transmit cached reports.
    * @param apiKey - The Raygun application to transmit too
@@ -159,6 +158,14 @@ export default class CrashReporter {
       //Attempt to send each of the cached reports
       await Promise.all(cache.map(cachedReport => this.sendCrashReport(cachedReport, apiKey, customEndpoint)));
     }
+  }
+
+  /**
+   * Change the size of the local cache
+   * @param size - The new cache size, must be between 0 and 64
+   */
+  async setCacheSize(size : number) {
+
   }
 
   //#endregion--------------------------------------------------------------------------------------

@@ -224,6 +224,15 @@ const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
 };
 
 /**
+ * Let the user change the size of the CrashReporter cache
+ * @param amount
+ */
+const setCrashReportCacheSize = (size: number) => {
+  if (!CrashReportingAvailable('updateCustomData')) return;
+  crashReporter.setCacheSize(size);
+}
+
+/**
  * Checks if the CrashReporter has been created (during RaygunClient.init) and if the user enabled
  * the CrashReporter during the init.
  */
