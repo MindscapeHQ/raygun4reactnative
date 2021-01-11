@@ -70,7 +70,7 @@ export default class CrashReporter {
       onUnhandled: this.processUnhandledRejection
     });
 
-    this.sendCachedReports(apiKey, customCrashReportingEndpoint);
+    this.resendCachedReports(apiKey, customCrashReportingEndpoint);
   }
 
   //#endregion--------------------------------------------------------------------------------------
@@ -131,29 +131,30 @@ export default class CrashReporter {
     return RaygunNativeBridge.cacheCrashReport(JSON.stringify(report));
   }
 
-  /**
-   * Load and return cached reports.
-   */
-  async flushCrashReportCache(): Promise<CrashReportPayload[]> {
-    return RaygunNativeBridge.flushCrashReportCache().then((reportsJson: string) => {
-      try {
-        return JSON.parse(reportsJson).filter(Boolean);
-      } catch (err) {
-        error(err);
-        return [];
-      }
-    });
-  }
 
   /**
    * Transmit cached reports.
    * @param apiKey - The Raygun application to transmit too
    * @param customEndpoint
    */
-  async sendCachedReports(apiKey: string, customEndpoint?: string) {
-    const reports = await this.flushCrashReportCache();
-    log('Load all cached report', reports);
-    return Promise.all(reports.map(report => this.sendCrashReport(report, apiKey, customEndpoint)));
+  async resendCachedReports(apiKey: string, customEndpoint?: string) {
+    //Extract cached reports from the native side
+    const cache : CrashReportPayload[] = await RaygunNativeBridge.flushCrashReportCache()
+    .then((reportsJson: string) => {
+      try {
+        //Format the cache and remove empty and null strings
+        return JSON.parse(reportsJson).filter(Boolean) as CrashReportPayload[];
+      } catch (err) {
+        //If there are no cached reports then return an empty array
+        error(err);
+        return [];
+      }
+    });
+
+    log('Cache flushed', cache);
+
+    //Attempt to send each of the cached reports
+    return Promise.all(cache.map(cachedReport => this.sendCrashReport(cachedReport, apiKey, customEndpoint)));
   }
 
   //#endregion--------------------------------------------------------------------------------------
