@@ -139,23 +139,26 @@ export default class CrashReporter {
    */
   async resendCachedReports(apiKey: string, customEndpoint?: string) {
 
-    //Extract cached reports from the native side
-    const cache : CrashReportPayload[] = await RaygunNativeBridge.flushCrashReportCache()
-    .then((reportsJson: string) => {
-      try {
-        //Format the cache and remove empty and null strings
-        return JSON.parse(reportsJson).filter(Boolean) as CrashReportPayload[];
-      } catch (err) {
-        //If there are no cached reports then return an empty array
-        error(err);
-        return [];
-      }
-    });
+    //If there are Reports cached
+    if(!await RaygunNativeBridge.cacheEmpty()) {
+      //Extract cached reports from the native side
+      const cache : CrashReportPayload[] = await RaygunNativeBridge.flushCrashReportCache()
+      .then((reportsJson: string) => {
+        try {
+          //Format the cache and remove empty and null strings
+          return JSON.parse(reportsJson).filter(Boolean) as CrashReportPayload[];
+        } catch (err) {
+          //If there are no cached reports then return an empty array
+          error(err);
+          return [];
+        }
+      });
 
-    log('Cache flushed', cache);
+      log('Cache flushed', cache);
 
-    //Attempt to send each of the cached reports
-    return Promise.all(cache.map(cachedReport => this.sendCrashReport(cachedReport, apiKey, customEndpoint)));
+      //Attempt to send each of the cached reports
+      await Promise.all(cache.map(cachedReport => this.sendCrashReport(cachedReport, apiKey, customEndpoint)));
+    }
   }
 
   //#endregion--------------------------------------------------------------------------------------

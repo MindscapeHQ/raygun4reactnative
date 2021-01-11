@@ -278,6 +278,13 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     }
 
     @ReactMethod
+    public void cacheEmpty(Promise promise) {
+        String cache = reactContext.getSharedPreferences(STORAGE_KEY, Context.MODE_PRIVATE).getString("reports", "[]");
+        promise.resolve(cache.equals("[]"));
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    @ReactMethod
     public void flushCrashReportCache(Promise promise) {
         SharedPreferences preferences = reactContext.getSharedPreferences(STORAGE_KEY, Context.MODE_PRIVATE);
         String reportsJson = preferences.getString("reports", "[]"); //Retrieve the cache
