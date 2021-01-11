@@ -3,7 +3,7 @@
  * Crash Reporting functionality as well as managing Session specific data.
  */
 
-import { BreadcrumbOption, CustomData, RaygunClientOptions, User, RealUserMonitoringTimings } from './Types';
+import { BreadcrumbOption, CustomData, RaygunClientOptions, User, RealUserMonitoringTimings, BeforeSendHandler } from './Types';
 import { clone, getDeviceBasedId, log, warn } from './Utils';
 import CrashReporter from './CrashReporter';
 import RealUserMonitor from './RealUserMonitor';
@@ -45,7 +45,7 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
     return false;
   }
 
-  options = clone(raygunClientOptions);
+  options = {...raygunClientOptions};
 
   //Cleans options with defaults
   const {
@@ -61,11 +61,9 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
     ignoredURLs = []
   } = options;
 
-  const nativeBridgeAvailable = RaygunNativeBridge && typeof RaygunNativeBridge.init === 'function';
-  const crashReportingRequiresNative = enableCrashReporting && !disableNativeCrashReporting;
 
-  //Initialise native if it is available and a service is utilising native side logic
-  if (nativeBridgeAvailable && (crashReportingRequiresNative || enableRealUserMonitoring)) {
+  if (!disableNativeCrashReporting) {
+    log("Native Bridge Initialized");
     RaygunNativeBridge.init({
       apiKey,
       enableRealUserMonitoring,
@@ -73,6 +71,7 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
       customCrashReportingEndpoint
     });
   }
+
 
   //Enable Crash Reporting
   if (enableCrashReporting) {
@@ -82,7 +81,7 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
       currentTags,
       disableNativeCrashReporting,
       customCrashReportingEndpoint || '',
-      onBeforeSendingCrashReport,
+      onBeforeSendingCrashReport as BeforeSendHandler,
       version
     );
   }
