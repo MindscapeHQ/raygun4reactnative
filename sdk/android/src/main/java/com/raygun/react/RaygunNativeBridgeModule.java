@@ -313,6 +313,11 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
         }
     }
 
+    @ReactMethod
+    public void setCacheSize(int newSize, Promise promise) {
+        cacheSize = newSize;
+    }
+
     private class OnBeforeSendHandler implements CrashReportingOnBeforeSend {
         // Prevent the JS side error been process again as it propagate to the native side
         @Override
