@@ -70,7 +70,7 @@ export default class CrashReporter {
       onUnhandled: this.processUnhandledRejection
     });
 
-    this.resendCachedReports(apiKey, customCrashReportingEndpoint).then(r => {log("Cache cleared")});
+    this.resendCachedReports(apiKey, customCrashReportingEndpoint).then(r => {log("Cache flushed")});
   }
 
   //#endregion--------------------------------------------------------------------------------------
@@ -291,6 +291,7 @@ export default class CrashReporter {
     apiKey: string,
     customEndpoint?: string
   ) {
+    //Send the message
     return fetch(customEndpoint || this.RAYGUN_CRASH_REPORT_ENDPOINT + '?apiKey=' + encodeURIComponent(apiKey), {
       method: 'POST',
       mode: 'cors',
@@ -298,9 +299,13 @@ export default class CrashReporter {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(report)
-    }).catch(err => {
+    }).then(() => {
+      //If the message is successfully sent then attempt to transmit the cache if it isn't empty
+      this.resendCachedReports(apiKey, this.customCrashReportingEndpoint).then(r => {log("Cache flushed")});
+    })
+    .catch(err => {
+      //If there are any errors then
       error(err);
-
       return this.cacheCrashReport(report);
     });
   }
