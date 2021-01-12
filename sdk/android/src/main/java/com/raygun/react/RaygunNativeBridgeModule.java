@@ -43,6 +43,7 @@ import org.json.JSONObject;
 import static android.provider.Settings.Secure.getString;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -52,6 +53,7 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     private static ReactApplicationContext reactContext;
     private boolean initialized = false;
     private long startedTime;
+    private int cacheSize = 10;
 
     private static final String ON_RESUME = "ON_RESUME";
     private static final String ON_PAUSE = "ON_PAUSE";
@@ -209,20 +211,6 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     }
 
     @ReactMethod
-    public void sendCrashReport(String jsonPayload, String apiKey) {
-        Log.i("sendCrashReport", "jsonPayload:\n" + jsonPayload);
-        Intent intent = new Intent(RaygunClient.getApplicationContext(), CrashReportingPostService.class);
-        intent.setAction("com.raygun.raygun4android.intent.action.LAUNCH_CRASHREPORTING_POST_SERVICE");
-        intent.setPackage("com.raygun.raygun4android");
-        intent.setComponent(new ComponentName(RaygunClient.getApplicationContext(), CrashReportingPostService.class));
-        intent.putExtra("msg", jsonPayload);
-        intent.putExtra("apikey", apiKey);
-
-        CrashReportingPostService.enqueueWork(RaygunClient.getApplicationContext(), intent);
-        Log.i("enqueue", "intent: "+ intent);
-    }
-
-    @ReactMethod
     public void setUser(ReadableMap userObj) {
         RaygunUserInfo user = new RaygunUserInfo(
                 userObj.getString("identifier"),
@@ -278,23 +266,30 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     }
 
     @ReactMethod
-    public void loadCrashReports(Promise promise) {
-        SharedPreferences preferences = reactContext.getSharedPreferences(STORAGE_KEY, Context.MODE_PRIVATE);
-        String reportsJson = preferences.getString("reports", "[]");
-        promise.resolve(reportsJson);
+    public void cacheEmpty(Promise promise) {
+        String cache = reactContext.getSharedPreferences(STORAGE_KEY, Context.MODE_PRIVATE).getString("reports", "[]");
+        promise.resolve(cache.equals("[]"));
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @ReactMethod
-    public void saveCrashReport(String report, Promise promise) {
-        Log.d("Save Report", report);
+    public void flushCrashReportCache(Promise promise) {
         SharedPreferences preferences = reactContext.getSharedPreferences(STORAGE_KEY, Context.MODE_PRIVATE);
-        String reportsJson = preferences.getString("reports", "[]");
+        String reportsJson = preferences.getString("reports", "[]"); //Retrieve the cache
+        preferences.edit().putString("reports", "[]").commit(); //Clear the cache
+        promise.resolve(reportsJson); //Return its contents
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    @ReactMethod
+    public void cacheCrashReport(String report, Promise promise) {
+        Log.d("Cached Report", report);
+        SharedPreferences preferences = reactContext.getSharedPreferences(STORAGE_KEY, Context.MODE_PRIVATE);
+        String reportsJson = preferences.getString("reports", "[]"); //Retrieve the cache
         try {
             JSONArray reports = new JSONArray(reportsJson);
-            if (reports.length() >= 10) {
-                reports.remove(0);
-            }
+            while (reports.length() >= cacheSize) reports.remove(0); //Clip to max size cache
+            //Add the new report and store the new cache
             reports.put(new JSONObject(report));
             preferences.edit().putString("reports", reports.toString()).commit();
             promise.resolve(null);
@@ -302,6 +297,12 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
             Log.e("Save Report Error", e.getMessage());
             promise.reject(e);
         }
+    }
+
+    @ReactMethod
+    public void setCacheSize(int newSize, Promise promise) {
+        //Set the cache size to the new value clamped between the min and max
+        cacheSize = Math.max(0, Math.min(newSize, 64));
     }
 
     private class OnBeforeSendHandler implements CrashReportingOnBeforeSend {

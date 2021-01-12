@@ -295,7 +295,7 @@ RCT_EXPORT_METHOD(setUser:(NSDictionary *) user) {
     return nil;
 }
 
-RCT_EXPORT_METHOD(loadCrashReports:(RCTPromiseResolveBlock)resolve onError:(RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(flushCrashReportCache:(RCTPromiseResolveBlock)resolve onError:(RCTPromiseRejectBlock)reject) {
     NSString *rawReports = [[NSUserDefaults standardUserDefaults] stringForKey:defaultsKey];
     if (rawReports) {
         resolve(rawReports);
@@ -304,7 +304,7 @@ RCT_EXPORT_METHOD(loadCrashReports:(RCTPromiseResolveBlock)resolve onError:(RCTP
     resolve(@"[]");
 }
 
-RCT_EXPORT_METHOD(saveCrashReport:(NSString *)jsonString withResolver: (RCTPromiseResolveBlock)resolve rejecter: (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(cacheCrashReport:(NSString *)jsonString withResolver: (RCTPromiseResolveBlock)resolve rejecter: (RCTPromiseRejectBlock)reject)
 {
     NSError *jsonParseError;
     NSError *jsonSerializeError;

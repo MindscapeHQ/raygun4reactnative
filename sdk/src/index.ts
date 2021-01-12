@@ -6,6 +6,7 @@ import {
   recordBreadcrumb,
   addCustomData,
   sendError,
+  setCrashReportCacheSize,
   updateCustomData,
   sendRUMTimingEvent
 } from './RaygunClient';
@@ -31,6 +32,7 @@ export default {
   recordBreadcrumb,
   addCustomData,
   sendError,
+  setCrashReportCacheSize,
   updateCustomData,
   sendRUMTimingEvent
 };
