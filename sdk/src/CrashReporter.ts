@@ -198,12 +198,6 @@ export default class CrashReporter {
       return;
     }
 
-    if (!this.disableNativeCrashReporting) {
-      log('Send crash report via Native');
-      RaygunNativeBridge.sendCrashReport(JSON.stringify(modifiedPayload), this.apiKey);
-      return;
-    }
-
     log('Send crash report via JS');
     this.sendCrashReport(modifiedPayload, this.apiKey, this.customCrashReportingEndpoint);
   }
