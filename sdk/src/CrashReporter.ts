@@ -164,8 +164,8 @@ export default class CrashReporter {
    * Change the size of the local cache
    * @param size - The new cache size, must be between 0 and 64
    */
-  async setCacheSize(size : number) {
-    RaygunNativeBridge.setCacheSize(size);
+  async setMaxReportsStoredOnDevice(size : number) {
+    RaygunNativeBridge.setMaxReportsStoredOnDevice(size);
   }
 
   //#endregion--------------------------------------------------------------------------------------

@@ -427,9 +427,10 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
    * @param promise -
    */
   @ReactMethod
-  public void setCacheSize(int newSize, Promise promise) {
+  public void setMaxReportsStoredOnDevice(int newSize, Promise promise) {
     //Set the cache size to the new value clamped between the min and max
     cacheSize = Math.max(0, Math.min(newSize, 64));
+    RaygunClient.setMaxReportsStoredOnDevice(newSize);
   }
 
   //#endregion--------------------------------------------------------------------------------------
