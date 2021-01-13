@@ -45,8 +45,9 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
   //#region---GLOBAL CONSTANTS----------------------------------------------------------------------
   // ReactNative Context, a connection the the React Code.
   private static ReactApplicationContext reactContext;
-  // Is the NativeBridge initialized
+  // Is the NativeBridge/RUMEventHandler initialized
   private boolean initialized = false;
+  private boolean lifecycleInitialized = false;
   // Max number of CrashReports that can be stored.
   private int cacheSize = 10;
   // Maintains a value of when the ReactNativeBridgePackage was initiated (start of the project).
@@ -61,52 +62,99 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
   //#endregion--------------------------------------------------------------------------------------
 
   //#region---CONSTRUCTION METHODS------------------------------------------------------------------
+
+  /**
+   * Constructor for the RaygunNativeBridgeModule class that links ReactNative to Java and stores
+   * the start time to monitor the applications startup time.
+   *
+   * @param context   - ReactApplicationContext, parsed to the RaygunNativeBridgePackage's
+   *                  createNativeModules method. An instance that links Java and ReactNative in a
+   *                  wrapper.
+   * @param startedAt - Long, time when the application started.
+   * @see RaygunNativeBridgePackage
+   */
   public RaygunNativeBridgeModule(ReactApplicationContext context, long startedAt) {
     super(context);
     reactContext = context;
     startedTime = startedAt;
   }
 
+  /**
+   * Returns a string that will be used to identify this bridge in ReactNative with the code: const
+   * { stringReturnedByThisMethod } = NativeModules;
+   *
+   * @return - String value that will identify this bridge module.
+   */
   @Override
   public @NotNull String getName() {
     return "RaygunNativeBridge";
   }
 
+  /**
+   * Initialize the Bridge (and the Raygun4Android client by proxy) with the same options given to
+   * the Raygun4ReactNative client init method.
+   *
+   * @param options - A JS object that replicates the RaygunClientOptions.
+   */
   @ReactMethod
   public void init(ReadableMap options) {
     Timber.i(options.toString());
     if (initialized) {
-      Timber.i("Already initialized");
+      Timber.i("ReactNativeBridge already initialized");
       return;
     }
     String apiKey = options.getString("apiKey");
     String version = options.getString("version");
-    String customCREndpoint = options.getString("customCrashReportingEndpoint");
-    boolean enableRealUserMonitoring = options.getBoolean("enableRealUserMonitoring");
+    String customCrashReportingEndpoint = options.getString("customCrashReportingEndpoint");
     RaygunClient.init(reactContext, apiKey, version);
     initialized = true;
 
     RaygunClient.setOnBeforeSend(new OnBeforeSendHandler());
-    Timber.i(customCREndpoint);
-    RaygunClient.setCustomCrashReportingEndpoint(customCREndpoint);
+    RaygunClient.setCustomCrashReportingEndpoint(customCrashReportingEndpoint);
+    Timber.i(customCrashReportingEndpoint);
+  }
 
-    if (enableRealUserMonitoring) {
-      reactContext.addLifecycleEventListener(this);
-      long ms = SystemClock.uptimeMillis() - startedTime;
-      WritableMap payload = Arguments.createMap();
-      payload.putString("name", getActivityName());
-      payload.putInt("duration", (int) ms);
-      sendJSEvent(ON_START, payload);
+  /**
+   * This method is used by the RealUserMonitor to instantiate the LifecycleEventListeners. This is
+   * not included with the 'init' method, as the RealUserMonitor needs this code to be run
+   * independently. However, if RUM is not enabled, then this would provide some unnecessary
+   * performance downgrades, hence why it is only instantiated if RUM is enabled.
+   */
+  @ReactMethod
+  public void addLifecycleEventListener() {
+    if (lifecycleInitialized) {
+      Timber.i("Lifecycle Event listener already initialized");
+      return;
     }
+
+    reactContext.addLifecycleEventListener(this);
+    long ms = SystemClock.uptimeMillis() - startedTime;
+    WritableMap payload = Arguments.createMap();
+    payload.putString("name", getActivityName());
+    payload.putInt("duration", (int) ms);
+    sendJSEvent(ON_START, payload);
+    lifecycleInitialized = true;
   }
   //#endregion--------------------------------------------------------------------------------------
 
   //#region---INFORMATION GATHERING METHODS---------------------------------------------------------
+
+  /**
+   * Returns true if the Bridge has already had it's "init" method called.
+   *
+   * @param promise - Resolves with true if the Bridge has already been initialized.
+   */
   @ReactMethod
   public void hasInitialized(Promise promise) {
     promise.resolve(initialized);
   }
 
+  /**
+   * Collects all the environment information about this device and returns it to the promise in the
+   * form of a WritableMap.
+   *
+   * @param promise - Resolves with a WriteableMap of all the information about the system.
+   */
   @ReactMethod
   public void getEnvironmentInfo(Promise promise) {
     WritableMap map = Arguments.createMap();
@@ -151,6 +199,12 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     promise.resolve(map);
   }
 
+  /**
+   * Collects the constant values used in this SDK. Such as the OS_Version, and Platform. Along with
+   * key values for events that can occur with RUM enabled.
+   *
+   * @return - A map of constant objects and a key value to access them.
+   */
   @Override
   public Map<String, Object> getConstants() {
     final Map<String, Object> constants = new HashMap<>();
@@ -164,6 +218,12 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     return constants;
   }
 
+  /**
+   * Gets the Device ID. This method is synchronous as the returning value needs to be immediately
+   * available.
+   *
+   * @return - String, value of the device id.
+   */
   @SuppressLint("HardwareIds")
   @ReactMethod(isBlockingSynchronousMethod = true)
   public String getUniqueIdSync() {
@@ -171,22 +231,43 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
   }
 
 
+  /**
+   * Gets the name of the activity (current view of the application where the UI resides). This is
+   * used to monitor events on the screen and to maintain a track on the window responsible for the
+   * application.
+   *
+   * @return - String, value assigned to the activity to identify it.
+   */
   private String getActivityName() {
     return reactContext.getCurrentActivity().getClass().getSimpleName();
   }
   //#endregion--------------------------------------------------------------------------------------
 
   //#region---REAL USER MONITORING EVENT EMITTING METHODS-------------------------------------------
+
   /**
    * Emit an event on the JS side that has been recorded as occurring on the Native Side.
+   *
    * @param eventType - START, RESUME, PAUSE, DESTROY
-   * @param payload - WritableMap with format {"name": String, "duration": Number}.
+   * @param payload   - WritableMap with format {"name": String, "duration": Number}.
+   */
+  /**
+   * Emits an event to the ReactContext.
+   *
+   * @param eventType - Should be one of the KEY values, START, RESUME, PAUSE, DESTROY.
+   * @param payload   - A WritableMap of information to be parsed with this event's occurence.
    */
   private void sendJSEvent(String eventType, @Nullable WritableMap payload) {
     reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
       .emit(eventType, payload);
   }
 
+  /**
+   * When the HOST clicks back into the Application, see following actions.
+   * <p>
+   * Host OPENS application. Host goes to ANOTHER application. Host SWAPS back to THIS application
+   * (resume is run).
+   */
   @Override
   public void onHostResume() {
     WritableMap payload = Arguments.createMap();
@@ -194,6 +275,11 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     this.sendJSEvent(ON_RESUME, payload);
   }
 
+  /**
+   * When the HOST clicks out of the Application without closing it, see following actions.
+   * <p>
+   * Host OPENS application. Host goes to ANOTHER application (pause is run).
+   */
   @Override
   public void onHostPause() {
     WritableMap payload = Arguments.createMap();
@@ -201,6 +287,9 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     this.sendJSEvent(ON_PAUSE, payload);
   }
 
+  /**
+   * When the HOST closes the app (no longer running in the background).
+   */
   @Override
   public void onHostDestroy() {
     WritableMap payload = Arguments.createMap();
@@ -210,6 +299,13 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
   //#endregion--------------------------------------------------------------------------------------
 
   //#region---CRASH REPORTING CACHING METHOD--------------------------------------------------------
+
+  /**
+   * Saves a JSON version of the CrashReport to the SharedPreferences of this android device.
+   *
+   * @param report  - The JSON version of a CrashReport.
+   * @param promise - If some error occurs with the report, the error is returned to the promise.
+   */
   @RequiresApi(api = Build.VERSION_CODES.KITKAT)
   @ReactMethod
   public void cacheCrashReport(String report, Promise promise) {
@@ -232,8 +328,15 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     }
   }
 
+  /**
+   * This class is designed to implement CrashReportingOnBeforeSend interface from the
+   * Raygun4Android SDK. Before Sending some CrashReport, this handler will ensure that the crash
+   * didn't occur in the ReactNative space, else the ReactNative provider will have picked up on
+   * that (else we will have two of the same CrashReport going through).
+   */
   private static class OnBeforeSendHandler implements CrashReportingOnBeforeSend {
-    // Prevent the JS side error been process again as it propagate to the native side
+
+    // Prevent the JS side error from being processed again as it propagate to the native side
     @Override
     public RaygunMessage onBeforeSend(RaygunMessage raygunMessage) {
       RaygunErrorMessage error = raygunMessage.getDetails().getError();
@@ -247,6 +350,11 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
 
   //#region---UPDATE NATIVE TO MATCH REACT METHODS--------------------------------------------------
 
+  /**
+   * Set the User in the Raygun4Android SDK to ensure all reports are consistent between the SDKs.
+   *
+   * @param userObj - ReadableMap that is represented by the 'User' type.
+   */
   @ReactMethod
   public void setUser(ReadableMap userObj) {
     RaygunUserInfo user = new RaygunUserInfo(
@@ -258,16 +366,33 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     RaygunClient.setUser(user);
   }
 
+  /**
+   * Sets the tags in the Raygun4Android SDK to ensure all reports are consistent between the SDKs.
+   *
+   * @param tags - A ReadableArray of strings.
+   */
   @ReactMethod
   public void setTags(ReadableArray tags) {
     RaygunClient.setTags(tags.toArrayList());
   }
 
+  /**
+   * Set the CustomData in the Raygun4Android SDK to ensure all reports are consistent between
+   * SDKs.
+   *
+   * @param customData - ReadableMap that is represented by the 'CustomData' type.
+   */
   @ReactMethod
   public void setCustomData(ReadableMap customData) {
     RaygunClient.setCustomData(customData.toHashMap());
   }
 
+  /**
+   * Set the Breadcrumb in the Raygun4Android SDK to ensure all reports are consistent between
+   * SDKs.
+   *
+   * @param breadcrumb - ReadableMap that is represented by the 'Breadcrumb' type.
+   */
   @ReactMethod
   public void recordBreadcrumb(ReadableMap breadcrumb) {
     String message = breadcrumb.getString("message");
@@ -293,6 +418,13 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
 
     RaygunClient.recordBreadcrumb(breadcrumbMessage);
   }
+
+  /**
+   * Set the max number of CrashReports that can be stored by the Android system.
+   *
+   * @param newSize - int, max number of reports that can be stored.
+   * @param promise -
+   */
   @ReactMethod
   public void setCacheSize(int newSize, Promise promise) {
     //Set the cache size to the new value clamped between the min and max
@@ -303,6 +435,11 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
 
   //#region---CLEAR & UPDATE INFORMATION------------------------------------------------------------
 
+  /**
+   * Checks if the Cache is empty.
+   *
+   * @param promise - Resolves with the outcome of asking if the cache is empty (true/false).
+   */
   @ReactMethod
   public void cacheEmpty(Promise promise) {
     String cache = reactContext.getSharedPreferences(STORAGE_KEY, Context.MODE_PRIVATE)
@@ -310,6 +447,11 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     promise.resolve(cache.equals("[]"));
   }
 
+  /**
+   * Removes all stored crash reports from the cache.
+   *
+   * @param promise - returns the cache as a JSON after everything is removed.
+   */
   @RequiresApi(api = Build.VERSION_CODES.KITKAT)
   @ReactMethod
   public void flushCrashReportCache(Promise promise) {
@@ -320,6 +462,10 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     promise.resolve(reportsJson); //Return its contents
   }
 
+  /**
+   * Resets Breadcrumbs, CustomData, User, and Tags to their default values in the Raygun4Android
+   * SDK.
+   */
   @ReactMethod
   public void clearSession() {
     RaygunClient.clearBreadcrumbs();

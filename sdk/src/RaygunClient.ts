@@ -96,6 +96,8 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
       customRealUserMonitoringEndpoint,
       version
     );
+    // Add the lifecycle event listeners to the bridge.
+    RaygunNativeBridge.addLifecycleEventListener();
   }
 
   initialized = true;
