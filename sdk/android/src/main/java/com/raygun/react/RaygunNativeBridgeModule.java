@@ -10,7 +10,6 @@ import android.os.Build;
 import android.os.SystemClock;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.WindowManager;
 import androidx.annotation.RequiresApi;
 import com.facebook.react.bridge.Arguments;
@@ -98,7 +97,6 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
    */
   @ReactMethod
   public void init(ReadableMap options) {
-    Timber.i(options.toString());
     if (initialized) {
       Timber.i("ReactNativeBridge already initialized");
       return;
@@ -111,7 +109,7 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     RaygunClient.enableCrashReporting();
     RaygunClient.setOnBeforeSend(new OnBeforeSendHandler());
     RaygunClient.setCustomCrashReportingEndpoint(customCrashReportingEndpoint);
-    Timber.i(customCrashReportingEndpoint);
+
     initialized = true;
   }
 
@@ -342,6 +340,7 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     public RaygunMessage onBeforeSend(RaygunMessage raygunMessage) {
       RaygunErrorMessage error = raygunMessage.getDetails().getError();
       if (error.getMessage().contains("JavascriptException")) {
+        System.out.println("DO NOT SEND: " + raygunMessage.getDetails().getError().getMessage());
         return null;
       }
       return raygunMessage;
