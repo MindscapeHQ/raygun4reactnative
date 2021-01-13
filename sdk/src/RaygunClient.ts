@@ -226,11 +226,11 @@ const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
 
 /**
  * Let the user change the size of the CrashReporter cache
- * @param amount
+ * @param size
  */
-const setCrashReportCacheSize = (size: number) => {
-  if (!CrashReportingAvailable('updateCustomData')) return;
-  crashReporter.setCacheSize(size);
+const setMaxReportsStoredOnDevice = (size: number) => {
+  if (!CrashReportingAvailable('setCrashReportCacheSize')) return;
+  crashReporter.setMaxReportsStoredOnDevice(size);
 }
 
 /**
@@ -297,7 +297,7 @@ export {
   recordBreadcrumb,
   addCustomData,
   sendError,
-  setCrashReportCacheSize,
+  setMaxReportsStoredOnDevice,
   updateCustomData,
   sendRUMTimingEvent
 };
