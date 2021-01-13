@@ -106,12 +106,13 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     String apiKey = options.getString("apiKey");
     String version = options.getString("version");
     String customCrashReportingEndpoint = options.getString("customCrashReportingEndpoint");
-    RaygunClient.init(reactContext, apiKey, version);
-    initialized = true;
 
+    RaygunClient.init(reactContext, apiKey, version);
+    RaygunClient.enableCrashReporting();
     RaygunClient.setOnBeforeSend(new OnBeforeSendHandler());
     RaygunClient.setCustomCrashReportingEndpoint(customCrashReportingEndpoint);
     Timber.i(customCrashReportingEndpoint);
+    initialized = true;
   }
 
   /**

@@ -66,7 +66,6 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
     log("Native Bridge Initialized");
     RaygunNativeBridge.init({
       apiKey,
-      enableRealUserMonitoring,
       version,
       customCrashReportingEndpoint
     });
