@@ -175,12 +175,6 @@ static CFTimeInterval processStartTime() {
 RCT_EXPORT_MODULE();
 
 
-RCT_EXPORT_METHOD(trigger_on_start:(NSString *)blank)
-{
-    RCTLogInfo(@"NATIVE - TRIGGERRRED");
-    [self sendEventWithName: onStart body: @{@"duration": @42, @"name": viewName}];
-}
-
 RCT_EXPORT_METHOD(initCrashReportingNativeSupport:(NSString*)apiKey
                   version: (NSString*)version
                   customCrashReportingEndpoint: (NSString*)customCREndpoint)
