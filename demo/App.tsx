@@ -31,11 +31,6 @@ import RaygunClient, {
 
 declare const global: { HermesInternal: null | {} };
 
-const onBeforeSend : BeforeSendHandler = ((p) => {
-    p.Details.Tags = ["THIS IS WORKING"];
-    return p;
-}) as BeforeSendHandler;
-
 const {RaygunDemoBridge} = NativeModules;
 
 const options: RaygunClientOptions = {
@@ -43,7 +38,6 @@ const options: RaygunClientOptions = {
   version: '0.0.2', // YOUR APP VERSION
   enableCrashReporting: true,
   enableRealUserMonitoring: true,
-    onBeforeSendingCrashReport : onBeforeSend
 }
 
 RaygunClient.init(options);
@@ -93,22 +87,6 @@ const App = () => {
                 title="Trigger Uncaught Error"
               />
             </View>
-              <View
-                  style={{
-                      width: '45%',
-                      backgroundColor: 'yellow',
-                      marginBottom: 15
-                  }}>
-                  <Button
-                      testID="triggerUndefinedErrorBtn"
-                      accessibilityLabel="triggerUndefinedErrorBtn"
-                      onPress={() => {
-                          //@ts-ignore
-                          RaygunClient.testingNativeEvents()
-                      }}
-                      title="TRIGGER ON_START"
-                  />
-              </View>
               <View
                   style={{
                       width: '45%',
