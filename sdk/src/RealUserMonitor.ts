@@ -22,7 +22,7 @@ const SessionRotateThreshold = 30 * 60 * 1000; //milliseconds (equivalent to 30 
 export default class RealUserMonitor {
   //#region ----INITIALIZATION----------------------------------------------------------------------
 
-  private readonly user: User;
+  private user: User;
   private readonly apiKey: string;
   private readonly version: string;
   private readonly disableNetworkMonitoring: boolean;
@@ -110,6 +110,14 @@ export default class RealUserMonitor {
   markLastActiveTime() {
     log("MARK LAST ACTIVE TIME")
     this.lastActiveAt = Date.now();
+  }
+
+  /**
+   * Set the real user monitor user object
+   * @param newUser
+   */
+  setUser(newUser: User) {
+    this.user = newUser;
   }
 
   //#endregion--------------------------------------------------------------------------------------

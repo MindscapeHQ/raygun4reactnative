@@ -119,6 +119,14 @@ export default class CrashReporter {
     }
   }
 
+  /**
+   * Set the crash reporters user object
+   * @param newUser
+   */
+  setUser(newUser: User) {
+    this.user = newUser;
+  }
+
   //#endregion--------------------------------------------------------------------------------------
 
   //#region ----LOCAL CACHING OF CRASH REPORTS------------------------------------------------------

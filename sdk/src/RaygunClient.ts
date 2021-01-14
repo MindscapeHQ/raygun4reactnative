@@ -144,7 +144,14 @@ const setUser = (user: User | string) => {
       : {identifier: `anonymous-${getDeviceBasedId()}`, isAnonymous: true}
       : user
   );
+  log(JSON.stringify(userObj));
+
+  //Update user across the react side
   currentUser = userObj;
+  if (CrashReportingAvailable('setUser')) crashReporter.setUser(userObj);
+  if (RealUserMonitoringAvailable('setUser')) realUserMonitor.setUser(userObj);
+
+  //Update user on the
   if (!options.disableNativeCrashReporting) {
     RaygunNativeBridge.setUser(userObj);
   }
