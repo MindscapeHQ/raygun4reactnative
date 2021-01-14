@@ -46,7 +46,7 @@ export default class RealUserMonitor {
   constructor(
     apiKey: string,
     user: User,
-    disableNetworkMonitoring = true,
+    disableNetworkMonitoring: boolean,
     ignoredURLs: string[],
     customRealUserMonitoringEndpoint: string,
     version: string
