@@ -92,18 +92,13 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
   /**
    * Initialize the Bridge (and the Raygun4Android client by proxy) with the same options given to
    * the Raygun4ReactNative client init method.
-   *
-   * @param options - A JS object that replicates the RaygunClientOptions.
    */
   @ReactMethod
-  public void init(ReadableMap options) {
+  public void initCrashReportingNativeSupport(String apiKey, String version, String customCrashReportingEndpoint) {
     if (initialized) {
       Timber.i("ReactNativeBridge already initialized");
       return;
     }
-    String apiKey = options.getString("apiKey");
-    String version = options.getString("version");
-    String customCrashReportingEndpoint = options.getString("customCrashReportingEndpoint");
 
     RaygunClient.init(reactContext, apiKey, version);
     RaygunClient.enableCrashReporting();
@@ -120,7 +115,7 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
    * performance downgrades, hence why it is only instantiated if RUM is enabled.
    */
   @ReactMethod
-  public void addLifecycleEventListener() {
+  public void initRealUserMonitoringNativeSupport() {
     if (lifecycleInitialized) {
       Timber.i("Lifecycle Event listener already initialized");
       return;

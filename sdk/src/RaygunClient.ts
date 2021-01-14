@@ -3,13 +3,20 @@
  * Crash Reporting functionality as well as managing Session specific data.
  */
 
-import { BreadcrumbOption, CustomData, RaygunClientOptions, User, RealUserMonitoringTimings, BeforeSendHandler } from './Types';
-import { clone, getDeviceBasedId, log, warn } from './Utils';
+import {
+  BreadcrumbOption,
+  CustomData,
+  RaygunClientOptions,
+  User,
+  RealUserMonitoringTimings,
+  BeforeSendHandler
+} from './Types';
+import {clone, getDeviceBasedId, log, warn} from './Utils';
 import CrashReporter from './CrashReporter';
 import RealUserMonitor from './RealUserMonitor';
-import { NativeModules } from 'react-native';
+import {NativeModules} from 'react-native';
 
-const { RaygunNativeBridge } = NativeModules;
+const {RaygunNativeBridge} = NativeModules;
 
 /**
  * The RaygunClient is the interface in which this provider publicly shows. The bottom of this page
@@ -64,11 +71,11 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
 
   if (!disableNativeCrashReporting) {
     log("Native Bridge Initialized");
-    RaygunNativeBridge.init({
+    RaygunNativeBridge.initCrashReportingNativeSupport(
       apiKey,
       version,
       customCrashReportingEndpoint
-    });
+    );
   }
 
 
@@ -96,7 +103,7 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
       version
     );
     // Add the lifecycle event listeners to the bridge.
-    RaygunNativeBridge.addLifecycleEventListener();
+    RaygunNativeBridge.initRealUserMonitoringNativeSupport();
   }
 
   initialized = true;
@@ -130,11 +137,11 @@ const addTag = (...tags: string[]) => {
 const setUser = (user: User | string) => {
   //Discern the type of the user argument and apply it to the user field
   const userObj = Object.assign(
-    { firstName: '', fullName: '', email: '', isAnonymous: true },
+    {firstName: '', fullName: '', email: '', isAnonymous: true},
     typeof user === 'string'
       ? !!user
-        ? { identifier: user, isAnonymous: true }
-        : { identifier: `anonymous-${getDeviceBasedId()}`, isAnonymous: true }
+      ? {identifier: user, isAnonymous: true}
+      : {identifier: `anonymous-${getDeviceBasedId()}`, isAnonymous: true}
       : user
   );
   currentUser = userObj;
