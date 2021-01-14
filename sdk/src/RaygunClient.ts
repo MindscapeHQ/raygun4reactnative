@@ -71,16 +71,6 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
   } = options;
 
 
-  if (!disableNativeCrashReporting) {
-    log("Native Bridge Initialized");
-    RaygunNativeBridge.initCrashReportingNativeSupport(
-      apiKey,
-      version,
-      customCrashReportingEndpoint
-    );
-  }
-
-
   //Enable Crash Reporting
   if (enableCrashReporting) {
     crashReporter = new CrashReporter(
@@ -92,6 +82,14 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
       onBeforeSendingCrashReport as BeforeSendHandler,
       version
     );
+    if (!disableNativeCrashReporting) {
+      log("Native Bridge Initialized");
+      RaygunNativeBridge.initCrashReportingNativeSupport(
+          apiKey,
+          version,
+          customCrashReportingEndpoint
+      );
+    }
   }
 
   //Enable Real User Monitoring
