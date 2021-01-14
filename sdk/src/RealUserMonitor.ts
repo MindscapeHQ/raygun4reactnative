@@ -61,6 +61,7 @@ export default class RealUserMonitor {
 
     // If the USER has not defined disabling network monitoring, setup the XHRInterceptor (see
     // NetworkMonitor.ts).
+    // If the USER has not defined disabling network monitoring, setup the XHRInterceptor
     if (!disableNetworkMonitoring) {
       this.setupNetworkMonitoring();
     }

@@ -124,6 +124,10 @@ const addTag = (...tags: string[]) => {
   tags.forEach(tag => {
     currentTags.add(tag);
   });
+
+  //Apply tags change to crash reporter
+  if (CrashReportingAvailable("addTags")) crashReporter.addTags(tags);
+
   if (!options.disableNativeCrashReporting) {
     RaygunNativeBridge.setTags([...currentTags]);
   }

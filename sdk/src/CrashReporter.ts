@@ -127,6 +127,16 @@ export default class CrashReporter {
     this.user = newUser;
   }
 
+  /**
+   * Add a new tag to all Crash Reports
+   * @param newTag
+   */
+  addTags(newTags: string[]) {
+    newTags.forEach(tag => {
+      this.tags.add(tag);
+    });
+  }
+
   //#endregion--------------------------------------------------------------------------------------
 
   //#region ----LOCAL CACHING OF CRASH REPORTS------------------------------------------------------
