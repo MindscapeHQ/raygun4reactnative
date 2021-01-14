@@ -179,8 +179,6 @@ RCT_EXPORT_METHOD(initCrashReportingNativeSupport:(NSString*)apiKey
                   version: (NSString*)version
                   customCrashReportingEndpoint: (NSString*)customCREndpoint)
 {
-    RCTLogInfo(@"NATIVE - INIT CRASH");
-
     //LOGGING ARGUMENTS
     RCTLogInfo(apiKey, version, customCREndpoint);
 
@@ -193,20 +191,13 @@ RCT_EXPORT_METHOD(initCrashReportingNativeSupport:(NSString*)apiKey
 
 RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
 {
-    RCTLogInfo(@"NATIVE - ENABLING RUM");
-    
+
 #if TARGET_OS_IOS || TARGET_OS_TV
-    
-    RCTLogInfo(@"NATIVE - OS TV???");
-    
     //CREATE OBSERVERS FOR STATE CHANGE EVENTS
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillEnterForeground) name:UIApplicationWillEnterForegroundNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidEnterBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate) name:UIApplicationWillTerminateNotification object:nil];
 #else
-    
-    RCTLogInfo("@NATIVE - SETTING LISTENERS");
-    
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillEnterForeground) name:NSApplicationWillBecomeActiveNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidEnterBackground) name:NSApplicationDidResignActiveNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate) name:NSApplicationWillTerminateNotification object:nil];
@@ -214,21 +205,17 @@ RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
     //TRIGGER THE ON_START EVENT
     NSNumber *used = @(CACurrentMediaTime() - startedAt);
     [self sendEventWithName: onStart body:@{@"duration": used, @"name": viewName}];
-    RCTLogInfo(@"NATIVE - JUST SENT ONSTART");
 }
 
 - (void)applicationWillEnterForeground {
-    RCTLogInfo(@"NATIVE - JUST SENT ONRESUME");
     [self sendEventWithName: onResume body:@{@"name": viewName}];
 }
 
 - (void)applicationDidEnterBackground {
-    RCTLogInfo(@"NATIVE - JUST SENT ONPAUSE");
     [self sendEventWithName: onPause body:@{@"name": viewName}];
 }
 
 - (void)applicationWillTerminate {
-    RCTLogInfo(@"NATIVE - JUST SENT ONDESTROY");
     [self sendEventWithName: onDestroy body:@{@"name": viewName}];
 }
 

@@ -134,7 +134,6 @@ export default class RealUserMonitor {
    * @param duration - How long this event took to execute.
    */
   sendCustomRUMEvent(eventType: RealUserMonitoringTimings, name: string, duration: number) {
-    log("IN REAL USER MONITOR Sending custom timing: " + eventType);
     if (eventType === RealUserMonitoringTimings.ViewLoaded) {
       this.sendViewLoadedEvent({ "duration": duration, "name": name});
       return;
@@ -156,8 +155,6 @@ export default class RealUserMonitor {
    * @param duration - The time taken for this event to fully execute.
    */
   sendNetworkTimingEvent(name: string, sendTime: number, duration: number) {
-    log("SENDING NETWORK TIMING EVENT: NAME - " + name + "  duration - " + duration);
-
     const data = { name, timing: { type: RealUserMonitoringTimings.NetworkCall, duration } };
     this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.EventTiming, data, sendTime).catch();
   }
@@ -170,9 +167,8 @@ export default class RealUserMonitor {
    */
   async sendViewLoadedEvent(payload: Record<string, any>) {
     const {name, duration} = payload;
-    log("SENDING VIEW LOADED EVENT: NAME - " + JSON.stringify(name) + "  duration - " + JSON.stringify(duration));
+
 	if (!this.curRUMSessionId) {
-      log(name, duration, this.curRUMSessionId);
       this.curRUMSessionId = getDeviceBasedId();
       await this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
     }
@@ -211,10 +207,8 @@ export default class RealUserMonitor {
    * @param timeAt - The time at which this event occurred, defaults to NOW if undefined/null.
    */
   async transmitRealUserMonitoringEvent(eventName: string, data: Record<string, any>, timeAt?: number) {
-    log("RUM TIMING EVENT INFORMATION:  eName - " + eventName + " data - " + JSON.stringify(data) + " tAt - " + timeAt );
-
     const rumMessage = this.generateRealUserMonitorPayload(eventName, data, timeAt);
-    log("RUM TIMING EVENT SENT: " + JSON.stringify({ eventData: [rumMessage] }));
+
     return fetch(this.customRealUserMonitoringEndpoint || this.RAYGUN_RUM_ENDPOINT + '?apiKey=' + encodeURIComponent(this.apiKey), {
       method: 'POST',
       headers: {

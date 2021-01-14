@@ -148,7 +148,6 @@ const setUser = (user: User | string) => {
       : {identifier: `anonymous-${getDeviceBasedId()}`, isAnonymous: true}
       : user
   );
-  log(JSON.stringify(userObj));
 
   //Update user across the react side
   currentUser = userObj;
@@ -281,7 +280,6 @@ const CrashReportingAvailable = (calledFrom: string) => {
  * @param timeUsedInMs - Length this event took to execute.
  */
 const sendRUMTimingEvent = (eventType: RealUserMonitoringTimings, name: string, durationMs: number) => {
-  log("Sending custom timing: " + eventType);
   if (!RealUserMonitoringAvailable('sendRUMTimingEvent')) return;
   realUserMonitor.sendCustomRUMEvent(eventType, name, durationMs);
 };
