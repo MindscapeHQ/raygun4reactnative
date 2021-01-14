@@ -281,6 +281,10 @@ const RealUserMonitoringAvailable = (calledFrom: string) => {
 
 //#endregion----------------------------------------------------------------------------------------
 
+const testingNativeEvents = () => {
+  RaygunNativeBridge.trigger_on_start("");
+}
+
 export {
   init,
   addTag,
@@ -290,5 +294,6 @@ export {
   addCustomData,
   sendError,
   updateCustomData,
-  sendRUMTimingEvent
+  sendRUMTimingEvent,
+  testingNativeEvents
 };

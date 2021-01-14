@@ -7,7 +7,8 @@ import {
   addCustomData,
   sendError,
   updateCustomData,
-  sendRUMTimingEvent
+  sendRUMTimingEvent,
+  testingNativeEvents
 } from './RaygunClient';
 
 import {
@@ -32,7 +33,8 @@ export default {
   addCustomData,
   sendError,
   updateCustomData,
-  sendRUMTimingEvent
+  sendRUMTimingEvent,
+  testingNativeEvents
 };
 
 export type {
