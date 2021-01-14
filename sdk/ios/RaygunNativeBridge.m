@@ -181,27 +181,19 @@ RCT_EXPORT_METHOD(trigger_on_start:(NSString *)blank)
     [self sendEventWithName: onStart body: @{@"duration": @42, @"name": viewName}];
 }
 
-RCT_EXPORT_METHOD(init:(NSDictionary *)options)
+RCT_EXPORT_METHOD(initCrashReportingNativeSupport:(NSString*)apiKey
+                  version: (NSString*)version
+                  customCrashReportingEndpoint: (NSString*)customCREndpoint)
 {
-    RCTLogInfo(@"NATIVE - INIT");
-    NSString *apiKey = [options objectForKey:@"apiKey"];
-    NSString *customCREndpoint = [options objectForKey:@"customCrashReportingEndpoint"];
-    BOOL disableNativeCrashReporting = [RCTConvert BOOL:[options objectForKey:@"disableNativeCrashReporting"]];
-    BOOL enableRealUserMonitoring = [RCTConvert BOOL:[options objectForKey:@"enableRealUserMonitoring"]];
+    RCTLogInfo(@"NATIVE - INIT CRASH");
 
-    RCTLogInfo(apiKey, disableNativeCrashReporting, options);
-    for (id key in options) {
-        RCTLogInfo(@"key: %@, value: %@ \n", key, [options objectForKey:key]);
-    }
+    //LOGGING ARGUMENTS
+    RCTLogInfo(apiKey, version, customCREndpoint);
 
+    //ENABLE NATIVE SIDE CRASH REPORTING
     [[RaygunClient sharedInstanceWithApiKey:apiKey] setCrashReportingApiEndpoint: customCREndpoint];
-
-    if (!disableNativeCrashReporting) {
-        [RaygunClient.sharedInstance enableCrashReporting];
-    }
-    if (enableRealUserMonitoring) {
-        [self enableRealUserMonitoring];
-    }
+    [RaygunClient.sharedInstance enableCrashReporting];
+    
     hasInitialized = YES;
 }
 
