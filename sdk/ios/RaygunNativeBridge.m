@@ -197,13 +197,15 @@ RCT_EXPORT_METHOD(initCrashReportingNativeSupport:(NSString*)apiKey
     hasInitialized = YES;
 }
 
-- (void) enableRealUserMonitoring {
-RCTLogInfo(@"NATIVE - ENABLING RUM");
-
+RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
+{
+    RCTLogInfo(@"NATIVE - ENABLING RUM");
+    
 #if TARGET_OS_IOS || TARGET_OS_TV
     
     RCTLogInfo(@"NATIVE - OS TV???");
     
+    //CREATE OBSERVERS FOR STATE CHANGE EVENTS
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillEnterForeground) name:UIApplicationWillEnterForegroundNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidEnterBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate) name:UIApplicationWillTerminateNotification object:nil];
@@ -215,6 +217,7 @@ RCTLogInfo(@"NATIVE - ENABLING RUM");
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidEnterBackground) name:NSApplicationDidResignActiveNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate) name:NSApplicationWillTerminateNotification object:nil];
 #endif
+    //TRIGGER THE ON_START EVENT
     NSNumber *used = @(CACurrentMediaTime() - startedAt);
     [self sendEventWithName: onStart body:@{@"duration": used, @"name": viewName}];
     RCTLogInfo(@"NATIVE - JUST SENT ONSTART");
