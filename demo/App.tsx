@@ -9,24 +9,31 @@
  */
 
 import React from 'react';
-import {SafeAreaView, StyleSheet, ScrollView, View, StatusBar, Button} from 'react-native';
+import {Button, SafeAreaView, ScrollView, StatusBar, StyleSheet, View} from 'react-native';
 
-import {Header, Colors} from 'react-native/Libraries/NewAppScreen';
+import {Colors, Header} from 'react-native/Libraries/NewAppScreen';
+import RaygunClient, {
+    BeforeSendHandler,
+    BreadcrumbOption,
+    CustomData,
+    RaygunClientOptions,
+    RealUserMonitoringTimings,
+    User
+} from 'raygun4reactnative';
 
 declare const global: { HermesInternal: null | {} };
 
-import RaygunClient, {
-  BreadcrumbOption,
-  CustomData,
-  RaygunClientOptions,
-  User
-} from 'raygun4reactnative';
+const onBeforeSend : BeforeSendHandler = ((p) => {
+    p.Details.Tags = ["THIS IS WORKING"];
+    return p;
+}) as BeforeSendHandler;
 
 const options: RaygunClientOptions = {
-  apiKey: '', // YOUR APIKEY
+  apiKey: '8YBcSepwBuVS5H5njbz01w', // YOUR APIKEY
   version: '0.0.2', // YOUR APP VERSION
   enableCrashReporting: true,
-  enableRealUserMonitoring: true
+  enableRealUserMonitoring: true,
+    onBeforeSendingCrashReport : onBeforeSend
 }
 
 RaygunClient.init(options);
@@ -64,6 +71,38 @@ const App = () => {
                 title="Trigger undefined error"
               />
             </View>
+              <View
+                  style={{
+                      width: '45%',
+                      backgroundColor: 'yellow',
+                      marginBottom: 15
+                  }}>
+                  <Button
+                      testID="triggerUndefinedErrorBtn"
+                      accessibilityLabel="triggerUndefinedErrorBtn"
+                      onPress={() => {
+                          //@ts-ignore
+                          RaygunClient.testingNativeEvents()
+                      }}
+                      title="TRIGGER ON_START"
+                  />
+              </View>
+              <View
+                  style={{
+                      width: '45%',
+                      backgroundColor: 'yellow',
+                      marginBottom: 15
+                  }}>
+                  <Button
+                      testID="triggerUndefinedErrorBtn"
+                      accessibilityLabel="triggerUndefinedErrorBtn"
+                      onPress={() => {
+                          //@ts-ignore
+                          RaygunClient.sendRUMTimingEvent(RealUserMonitoringTimings.ViewLoaded, "TestEvent", 100)
+                      }}
+                      title="SEND CUSTOM RUM TIMING EVENT"
+                  />
+              </View>
             <View
               style={{
                 width: '45%',
