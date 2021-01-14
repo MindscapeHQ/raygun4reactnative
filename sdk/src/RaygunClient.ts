@@ -14,7 +14,8 @@ import {
 import {clone, getDeviceBasedId, log, warn} from './Utils';
 import CrashReporter from './CrashReporter';
 import RealUserMonitor from './RealUserMonitor';
-import {NativeModules} from 'react-native';
+import {Animated, NativeModules} from 'react-native';
+import event = Animated.event;
 
 const {RaygunNativeBridge} = NativeModules;
 
@@ -270,9 +271,10 @@ const CrashReportingAvailable = (calledFrom: string) => {
  * @param name - Name of this event.
  * @param timeUsedInMs - Length this event took to execute.
  */
-const sendRUMTimingEvent = (eventType: RealUserMonitoringTimings, name: string, timeUsedInMs: number) => {
+const sendRUMTimingEvent = (eventType: RealUserMonitoringTimings, name: string, durationMs: number) => {
+  log("Sending custom timing: " + eventType);
   if (!RealUserMonitoringAvailable('sendRUMTimingEvent')) return;
-  realUserMonitor.sendCustomRUMEvent(eventType, name, timeUsedInMs);
+  realUserMonitor.sendCustomRUMEvent(eventType, name, durationMs);
 };
 
 /**
