@@ -55,7 +55,6 @@ const App = () => {
       <SafeAreaView>
         <ScrollView contentInsetAdjustmentBehavior="automatic" style={styles.scrollView}>
           <Header/>
-
           <View
             style={{
               flex: 1,
@@ -65,8 +64,6 @@ const App = () => {
               margin: 20,
               height: '100%'
             }}>
-
-
             <View
               style={{
                 width: '45%',

@@ -359,49 +359,6 @@ RCT_EXPORT_METHOD(cacheCrashReport:(NSString *)jsonString withResolver: (RCTProm
     }
 }
 
-RCT_EXPORT_METHOD(sendCrashReport:(NSString *)jsonString withApiKey:(NSString *) apiKey)
-{
-    NSError *parsingError = nil;
-    NSData *jsonData = [jsonString dataUsingEncoding:NSUTF8StringEncoding];
-    NSDictionary *report = [NSJSONSerialization JSONObjectWithData:jsonData options:0 error: &parsingError];
-
-    if (parsingError) {
-        RCTLogError(@"Parsing JSON CrashReport error: %@", parsingError);
-        return;
-    }
-
-    NSString *occurredOn  = report[@"OccurredOn"];
-    RaygunMessageDetails *details = [self buildMessageDetails: report[@"Details"]];
-    RaygunMessage *message = [[RaygunMessage alloc] initWithTimestamp:occurredOn withDetails:details];
-
-    RCTLogInfo(@"RaygunMessageDetail %@", details);
-    [RaygunClient.sharedInstance sendMessage: message];
-}
-
-- (RaygunMessageDetails *) buildMessageDetails: (NSDictionary *) errorDetails {
-    RaygunMessageDetails *details = [[RaygunMessageDetails alloc] init];
-    details.version = errorDetails[@"Version"];
-    details.client = [[RaygunClientMessage alloc] initWithName:errorDetails[@"Client"][@"Name"] withVersion: errorDetails[@"Client"][@"Version"] withUrl:@"https://github.com/mindscapehq/raygun4reactnative"];
-    details.environment = [self buildEnvironmentMessage:errorDetails[@"Environment"]];
-    details.error = [self buildErrorMessage:errorDetails[@"Error"]];
-#if TARGET_OS_IOS || TARGET_OS_TV
-    details.machineName = [UIDevice currentDevice].name;
-#else
-    details.machineName = [[NSHost currentHost] localizedName];
-#endif
-    details.breadcrumbs = [self buildBreadcrumbs:errorDetails[@"Breadcrumbs"]];
-    details.customData = errorDetails[@"UserCustomData"];
-    details.tags = errorDetails[@"Tags"];
-    details.user = [self buildUserInfo:errorDetails[@"User"]];
-    return details;
-}
-
-- (RaygunErrorMessage *) buildErrorMessage: (NSDictionary *)error {
-    NSArray *stacks = error[@"StackTrace"];
-    RaygunErrorMessage *message = [[RaygunErrorMessage alloc] init:error[@"ClassName"] withMessage:error[@"Message"] withSignalName:@"Unknown" withSignalCode:@"Unknown" withStackTrace:stacks];
-    return message;
-}
-
 - (RaygunEnvironmentMessage *) buildEnvironmentMessage: (NSDictionary *) environment {
     RaygunEnvironmentMessage *env = [[RaygunEnvironmentMessage alloc] init];
     env.oSVersion = environment[@"OSVersion"];
