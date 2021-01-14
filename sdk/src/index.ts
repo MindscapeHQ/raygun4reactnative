@@ -6,6 +6,7 @@ import {
   recordBreadcrumb,
   addCustomData,
   sendError,
+  setMaxReportsStoredOnDevice,
   updateCustomData,
   sendRUMTimingEvent,
   testingNativeEvents
@@ -32,6 +33,7 @@ export default {
   recordBreadcrumb,
   addCustomData,
   sendError,
+  setMaxReportsStoredOnDevice,
   updateCustomData,
   sendRUMTimingEvent,
   testingNativeEvents

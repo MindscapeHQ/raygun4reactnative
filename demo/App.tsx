@@ -9,7 +9,15 @@
  */
 
 import React from 'react';
-import {Button, SafeAreaView, ScrollView, StatusBar, StyleSheet, View} from 'react-native';
+import {
+  SafeAreaView,
+  StyleSheet,
+  ScrollView,
+  View,
+  StatusBar,
+  Button,
+  NativeModules
+} from 'react-native';
 
 import {Colors, Header} from 'react-native/Libraries/NewAppScreen';
 import RaygunClient, {
@@ -28,8 +36,10 @@ const onBeforeSend : BeforeSendHandler = ((p) => {
     return p;
 }) as BeforeSendHandler;
 
+const {RaygunDemoBridge} = NativeModules;
+
 const options: RaygunClientOptions = {
-  apiKey: '8YBcSepwBuVS5H5njbz01w', // YOUR APIKEY
+  apiKey:'', // YOUR APIKEY
   version: '0.0.2', // YOUR APP VERSION
   enableCrashReporting: true,
   enableRealUserMonitoring: true,
@@ -55,20 +65,35 @@ const App = () => {
               margin: 20,
               height: '100%'
             }}>
+
+
             <View
               style={{
                 width: '45%',
-                backgroundColor: 'skyblue',
+                marginBottom: 15
+              }}>
+              <Button
+                color="red"
+                testID="runNativeError"
+                accessibilityLabel="runNativeError"
+                onPress={() => RaygunDemoBridge.runNativeError()}
+                title="Run Native Error"
+              />
+            </View>
+
+            <View
+              style={{
+                width: '45%',
+                backgroundColor: 'orange',
                 marginBottom: 15
               }}>
               <Button
                 testID="triggerUndefinedErrorBtn"
                 accessibilityLabel="triggerUndefinedErrorBtn"
                 onPress={() => {
-                  //@ts-ignore
-                  global.undefinedFn();
+                  throw new Error("Test Error: Uncaught error");
                 }}
-                title="Trigger undefined error"
+                title="Trigger Uncaught Error"
               />
             </View>
               <View
@@ -106,37 +131,46 @@ const App = () => {
             <View
               style={{
                 width: '45%',
-                backgroundColor: 'skyblue',
+                backgroundColor: 'yellow',
                 marginBottom: 15
               }}>
               <Button
                 testID="triggerCustomErrorBtn"
                 accessibilityLabel="triggerCustomErrorBtn"
                 onPress={() => {
-                  throw new Error("CUSTOM MESSAGE!");
+                  // Current user of the application
+                  const user = "Guest"
+
+                  // You caught some error, and now you can send it away
+                  const customData: CustomData = {"Who's to blame: ": user}
+                  const tags: string[] = ["Error", "Caught", "Test"]
+
+                  // Send the error away with custom data
+                  RaygunClient.sendError(new Error("Test Error: Custom Error"), customData, tags);
                 }}
-                title="Trigger custom error"
+                title="Trigger Customize Error"
               />
             </View>
+
             <View
               style={{
                 width: '45%',
-                backgroundColor: 'skyblue',
+                backgroundColor: 'yellow',
                 marginBottom: 15
               }}>
               <Button
                 testID="triggerPromiseRejectionBtn"
                 accessibilityLabel="triggerPromiseRejectionBtn"
-                onPress={async () => {
-                  throw Error('Rejection')
+                onPress={() => {
+                  Promise.reject(new Error("Test Error: Promise Rejection"))
                 }}
                 title="Trigger Promise rejection"
               />
             </View>
+
             <View
               style={{
                 width: '45%',
-
                 marginBottom: 15
               }}>
               <Button
@@ -147,19 +181,7 @@ const App = () => {
                 title="Add Testing Tags"
               />
             </View>
-            <View
-              style={{
-                width: '45%',
-                marginBottom: 15
-              }}>
-              <Button
-                color="green"
-                testID="setUserByIdentifierBtn"
-                accessibilityLabel="setUserByIdentifierBtn"
-                onPress={() => RaygunClient.setUser('user_by_string@email.com')}
-                title="Set User By Identifier"
-              />
-            </View>
+
             <View
               style={{
                 width: '45%',
@@ -184,6 +206,7 @@ const App = () => {
                 title="Set User Object"
               />
             </View>
+
             <View
               style={{
                 width: '45%',
@@ -202,7 +225,7 @@ const App = () => {
 
                     for (let key in customData) {
                       if (typeof customData[key] === "number"
-                      || Array.isArray(customData[key])) {
+                        || Array.isArray(customData[key])) {
                         delete customData[key];
                       }
                     }
@@ -217,6 +240,7 @@ const App = () => {
                 title="Update Custom Data"
               />
             </View>
+
             <View
               style={{
                 width: '45%',
@@ -229,8 +253,8 @@ const App = () => {
                 onPress={() => {
                   const customData1: CustomData = {"Key_1": "Value"};
                   const customData2: CustomData = {"Key_2": 401};
-                  const customData3: CustomData = {"Key_3": ["Value", "Another Value"] };
-                  const customData4: CustomData = {"Key_4": [42, 65] };
+                  const customData3: CustomData = {"Key_3": ["Value", "Another Value"]};
+                  const customData4: CustomData = {"Key_4": [42, 65]};
                   const customData5: CustomData = {"Key_5": customData4};
                   RaygunClient.addCustomData(customData1);
                   RaygunClient.addCustomData(customData2);
@@ -242,6 +266,7 @@ const App = () => {
                 title="Add Custom Data"
               />
             </View>
+
             <View
               style={{
                 width: '45%',
@@ -263,6 +288,7 @@ const App = () => {
                 title="Add Simple Breadcrumbs Data"
               />
             </View>
+
             <View
               style={{
                 width: '45%',
@@ -282,6 +308,7 @@ const App = () => {
                 title="Trigger re-initialize native side"
               />
             </View>
+
             <View
               style={{
                 width: '45%',
@@ -301,6 +328,7 @@ const App = () => {
                 title="Make network call"
               />
             </View>
+
             <View
               style={{
                 width: '45%',
@@ -314,6 +342,7 @@ const App = () => {
                 title="Clear Session"
               />
             </View>
+
           </View>
         </ScrollView>
       </SafeAreaView>
