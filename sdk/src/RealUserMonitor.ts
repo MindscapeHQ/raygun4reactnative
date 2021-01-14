@@ -194,9 +194,11 @@ export default class RealUserMonitor {
    */
   async transmitRealUserMonitoringEvent(eventName: string, data: Record<string, any>, timeAt?: number) {
     const rumMessage = this.generateRealUserMonitorPayload(eventName, data, timeAt);
-    return fetch(this.customRealUserMonitoringEndpoint || this.RAYGUN_RUM_ENDPOINT, {
+    return fetch(this.customRealUserMonitoringEndpoint || this.RAYGUN_RUM_ENDPOINT + '?apiKey=' + encodeURIComponent(this.apiKey), {
       method: 'POST',
-      headers: { 'X-ApiKey': this.apiKey, 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({ eventData: [rumMessage] })
     }).catch(err => {
       log(err);
