@@ -46,7 +46,7 @@ export default class RealUserMonitor {
   constructor(
     apiKey: string,
     user: User,
-    disableNetworkMonitoring = true,
+    disableNetworkMonitoring: boolean,
     ignoredURLs: string[],
     customRealUserMonitoringEndpoint: string,
     version: string
@@ -157,7 +157,7 @@ export default class RealUserMonitor {
     if (!this.curRUMSessionId) {
       log(name, duration, this.curRUMSessionId);
       this.curRUMSessionId = getDeviceBasedId();
-      await this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {})
+      await this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
     }
     const data = { name, timing: { type: RealUserMonitoringTimings.ViewLoaded, duration } };
     return this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.EventTiming, data);
@@ -195,9 +195,7 @@ export default class RealUserMonitor {
    */
   async transmitRealUserMonitoringEvent(eventName: string, data: Record<string, any>, timeAt?: number) {
     const rumMessage = this.generateRealUserMonitorPayload(eventName, data, timeAt);
-    return fetch(this.customRealUserMonitoringEndpoint || this.RAYGUN_RUM_ENDPOINT +
-      '?apiKey=' + encodeURIComponent(this.apiKey),
-      {
+    return fetch(this.customRealUserMonitoringEndpoint || this.RAYGUN_RUM_ENDPOINT + '?apiKey=' + encodeURIComponent(this.apiKey), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

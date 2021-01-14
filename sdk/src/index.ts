@@ -8,7 +8,8 @@ import {
   sendError,
   setMaxReportsStoredOnDevice,
   updateCustomData,
-  sendRUMTimingEvent
+  sendRUMTimingEvent,
+  testingNativeEvents
 } from './RaygunClient';
 
 import {
@@ -34,7 +35,8 @@ export default {
   sendError,
   setMaxReportsStoredOnDevice,
   updateCustomData,
-  sendRUMTimingEvent
+  sendRUMTimingEvent,
+  testingNativeEvents
 };
 
 export type {

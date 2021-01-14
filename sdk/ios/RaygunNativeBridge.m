@@ -171,13 +171,19 @@ static CFTimeInterval processStartTime() {
     return nsVersion;
 }
 
+//Export the RaygunNativeBridge module for the React side of the provider to work with
+RCT_EXPORT_MODULE();
 
 
-RCT_EXPORT_MODULE()
+RCT_EXPORT_METHOD(trigger_on_start:(NSString *)blank)
+{
+    RCTLogInfo(@"NATIVE - TRIGGERRRED");
+    [self sendEventWithName: onStart body: @{@"duration": @42, @"name": viewName}];
+}
 
 RCT_EXPORT_METHOD(init:(NSDictionary *)options)
 {
-    RCTLogInfo(@"Start create shared RaygunClient");
+    RCTLogInfo(@"NATIVE - INIT");
     NSString *apiKey = [options objectForKey:@"apiKey"];
     NSString *customCREndpoint = [options objectForKey:@"customCrashReportingEndpoint"];
     BOOL disableNativeCrashReporting = [RCTConvert BOOL:[options objectForKey:@"disableNativeCrashReporting"]];
@@ -200,28 +206,40 @@ RCT_EXPORT_METHOD(init:(NSDictionary *)options)
 }
 
 - (void) enableRealUserMonitoring {
+RCTLogInfo(@"NATIVE - ENABLING RUM");
+
 #if TARGET_OS_IOS || TARGET_OS_TV
+    
+    RCTLogInfo(@"NATIVE - OS TV???");
+    
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillEnterForeground) name:UIApplicationWillEnterForegroundNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidEnterBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate) name:UIApplicationWillTerminateNotification object:nil];
 #else
+    
+    RCTLogInfo("@NATIVE - SETTING LISTENERS");
+    
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillEnterForeground) name:NSApplicationWillBecomeActiveNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidEnterBackground) name:NSApplicationDidResignActiveNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate) name:NSApplicationWillTerminateNotification object:nil];
 #endif
     NSNumber *used = @(CACurrentMediaTime() - startedAt);
-    [self sendEventWithName:onStart body:@{@"duration": used, @"name": viewName}];
+    [self sendEventWithName: onStart body:@{@"duration": used, @"name": viewName}];
+    RCTLogInfo(@"NATIVE - JUST SENT ONSTART");
 }
 
 - (void)applicationWillEnterForeground {
+    RCTLogInfo(@"NATIVE - JUST SENT ONRESUME");
     [self sendEventWithName: onResume body:@{@"name": viewName}];
 }
 
 - (void)applicationDidEnterBackground {
+    RCTLogInfo(@"NATIVE - JUST SENT ONPAUSE");
     [self sendEventWithName: onPause body:@{@"name": viewName}];
 }
 
 - (void)applicationWillTerminate {
+    RCTLogInfo(@"NATIVE - JUST SENT ONDESTROY");
     [self sendEventWithName: onDestroy body:@{@"name": viewName}];
 }
 
