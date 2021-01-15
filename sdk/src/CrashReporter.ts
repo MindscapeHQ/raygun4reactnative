@@ -70,7 +70,7 @@ export default class CrashReporter {
       onUnhandled: this.processUnhandledRejection
     });
 
-    this.sendCachedReports(apiKey, customCrashReportingEndpoint);
+    this.resendCachedReports(apiKey, customCrashReportingEndpoint).then(r => {log("Cache flushed")});
   }
 
   //#endregion--------------------------------------------------------------------------------------
@@ -119,6 +119,24 @@ export default class CrashReporter {
     }
   }
 
+  /**
+   * Set the crash reporters user object
+   * @param newUser
+   */
+  setUser(newUser: User) {
+    this.user = newUser;
+  }
+
+  /**
+   * Add a new tag to all Crash Reports
+   * @param newTag
+   */
+  addTags(newTags: string[]) {
+    newTags.forEach(tag => {
+      this.tags.add(tag);
+    });
+  }
+
   //#endregion--------------------------------------------------------------------------------------
 
   //#region ----LOCAL CACHING OF CRASH REPORTS------------------------------------------------------
@@ -127,22 +145,8 @@ export default class CrashReporter {
    * Cache a given Report to be sent later.
    * @param report - the Report to cache
    */
-  async saveCrashReport(report: CrashReportPayload): Promise<null> {
-    return RaygunNativeBridge.saveCrashReport(JSON.stringify(report));
-  }
-
-  /**
-   * Load and return cached reports.
-   */
-  async loadCachedReports(): Promise<CrashReportPayload[]> {
-    return RaygunNativeBridge.loadCrashReports().then((reportsJson: string) => {
-      try {
-        return JSON.parse(reportsJson).filter(Boolean);
-      } catch (err) {
-        error(err);
-        return [];
-      }
-    });
+  async cacheCrashReport(report: CrashReportPayload): Promise<null> {
+    return RaygunNativeBridge.cacheCrashReport(JSON.stringify(report));
   }
 
   /**
@@ -150,10 +154,36 @@ export default class CrashReporter {
    * @param apiKey - The Raygun application to transmit too
    * @param customEndpoint
    */
-  async sendCachedReports(apiKey: string, customEndpoint?: string) {
-    const reports = await this.loadCachedReports();
-    log('Load all cached report', reports);
-    return Promise.all(reports.map(report => this.sendCrashReport(report, apiKey, customEndpoint, true)));
+  async resendCachedReports(apiKey: string, customEndpoint?: string) {
+
+    //If there are Reports cached
+    if(!await RaygunNativeBridge.cacheEmpty()) {
+      //Extract cached reports from the native side
+      const cache : CrashReportPayload[] = await RaygunNativeBridge.flushCrashReportCache()
+      .then((reportsJson: string) => {
+        try {
+          //Format the cache and remove empty and null strings
+          return JSON.parse(reportsJson).filter(Boolean) as CrashReportPayload[];
+        } catch (err) {
+          //If there are no cached reports then return an empty array
+          error(err);
+          return [];
+        }
+      });
+
+      log('Cache flushed', cache);
+
+      //Attempt to send each of the cached reports
+      await Promise.all(cache.map(cachedReport => this.sendCrashReport(cachedReport, apiKey, customEndpoint)));
+    }
+  }
+
+  /**
+   * Change the size of the local cache
+   * @param size - The new cache size, must be between 0 and 64
+   */
+  async setMaxReportsStoredOnDevice(size : number) {
+    RaygunNativeBridge.setMaxReportsStoredOnDevice(size);
   }
 
   //#endregion--------------------------------------------------------------------------------------
@@ -195,12 +225,6 @@ export default class CrashReporter {
         : payload;
 
     if (!modifiedPayload) {
-      return;
-    }
-
-    if (!this.disableNativeCrashReporting) {
-      log('Send crash report via Native');
-      RaygunNativeBridge.sendCrashReport(JSON.stringify(modifiedPayload), this.apiKey);
       return;
     }
 
@@ -284,9 +308,9 @@ export default class CrashReporter {
   async sendCrashReport(
     report: CrashReportPayload,
     apiKey: string,
-    customEndpoint?: string,
-    isAlreadyCached?: boolean
+    customEndpoint?: string
   ) {
+    //Send the message
     return fetch(customEndpoint || this.RAYGUN_CRASH_REPORT_ENDPOINT + '?apiKey=' + encodeURIComponent(apiKey), {
       method: 'POST',
       mode: 'cors',
@@ -294,16 +318,14 @@ export default class CrashReporter {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(report)
-    }).catch(err => {
+    }).then(() => {
+      //If the message is successfully sent then attempt to transmit the cache if it isn't empty
+      this.resendCachedReports(apiKey, this.customCrashReportingEndpoint).then(r => {log("Cache flushed")});
+    })
+    .catch(err => {
+      //If there are any errors then
       error(err);
-      log('Cache report when it failed to send', isAlreadyCached);
-
-      //If the Crash Report fails to send then cache it.
-      if (isAlreadyCached) {
-        log('Skip cache saved reports');
-        return;
-      }
-      return this.saveCrashReport(report);
+      return this.cacheCrashReport(report);
     });
   }
 

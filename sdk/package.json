@@ -22,13 +22,14 @@
     "build_sdk": "npm i && npm pack",
     "local_copy_sdk": "copyfiles *.tgz ../demo",
     "build_demo_win": "cd ../demo && npm uninstall raygun4reactnative && npm install raygun4reactnative-%npm_package_version%.tgz && npm i",
-    "build_demo_mac_lin": "cd ../demo && npm uninstall raygun4reactnative && npm install raygun4reactnative-$npm_package_version.tgz && npm i",
+    "build_demo_mac_lin": "cd ../demo && npm uninstall raygun4reactnative && npm install raygun4reactnative-$npm_package_version.tgz && npm i && cd ios && pod install",
     "run_demo": "cd ../demo && npx react-native run-android",
+    "run_demo_ios": "cd ../demo && npx react-native run-ios",
     "build_no_run": "npm run clean_dir_all && npm run build_sdk && npm run local_copy_sdk",
     "build_no_run_win": "npm run build_no_run && npm run build_demo_win",
     "build_no_run_mac_lin": "npm run build_no_run && npm run build_demo_mac_lin",
     "fully_automated_win": "npm run build_no_run_win && npm run run_demo",
-    "fully_automated_mac_lin": "npm run build_no_run_mac_lin && npm run run_demo",
+    "fully_automated_mac_lin": "npm run build_no_run_mac_lin && npm run run_demo_ios",
     "prettier": "npx prettier --write src"
   },
   "repository": {
