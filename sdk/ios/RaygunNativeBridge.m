@@ -48,12 +48,7 @@ static uint32_t ksdl_imageNamed(const char* const imageName, bool exactMatch)
         }
     }
     return UINT32_MAX;
-}
-
-static bool isJailbroken()
-{
-    return ksdl_imageNamed("MobileSubstrate", false) != UINT32_MAX;
-}
+}	
 
 static bool VMStats(vm_statistics_data_t* const vmStats, vm_size_t* const pageSize)
 {
@@ -258,7 +253,6 @@ RCT_EXPORT_METHOD(getEnvironmentInfo:(RCTPromiseResolveBlock)resolve onError:(RC
     [environment setValue:[self getVersion: "kern.version"] forKey:@"KernelVersion"];
     [environment setValue:@(getFreeMemory()) forKey: @"AvailablePhysicalMemory"];
     [environment setValue:@(getMemorySize()) forKey: @"TotalPhysicalMemory"];
-    [environment setValue:[NSNumber numberWithBool: isJailbroken()] forKey: @"JailBroken"];
     resolve(environment);
 }
 
