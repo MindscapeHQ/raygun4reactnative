@@ -166,36 +166,29 @@ static CFTimeInterval processStartTime() {
     return nsVersion;
 }
 
+//Export the RaygunNativeBridge module for the React side of the provider to work with
+RCT_EXPORT_MODULE();
 
 
-RCT_EXPORT_MODULE()
-
-RCT_EXPORT_METHOD(init:(NSDictionary *)options)
+RCT_EXPORT_METHOD(initCrashReportingNativeSupport:(NSString*)apiKey
+                  version: (NSString*)version
+                  customCrashReportingEndpoint: (NSString*)customCREndpoint)
 {
-    RCTLogInfo(@"Start create shared RaygunClient");
-    NSString *apiKey = [options objectForKey:@"apiKey"];
-    NSString *customCREndpoint = [options objectForKey:@"customCrashReportingEndpoint"];
-    BOOL disableNativeCrashReporting = [RCTConvert BOOL:[options objectForKey:@"disableNativeCrashReporting"]];
-    BOOL enableRealUserMonitoring = [RCTConvert BOOL:[options objectForKey:@"enableRealUserMonitoring"]];
+    //LOGGING ARGUMENTS
+    RCTLogInfo(apiKey, version, customCREndpoint);
 
-    RCTLogInfo(apiKey, disableNativeCrashReporting, options);
-    for (id key in options) {
-        RCTLogInfo(@"key: %@, value: %@ \n", key, [options objectForKey:key]);
-    }
-
+    //ENABLE NATIVE SIDE CRASH REPORTING
     [[RaygunClient sharedInstanceWithApiKey:apiKey] setCrashReportingApiEndpoint: customCREndpoint];
-
-    if (!disableNativeCrashReporting) {
-        [RaygunClient.sharedInstance enableCrashReporting];
-    }
-    if (enableRealUserMonitoring) {
-        [self enableRealUserMonitoring];
-    }
+    [RaygunClient.sharedInstance enableCrashReporting];
+    
     hasInitialized = YES;
 }
 
-- (void) enableRealUserMonitoring {
+RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
+{
+
 #if TARGET_OS_IOS || TARGET_OS_TV
+    //CREATE OBSERVERS FOR STATE CHANGE EVENTS
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillEnterForeground) name:UIApplicationWillEnterForegroundNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidEnterBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate) name:UIApplicationWillTerminateNotification object:nil];
@@ -204,8 +197,9 @@ RCT_EXPORT_METHOD(init:(NSDictionary *)options)
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidEnterBackground) name:NSApplicationDidResignActiveNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate) name:NSApplicationWillTerminateNotification object:nil];
 #endif
+    //TRIGGER THE ON_START EVENT
     NSNumber *used = @(CACurrentMediaTime() - startedAt);
-    [self sendEventWithName:onStart body:@{@"duration": used, @"name": viewName}];
+    [self sendEventWithName: onStart body:@{@"duration": used, @"name": viewName}];
 }
 
 - (void)applicationWillEnterForeground {
@@ -289,7 +283,7 @@ RCT_EXPORT_METHOD(setUser:(NSDictionary *) user) {
     return nil;
 }
 
-RCT_EXPORT_METHOD(loadCrashReports:(RCTPromiseResolveBlock)resolve onError:(RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(flushCrashReportCache:(RCTPromiseResolveBlock)resolve onError:(RCTPromiseRejectBlock)reject) {
     NSString *rawReports = [[NSUserDefaults standardUserDefaults] stringForKey:defaultsKey];
     if (rawReports) {
         resolve(rawReports);
@@ -298,7 +292,7 @@ RCT_EXPORT_METHOD(loadCrashReports:(RCTPromiseResolveBlock)resolve onError:(RCTP
     resolve(@"[]");
 }
 
-RCT_EXPORT_METHOD(saveCrashReport:(NSString *)jsonString withResolver: (RCTPromiseResolveBlock)resolve rejecter: (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(cacheCrashReport:(NSString *)jsonString withResolver: (RCTPromiseResolveBlock)resolve rejecter: (RCTPromiseRejectBlock)reject)
 {
     NSError *jsonParseError;
     NSError *jsonSerializeError;
@@ -333,49 +327,6 @@ RCT_EXPORT_METHOD(saveCrashReport:(NSString *)jsonString withResolver: (RCTPromi
         }
         resolve([[NSNumber alloc] initWithInt:1]);
     }
-}
-
-RCT_EXPORT_METHOD(sendCrashReport:(NSString *)jsonString withApiKey:(NSString *) apiKey)
-{
-    NSError *parsingError = nil;
-    NSData *jsonData = [jsonString dataUsingEncoding:NSUTF8StringEncoding];
-    NSDictionary *report = [NSJSONSerialization JSONObjectWithData:jsonData options:0 error: &parsingError];
-
-    if (parsingError) {
-        RCTLogError(@"Parsing JSON CrashReport error: %@", parsingError);
-        return;
-    }
-
-    NSString *occurredOn  = report[@"OccurredOn"];
-    RaygunMessageDetails *details = [self buildMessageDetails: report[@"Details"]];
-    RaygunMessage *message = [[RaygunMessage alloc] initWithTimestamp:occurredOn withDetails:details];
-
-    RCTLogInfo(@"RaygunMessageDetail %@", details);
-    [RaygunClient.sharedInstance sendMessage: message];
-}
-
-- (RaygunMessageDetails *) buildMessageDetails: (NSDictionary *) errorDetails {
-    RaygunMessageDetails *details = [[RaygunMessageDetails alloc] init];
-    details.version = errorDetails[@"Version"];
-    details.client = [[RaygunClientMessage alloc] initWithName:errorDetails[@"Client"][@"Name"] withVersion: errorDetails[@"Client"][@"Version"] withUrl:@"https://github.com/mindscapehq/raygun4reactnative"];
-    details.environment = [self buildEnvironmentMessage:errorDetails[@"Environment"]];
-    details.error = [self buildErrorMessage:errorDetails[@"Error"]];
-#if TARGET_OS_IOS || TARGET_OS_TV
-    details.machineName = [UIDevice currentDevice].name;
-#else
-    details.machineName = [[NSHost currentHost] localizedName];
-#endif
-    details.breadcrumbs = [self buildBreadcrumbs:errorDetails[@"Breadcrumbs"]];
-    details.customData = errorDetails[@"UserCustomData"];
-    details.tags = errorDetails[@"Tags"];
-    details.user = [self buildUserInfo:errorDetails[@"User"]];
-    return details;
-}
-
-- (RaygunErrorMessage *) buildErrorMessage: (NSDictionary *)error {
-    NSArray *stacks = error[@"StackTrace"];
-    RaygunErrorMessage *message = [[RaygunErrorMessage alloc] init:error[@"ClassName"] withMessage:error[@"Message"] withSignalName:@"Unknown" withSignalCode:@"Unknown" withStackTrace:stacks];
-    return message;
 }
 
 - (RaygunEnvironmentMessage *) buildEnvironmentMessage: (NSDictionary *) environment {

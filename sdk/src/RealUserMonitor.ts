@@ -22,7 +22,7 @@ const SessionRotateThreshold = 30 * 60 * 1000; //milliseconds (equivalent to 30 
 export default class RealUserMonitor {
   //#region ----INITIALIZATION----------------------------------------------------------------------
 
-  private readonly user: User;
+  private user: User;
   private readonly apiKey: string;
   private readonly version: string;
   private readonly disableNetworkMonitoring: boolean;
@@ -46,7 +46,7 @@ export default class RealUserMonitor {
   constructor(
     apiKey: string,
     user: User,
-    disableNetworkMonitoring = true,
+    disableNetworkMonitoring: boolean,
     ignoredURLs: string[],
     customRealUserMonitoringEndpoint: string,
     version: string
@@ -61,6 +61,7 @@ export default class RealUserMonitor {
 
     // If the USER has not defined disabling network monitoring, setup the XHRInterceptor (see
     // NetworkMonitor.ts).
+    // If the USER has not defined disabling network monitoring, setup the XHRInterceptor
     if (!disableNetworkMonitoring) {
       this.setupNetworkMonitoring();
     }
@@ -93,6 +94,9 @@ export default class RealUserMonitor {
    *  user -> anon = YES (logout)
    */
   async rotateRUMSession() {
+
+    log("ROTATE RUM SESSION")
+
     if (Date.now() - this.lastActiveAt > SessionRotateThreshold) {
       this.lastActiveAt = Date.now();
       await this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionEnd, {});
@@ -105,7 +109,16 @@ export default class RealUserMonitor {
    * Updates the time since last activity to be NOW.
    */
   markLastActiveTime() {
+    log("MARK LAST ACTIVE TIME")
     this.lastActiveAt = Date.now();
+  }
+
+  /**
+   * Set the real user monitor user object
+   * @param newUser
+   */
+  setUser(newUser: User) {
+    this.user = newUser;
   }
 
   //#endregion--------------------------------------------------------------------------------------
@@ -122,7 +135,7 @@ export default class RealUserMonitor {
    */
   sendCustomRUMEvent(eventType: RealUserMonitoringTimings, name: string, duration: number) {
     if (eventType === RealUserMonitoringTimings.ViewLoaded) {
-      this.sendViewLoadedEvent(name, duration);
+      this.sendViewLoadedEvent({ "duration": duration, "name": name});
       return;
     }
     if (eventType === RealUserMonitoringTimings.NetworkCall) {
@@ -150,11 +163,12 @@ export default class RealUserMonitor {
    * This method sends a mobile event timing message to the raygun server. If the current session
    * has not been setup, this method will also ensure that the session has been allocated an ID
    * before sending away any data.
-   * @param name - Name of the event (specific to the event).
-   * @param duration - How long the event took.
+   * @param payload
    */
-  async sendViewLoadedEvent(name: string, duration: number) {
-    if (!this.curRUMSessionId) {
+  async sendViewLoadedEvent(payload: Record<string, any>) {
+    const {name, duration} = payload;
+
+	if (!this.curRUMSessionId) {
       this.curRUMSessionId = getDeviceBasedId();
       await this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
     }
@@ -194,9 +208,12 @@ export default class RealUserMonitor {
    */
   async transmitRealUserMonitoringEvent(eventName: string, data: Record<string, any>, timeAt?: number) {
     const rumMessage = this.generateRealUserMonitorPayload(eventName, data, timeAt);
-    return fetch(this.customRealUserMonitoringEndpoint || this.RAYGUN_RUM_ENDPOINT, {
+
+    return fetch(this.customRealUserMonitoringEndpoint || this.RAYGUN_RUM_ENDPOINT + '?apiKey=' + encodeURIComponent(this.apiKey), {
       method: 'POST',
-      headers: { 'X-ApiKey': this.apiKey, 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({ eventData: [rumMessage] })
     }).catch(err => {
       log(err);
