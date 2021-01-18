@@ -329,42 +329,4 @@ RCT_EXPORT_METHOD(cacheCrashReport:(NSString *)jsonString withResolver: (RCTProm
     }
 }
 
-- (RaygunEnvironmentMessage *) buildEnvironmentMessage: (NSDictionary *) environment {
-    RaygunEnvironmentMessage *env = [[RaygunEnvironmentMessage alloc] init];
-    env.oSVersion = environment[@"OSVersion"];
-    env.locale = environment[@"Locale"];
-    env.windowsBoundWidth = environment[@"WindowsBoundWidth"];
-    env.windowsBoundHeight = environment[@"WindowsBoundHeight"];
-    env.resolutionScale = environment[@"ResolutionScale"];
-    env.utcOffset = environment[@"UtcOffset"];
-    env.cpu = environment[@"Cpu"];
-    env.processorCount = environment[@"ProcessorCount"];
-    env.model = environment[@"DeviceName"];
-    env.kernelVersion = environment[@"KernelVersion"];
-    env.memorySize = environment[@"TotalPhysicalMemory"];
-    env.memoryFree = environment[@"AvailablePhysicalMemory"];
-    env.jailBroken = [environment[@"JailBroken"] boolValue];
-    return env;
-}
-
-- (NSArray<RaygunBreadcrumb *> *)buildBreadcrumbs:(NSArray *)breadcumbs {
-    NSMutableArray *reportBreadcrumbs = [NSMutableArray array];
-    if (breadcumbs != nil) {
-        for (NSDictionary *crumb in breadcumbs) {
-            [reportBreadcrumbs addObject:[RaygunBreadcrumb breadcrumbWithInformation:crumb]];
-        }
-    }
-
-    return reportBreadcrumbs;
-}
-
-- (RaygunUserInformation *) buildUserInfo: (NSDictionary *) userInfo {
-    return [[RaygunUserInformation alloc] initWithIdentifier:userInfo[@"identifier"]
-          withEmail:userInfo[@"email"]
-       withFullName:userInfo[@"fullName"]
-      withFirstName:userInfo[@"firstName"]
-    withIsAnonymous:[userInfo[@"isAnonymous"] boolValue]
-           withUuid:userInfo[@"uuid"]];
-}
-
 @end
