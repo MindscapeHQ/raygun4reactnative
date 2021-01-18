@@ -126,7 +126,7 @@ const addTag = (...tags: string[]) => {
   });
 
   //Apply tags change to crash reporter
-  if (CrashReportingAvailable("addTags")) crashReporter.addTags(tags);
+  if (crashReportingAvailable("addTags")) crashReporter.addTags(tags);
 
   if (!options.disableNativeCrashReporting) {
     RaygunNativeBridge.setTags([...currentTags]);
@@ -151,8 +151,8 @@ const setUser = (user: User | string) => {
 
   //Update user across the react side
   currentUser = userObj;
-  if (CrashReportingAvailable('setUser')) crashReporter.setUser(userObj);
-  if (RealUserMonitoringAvailable('setUser')) realUserMonitor.setUser(userObj);
+  if (crashReportingAvailable('setUser')) crashReporter.setUser(userObj);
+  if (realUserMonitoringAvailable('setUser')) realUserMonitor.setUser(userObj);
 
   //Update user on the
   if (!options.disableNativeCrashReporting) {
@@ -170,7 +170,7 @@ const setUser = (user: User | string) => {
  * @param details - Details about the breadcrumb.
  */
 const recordBreadcrumb = (message: string, details?: BreadcrumbOption) => {
-  if (!CrashReportingAvailable('recordBreadcrumb')) return;
+  if (!crashReportingAvailable('recordBreadcrumb')) return;
   crashReporter.recordBreadcrumb(message, details);
 };
 
@@ -194,7 +194,7 @@ const recordBreadcrumb = (message: string, details?: BreadcrumbOption) => {
  * @see CustomData
  */
 const sendError = async (error: Error, ...params: any) => {
-  if (!CrashReportingAvailable('sendError')) return;
+  if (!crashReportingAvailable('sendError')) return;
 
   const [customData, tags] = params.length == 1 && Array.isArray(params[0]) ? [null, params[0]] : params;
 
@@ -213,7 +213,7 @@ const sendError = async (error: Error, ...params: any) => {
  * @param customData - The custom data to append
  */
 const addCustomData = (customData: CustomData) => {
-  if (!CrashReportingAvailable('addCustomData')) return;
+  if (!crashReportingAvailable('addCustomData')) return;
   crashReporter.addCustomData(customData);
 };
 
@@ -222,7 +222,7 @@ const addCustomData = (customData: CustomData) => {
  * @param updater - The transformation.
  */
 const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
-  if (!CrashReportingAvailable('updateCustomData')) return;
+  if (!crashReportingAvailable('updateCustomData')) return;
   crashReporter.updateCustomData(updater);
 };
 
@@ -231,7 +231,7 @@ const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
  * @param size
  */
 const setMaxReportsStoredOnDevice = (size: number) => {
-  if (!CrashReportingAvailable('setCrashReportCacheSize')) return;
+  if (!crashReportingAvailable('setCrashReportCacheSize')) return;
   crashReporter.setMaxReportsStoredOnDevice(size);
 }
 
@@ -239,7 +239,7 @@ const setMaxReportsStoredOnDevice = (size: number) => {
  * Checks if the CrashReporter has been created (during RaygunClient.init) and if the user enabled
  * the CrashReporter during the init.
  */
-const CrashReportingAvailable = (calledFrom: string) => {
+const crashReportingAvailable = (calledFrom: string) => {
   if (!initialized) {
     warn(
       `Failed: "${calledFrom}" cannot be called before initialising RaygunClient. Please call RaygunClient.init(...) before trying to call RaygunClient.${calledFrom}(...)`
@@ -265,7 +265,7 @@ const CrashReportingAvailable = (calledFrom: string) => {
  * @param timeUsedInMs - Length this event took to execute.
  */
 const sendRUMTimingEvent = (eventType: RealUserMonitoringTimings, name: string, durationMs: number) => {
-  if (!RealUserMonitoringAvailable('sendRUMTimingEvent')) return;
+  if (!realUserMonitoringAvailable('sendRUMTimingEvent')) return;
   realUserMonitor.sendCustomRUMEvent(eventType, name, durationMs);
 };
 
@@ -273,7 +273,7 @@ const sendRUMTimingEvent = (eventType: RealUserMonitoringTimings, name: string, 
  * Checks if the RealUserMonitor has been created (during RaygunClient.init) and if the user enabled
  * the RealUserMonitor during the init.
  */
-const RealUserMonitoringAvailable = (calledFrom: string) => {
+const realUserMonitoringAvailable = (calledFrom: string) => {
   if (!initialized) {
     warn(
       `Failed: "${calledFrom}" cannot be called before initialising RaygunClient. Please call RaygunClient.init(...) before trying to call RaygunClient.${calledFrom}(...)`
