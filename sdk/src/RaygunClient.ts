@@ -9,7 +9,7 @@ import {
   RaygunClientOptions,
   User,
   RealUserMonitoringTimings,
-  BeforeSendHandler
+  BeforeSendHandler, anonUser
 } from './Types';
 import {clone, getDeviceBasedId, log, warn} from './Utils';
 import CrashReporter from './CrashReporter';
@@ -35,10 +35,7 @@ let options: RaygunClientOptions;
 // Raygun Client Global Variables
 let initialized: boolean = false;
 let currentTags: Set<string> = new Set([]);
-let currentUser: User = {
-  identifier: `anonymous-${getDeviceBasedId()}`,
-  isAnonymous: true
-};
+let currentUser: User = anonUser;
 
 /**
  * Initializes the RaygunClient with customized options parse in through an instance of a
@@ -138,25 +135,15 @@ const addTag = (...tags: string[]) => {
  * the new one.
  * @param user - The new name or user object to assign.
  */
-const setUser = (user: User | string) => {
-  //Discern the type of the user argument and apply it to the user field
-  const userObj = Object.assign(
-    {firstName: '', fullName: '', email: '', isAnonymous: true},
-    typeof user === 'string'
-      ? !!user
-      ? {identifier: user, isAnonymous: true}
-      : {identifier: `anonymous-${getDeviceBasedId()}`, isAnonymous: true}
-      : user
-  );
-
+const setUser = (user: User) => {
   //Update user across the react side
-  currentUser = userObj;
-  if (crashReportingAvailable('setUser')) crashReporter.setUser(userObj);
-  if (realUserMonitoringAvailable('setUser')) realUserMonitor.setUser(userObj);
+  currentUser = user ? {...user} : anonUser;
+  if (crashReportingAvailable('setUser')) crashReporter.setUser(currentUser);
+  if (realUserMonitoringAvailable('setUser')) realUserMonitor.setUser(currentUser);
 
   //Update user on the
   if (!options.disableNativeCrashReporting) {
-    RaygunNativeBridge.setUser(userObj);
+    RaygunNativeBridge.setUser(currentUser);
   }
 };
 
