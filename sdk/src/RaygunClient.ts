@@ -296,7 +296,6 @@ export {
   init,
   addTag,
   setUser,
-  clearSession,
   recordBreadcrumb,
   addCustomData,
   sendError,
