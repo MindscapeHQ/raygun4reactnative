@@ -23,6 +23,8 @@
 #endif
 
 
+//===============SYSTEM INFORMATION GETTERS===============//
+
 static uint32_t ksdl_imageNamed(const char* const imageName, bool exactMatch)
 {
     if(imageName != NULL)
@@ -90,11 +92,18 @@ static uint64_t getMemorySize(void) {
     return value;
 }
 
+//==============================//
+
+
+
+
 @implementation RaygunNativeBridge
 
-static CFTimeInterval startedAt;
+static CFTimeInterval startedAt; //Time that this object was created
 
 BOOL hasInitialized = FALSE;
+
+//RUM events to capture and send to the react layer
 NSString *viewName = @"RCTView";
 NSString *onStart = @"ON_START";
 NSString *onPause = @"ON_PAUSE";
@@ -103,8 +112,9 @@ NSString *onDestroy = @"ON_DESTROY";
 
 NSString *defaultsKey = @"__RAYGUN_CRASH_REPORTS__";
 
+
 + (void)initialize {
-    startedAt = processStartTime();
+    startedAt = processStartTime(); //Set the time that this bridge was initialised at
 }
 
 static CFTimeInterval processStartTime() {
@@ -121,11 +131,6 @@ static CFTimeInterval processStartTime() {
 
     CFTimeInterval absoluteTimeToRelativeTime =  CACurrentMediaTime() - [NSDate date].timeIntervalSince1970;
     return startTime.tv_sec + startTime.tv_usec / 1e6 + absoluteTimeToRelativeTime;
-}
-
-- (NSArray<NSString *> *)supportedEvents
-{
-  return @[onStart, onPause, onResume, onDestroy];
 }
 
 + (BOOL) requiresMainQueueSetup {
@@ -166,23 +171,7 @@ static CFTimeInterval processStartTime() {
     return nsVersion;
 }
 
-//Export the RaygunNativeBridge module for the React side of the provider to work with
 RCT_EXPORT_MODULE();
-
-
-RCT_EXPORT_METHOD(initCrashReportingNativeSupport:(NSString*)apiKey
-                  version: (NSString*)version
-                  customCrashReportingEndpoint: (NSString*)customCREndpoint)
-{
-    //LOGGING ARGUMENTS
-    RCTLogInfo(apiKey, version, customCREndpoint);
-
-    //ENABLE NATIVE SIDE CRASH REPORTING
-    [[RaygunClient sharedInstanceWithApiKey:apiKey] setCrashReportingApiEndpoint: customCREndpoint];
-    [RaygunClient.sharedInstance enableCrashReporting];
-    
-    hasInitialized = YES;
-}
 
 RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
 {
@@ -202,6 +191,8 @@ RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
     [self sendEventWithName: onStart body:@{@"duration": used, @"name": viewName}];
 }
 
+//RUM EVENT HANDLERS
+
 - (void)applicationWillEnterForeground {
     [self sendEventWithName: onResume body:@{@"name": viewName}];
 }
@@ -214,6 +205,54 @@ RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
     [self sendEventWithName: onDestroy body:@{@"name": viewName}];
 }
 
+//RUM EVENTS THAT CAN OCCUR
+- (NSArray<NSString *> *)supportedEvents
+{
+  return @[onStart, onPause, onResume, onDestroy];
+}
+
+
+//INITIALISE NATIVE CRASH REPORTING FUNCTIONALITY
+RCT_EXPORT_METHOD(initCrashReportingNativeSupport:(NSString*)apiKey
+                  version: (NSString*)version
+                  customCrashReportingEndpoint: (NSString*)customCREndpoint)
+{
+    //LOGGING ARGUMENTS
+    RCTLogInfo(apiKey, version, customCREndpoint);
+
+    //ENABLE NATIVE SIDE CRASH REPORTING
+    [[RaygunClient sharedInstanceWithApiKey:apiKey] setCrashReportingApiEndpoint: customCREndpoint];
+    [RaygunClient.sharedInstance enableCrashReporting];
+    
+    hasInitialized = YES;
+}
+
+
+//========SESSION MANAGEMENT========//
+
+RCT_EXPORT_METHOD(hasInitialized:(RCTPromiseResolveBlock)resolve orNot:(RCTPromiseRejectBlock)reject) {
+    resolve([NSNumber numberWithBool:hasInitialized]);
+}
+
+RCT_EXPORT_METHOD(setTags:(NSArray *) tags) {
+    [RaygunClient.sharedInstance setTags:tags];
+}
+
+RCT_EXPORT_METHOD(setCustomData:(NSDictionary *) customData) {
+    [RaygunClient.sharedInstance setCustomData:customData];
+}
+
+RCT_EXPORT_METHOD(recordBreadcrumb:(NSDictionary *) breadcrumb) {
+    [RaygunClient.sharedInstance recordBreadcrumb:[RaygunBreadcrumb breadcrumbWithInformation:breadcrumb]];
+}
+
+RCT_EXPORT_METHOD(setUser:(NSDictionary *) user) {
+    RaygunUserInformation * userInfo = [[RaygunUserInformation alloc] initWithIdentifier:
+        user[@"idenfifier"] withEmail: user[@"email"] withFullName: user[@"fullName"] withFirstName: user[@"firstName"]
+                                        ];
+    [RaygunClient.sharedInstance setUserInformation: userInfo];
+}
+
 RCT_EXPORT_METHOD(clearSession) {
     [RaygunClient.sharedInstance setTags: @[]];
     [RaygunClient.sharedInstance setCustomData: nil];
@@ -221,6 +260,7 @@ RCT_EXPORT_METHOD(clearSession) {
     [RaygunClient.sharedInstance clearBreadcrumbs];
 }
 
+//COLLECTING AND FORMATTING NECESSARY ENVIRONMENT INFORMATION
 RCT_EXPORT_METHOD(getEnvironmentInfo:(RCTPromiseResolveBlock)resolve onError:(RCTPromiseRejectBlock)reject) {
     NSMutableDictionary* environment = [[NSMutableDictionary alloc] init];
     NSUInteger processorCount = [[NSProcessInfo processInfo] processorCount];
@@ -250,28 +290,10 @@ RCT_EXPORT_METHOD(getEnvironmentInfo:(RCTPromiseResolveBlock)resolve onError:(RC
     resolve(environment);
 }
 
-RCT_EXPORT_METHOD(hasInitialized:(RCTPromiseResolveBlock)resolve orNot:(RCTPromiseRejectBlock)reject) {
-    resolve([NSNumber numberWithBool:hasInitialized]);
-}
+//================//
 
-RCT_EXPORT_METHOD(setTags:(NSArray *) tags) {
-    [RaygunClient.sharedInstance setTags:tags];
-}
 
-RCT_EXPORT_METHOD(setCustomData:(NSDictionary *) customData) {
-    [RaygunClient.sharedInstance setCustomData:customData];
-}
-
-RCT_EXPORT_METHOD(recordBreadcrumb:(NSDictionary *) breadcrumb) {
-    [RaygunClient.sharedInstance recordBreadcrumb:[RaygunBreadcrumb breadcrumbWithInformation:breadcrumb]];
-}
-
-RCT_EXPORT_METHOD(setUser:(NSDictionary *) user) {
-    RaygunUserInformation * userInfo = [[RaygunUserInformation alloc] initWithIdentifier:
-        user[@"idenfifier"] withEmail: user[@"email"] withFullName: user[@"fullName"] withFirstName: user[@"firstName"]
-                                        ];
-    [RaygunClient.sharedInstance setUserInformation: userInfo];
-}
+//========CRASH REPORT CACHING========//
 
 - (NSError *)saveReportsArray:(NSArray*)reports {
     NSError *jsonSerializeError;
@@ -328,5 +350,7 @@ RCT_EXPORT_METHOD(cacheCrashReport:(NSString *)jsonString withResolver: (RCTProm
         resolve([[NSNumber alloc] initWithInt:1]);
     }
 }
+
+//================//
 
 @end
