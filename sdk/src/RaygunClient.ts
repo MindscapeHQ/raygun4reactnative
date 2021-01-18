@@ -160,21 +160,6 @@ const setUser = (user: User | string) => {
   }
 };
 
-/**
- * Clear all session data and reset the Crash Reporter and Real User Monitor.
- */
-const clearSession = () => {
-  currentTags = new Set([]);
-  currentUser = {
-    identifier: `anonymous-${getDeviceBasedId()}`,
-    isAnonymous: true
-  };
-  if (!options.disableNativeCrashReporting) {
-    RaygunNativeBridge.clearSession();
-  }
-  crashReporter.resetCrashReporter();
-};
-
 //#endregion----------------------------------------------------------------------------------------
 
 //#region ----CRASH REPORTING LOGIC-----------------------------------------------------------------
