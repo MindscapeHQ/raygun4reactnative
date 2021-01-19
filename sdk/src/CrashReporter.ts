@@ -109,17 +109,10 @@ export default class CrashReporter {
    * @param details - Details about the breadcrumb
    */
   recordBreadcrumb(breadcrumb: Breadcrumb) {
-    this.breadcrumbs.push(breadcrumb);
+    this.breadcrumbs.push({...breadcrumb});
     if (!this.disableNativeCrashReporting) {
       RaygunNativeBridge.recordBreadcrumb(breadcrumb);
     }
-  }
-
-  /**
-   * Returns the current breadcrumbs.
-   */
-  getBreadcrumbs(): Breadcrumb[] {
-    return this.breadcrumbs;
   }
 
   /**
@@ -127,6 +120,13 @@ export default class CrashReporter {
    */
   clearBreadcrumbs() {
     this.breadcrumbs = [];
+  }
+
+  /**
+   * Returns the current breadcrumbs.
+   */
+  getBreadcrumbs(): Breadcrumb[] {
+    return {...this.breadcrumbs};
   }
 
   //#endregion--------------------------------------------------------------------------------------
