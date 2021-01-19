@@ -93,12 +93,17 @@ export default class RealUserMonitor {
   async rotateRUMSession() {
     log("ROTATE RUM SESSION")
 
-    if (Date.now() - this.lastActiveAt > SessionRotateThreshold) {
-      this.lastActiveAt = Date.now();
-      await this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionEnd, {});
-      this.curRUMSessionId = getDeviceBasedId();
-      return this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
-    }
+    //Terminate the current session
+    await this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionEnd, {});
+
+    //Begin a new session
+    this.generateNewSessionId();
+    this.lastSessionInteraction = Date.now();
+    return this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
+  }
+
+  generateNewSessionId() {
+    this.RealUserMonitoringSessionId = getDeviceBasedId();
   }
 
   /**
