@@ -9,12 +9,12 @@ import {
   upperFirst,
   warn
 } from './Utils';
-import { BeforeSendHandler, Breadcrumb, CrashReportPayload, CustomData, User } from './Types';
-import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
-import { NativeModules, Platform } from 'react-native';
+import {BeforeSendHandler, Breadcrumb, CrashReportPayload, CustomData, User} from './Types';
+import {StackFrame} from 'react-native/Libraries/Core/Devtools/parseErrorStack';
+import {NativeModules, Platform} from 'react-native';
 
-const { RaygunNativeBridge } = NativeModules;
-const { version: clientVersion } = require('../package.json');
+const {RaygunNativeBridge} = NativeModules;
+const {version: clientVersion} = require('../package.json');
 
 /**
  * The Crash Reporter is responsible for all of the functionality related to generating, catching
@@ -74,7 +74,9 @@ export default class CrashReporter {
       onUnhandled: this.processUnhandledRejection
     });
 
-    this.resendCachedReports(apiKey, customCrashReportingEndpoint).then(r => {log("Cache flushed")});
+    this.resendCachedReports(apiKey, customCrashReportingEndpoint).then(r => {
+      log("Cache flushed")
+    });
   }
 
   //#endregion--------------------------------------------------------------------------------------
@@ -149,9 +151,9 @@ export default class CrashReporter {
   async resendCachedReports(apiKey: string, customEndpoint?: string) {
 
     //If there are Reports cached
-    if(!await RaygunNativeBridge.cacheEmpty()) {
+    if (!await RaygunNativeBridge.cacheEmpty()) {
       //Extract cached reports from the native side
-      const cache : CrashReportPayload[] = await RaygunNativeBridge.flushCrashReportCache()
+      const cache: CrashReportPayload[] = await RaygunNativeBridge.flushCrashReportCache()
       .then((reportsJson: string) => {
         try {
           //Format the cache and remove empty and null strings
@@ -174,7 +176,7 @@ export default class CrashReporter {
    * Change the size of the local cache
    * @param size - The new cache size, must be between 0 and 64
    */
-  async setMaxReportsStoredOnDevice(size : number) {
+  async setMaxReportsStoredOnDevice(size: number) {
     RaygunNativeBridge.setMaxReportsStoredOnDevice(size);
   }
 
@@ -201,7 +203,7 @@ export default class CrashReporter {
     const symbolicateStackTrace = require('react-native/Libraries/Core/Devtools/symbolicateStackTrace');
     const cleanedStackFrames: StackFrame[] = __DEV__
       ? await symbolicateStackTrace(stackFrames)
-      : { stack: cleanFilePath(stackFrames) };
+      : {stack: cleanFilePath(stackFrames)};
 
     const stack = cleanedStackFrames || [].filter(filterOutReactFrames).map(noAddressAt);
 
@@ -246,7 +248,7 @@ export default class CrashReporter {
       (RaygunNativeBridge.getEnvironmentInfo && (await RaygunNativeBridge.getEnvironmentInfo())) || {};
 
     //Reformat Native Stack frames to the Raygun StackTrace format.
-    const convertToCrashReportingStackFrame = ({ file, methodName, lineNumber, column }: StackFrame) => ({
+    const convertToCrashReportingStackFrame = ({file, methodName, lineNumber, column}: StackFrame) => ({
       FileName: file,
       MethodName: methodName || '[anonymous]',
       LineNumber: lineNumber,
@@ -312,7 +314,9 @@ export default class CrashReporter {
       body: JSON.stringify(report)
     }).then(() => {
       //If the message is successfully sent then attempt to transmit the cache if it isn't empty
-      this.resendCachedReports(apiKey, this.customCrashReportingEndpoint).then(r => {log("Cache flushed")});
+      this.resendCachedReports(apiKey, this.customCrashReportingEndpoint).then(r => {
+        log("Cache flushed")
+      });
     })
     .catch(err => {
       //If there are any errors then
