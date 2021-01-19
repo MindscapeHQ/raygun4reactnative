@@ -7,10 +7,10 @@ import {
   recordBreadcrumb,
   getBreadcrumbs,
   clearBreadcrumbs,
-  addCustomData,
+  setCustomData,
+  getCustomData,
   sendError,
   setMaxReportsStoredOnDevice,
-  updateCustomData,
   sendRUMTimingEvent
 } from './RaygunClient';
 
@@ -35,10 +35,10 @@ export default {
   recordBreadcrumb,
   getBreadcrumbs,
   clearBreadcrumbs,
-  addCustomData,
+  setCustomData,
+  getCustomData,
   sendError,
   setMaxReportsStoredOnDevice,
-  updateCustomData,
   sendRUMTimingEvent
 };
 

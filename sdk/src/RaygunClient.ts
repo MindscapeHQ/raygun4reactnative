@@ -206,7 +206,7 @@ const sendError = async (error: Error, ...params: any) => {
   const [customData, tags] = params.length == 1 && Array.isArray(params[0]) ? [null, params[0]] : params;
 
   if (customData) {
-    addCustomData(customData as CustomData);
+    setCustomData(customData as CustomData);
   }
   if (tags && tags.length) {
     setTags(tags);
@@ -219,18 +219,18 @@ const sendError = async (error: Error, ...params: any) => {
  * Appends custom data to the current set of custom data.
  * @param customData - The custom data to append
  */
-const addCustomData = (customData: CustomData) => {
-  if (!crashReportingAvailable('addCustomData')) return;
-  crashReporter.addCustomData(customData);
+const setCustomData = (customData: CustomData | null) => {
+  if (!crashReportingAvailable('setCustomData')) return;
+  crashReporter.setCustomData(customData ? customData : {});
 };
 
 /**
- * Apply some transformation lambda to all of the user's custom data.
- * @param updater - The transformation.
+ * Appends custom data to the current set of custom data.
+ * @param customData - The custom data to append
  */
-const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
-  if (!crashReportingAvailable('updateCustomData')) return;
-  crashReporter.updateCustomData(updater);
+const getCustomData = (customData: CustomData | null) => {
+  if (!crashReportingAvailable('setCustomData')) return;
+  return crashReporter.getCustomData();
 };
 
 /**
@@ -308,9 +308,9 @@ export {
   recordBreadcrumb,
   getBreadcrumbs,
   clearBreadcrumbs,
-  addCustomData,
+  setCustomData,
+  getCustomData,
   sendError,
   setMaxReportsStoredOnDevice,
-  updateCustomData,
   sendRUMTimingEvent
 };

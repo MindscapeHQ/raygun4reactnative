@@ -87,22 +87,24 @@ export default class CrashReporter {
    * Append some custom data to the users current set of custom data.
    * @param customData - The custom data to append
    */
-  addCustomData(customData: CustomData) {
-    this.customData = Object.assign({}, this.customData, customData);
+  setCustomData(customData: CustomData) {
+    this.customData = {...customData};
     if (!this.disableNativeCrashReporting) {
-      RaygunNativeBridge.setCustomData(clone(this.customData));
+      RaygunNativeBridge.setCustomData({...customData});
     }
   }
 
   /**
-   * Apply some transformation lambda to all of the users custom data
-   * @param updater - The transformation
+   * Return the custom data as an immutable
    */
-  updateCustomData(updater: (customData: CustomData) => CustomData) {
-    this.customData = updater(this.customData);
-    if (!this.disableNativeCrashReporting) {
-      RaygunNativeBridge.setCustomData(clone(this.customData));
+  getCustomData() {
+    //If this object isnt empty then return it
+    for (let prop in this.customData) {
+      if (this.customData.hasOwnProperty(prop))
+        return this.customData;
     }
+
+    return null;
   }
 
   /**

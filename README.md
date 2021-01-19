@@ -268,7 +268,7 @@ RaygunClient.sendError(error, "tag1", "tag2", "tag3");
 <br/>
 <br/>
 
-###  addCustomData(customData: CustomData) 
+###  setCustomData(customData: CustomData) 
 Appends custom data to the current set of custom data.
 
 See also:<br/>
@@ -278,7 +278,7 @@ import RaygunClient, {CustomData} from "raygun4reactnative"
 
 const customData: CustomData = {"KEY_2": "VALUE_2"};
 
-RaygunClient.addCustomData(customData);
+RaygunClient.setCustomData(customData);
 ```
 
 <br/>
