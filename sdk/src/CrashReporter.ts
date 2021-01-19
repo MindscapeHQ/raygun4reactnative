@@ -211,9 +211,10 @@ export default class CrashReporter {
       : {stack: cleanFilePath(stackFrames)};
 
     const stack = cleanedStackFrames || [].filter(filterOutReactFrames).map(noAddressAt);
+    setCurrentTags(getCurrentTags().concat('UnhandledError'))
 
     if (isFatal) {
-      setCurrentTags(getCurrentTags().concat('UnhandledError'))
+      setCurrentTags(getCurrentTags().concat('Fatal'))
     }
 
     const payload = await this.generateCrashReportPayload(error, stack);
