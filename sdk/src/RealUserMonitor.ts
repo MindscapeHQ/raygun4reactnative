@@ -20,6 +20,7 @@ const SessionRotateThreshold = 30 * 60 * 1000; //milliseconds (equivalent to 30 
  * The Real User Monitor class is responsible for managing all logic for RUM specific tasks.
  */
 export default class RealUserMonitor {
+
   //#region ----INITIALIZATION----------------------------------------------------------------------
 
   private readonly apiKey: string;
@@ -30,8 +31,8 @@ export default class RealUserMonitor {
   private requests = new Map<string, RequestMeta>();
   private RAYGUN_RUM_ENDPOINT = 'https://api.raygun.com/events';
 
-  lastActiveAt = Date.now();
-  curRUMSessionId: string = '';
+  lastSessionInteraction = Date.now();
+  RealUserMonitoringSessionId: string = ''; //The id for generated RUM Timing events to be grouped under
 
   /**
    * RealUserMonitor: Manages RUM specific logic tasks.
@@ -62,8 +63,8 @@ export default class RealUserMonitor {
       this.setupNetworkMonitoring();
     }
 
-    this.lastActiveAt = Date.now();
-    this.curRUMSessionId = '';
+    this.lastSessionInteraction = Date.now();
+    this.RealUserMonitoringSessionId = '';
 
     // Create native event listeners on this device
     const eventEmitter = new NativeEventEmitter(RaygunNativeBridge);
@@ -87,10 +88,9 @@ export default class RealUserMonitor {
    * a rotation is needed:
    *  anon_user -> user = NO (login)
    *  user1 -> user2 = YES (switch accounts)
-   *  user -> anon = YES (logout)
+   *  user -> anon_user = YES (logout)
    */
   async rotateRUMSession() {
-
     log("ROTATE RUM SESSION")
 
     if (Date.now() - this.lastActiveAt > SessionRotateThreshold) {
@@ -106,7 +106,7 @@ export default class RealUserMonitor {
    */
   markLastActiveTime() {
     log("MARK LAST ACTIVE TIME")
-    this.lastActiveAt = Date.now();
+    this.lastSessionInteraction = Date.now();
   }
 
   //#endregion--------------------------------------------------------------------------------------
@@ -156,8 +156,8 @@ export default class RealUserMonitor {
   async sendViewLoadedEvent(payload: Record<string, any>) {
     const {name, duration} = payload;
 
-	if (!this.curRUMSessionId) {
-      this.curRUMSessionId = getDeviceBasedId();
+	if (!this.RealUserMonitoringSessionId) {
+      this.RealUserMonitoringSessionId = getDeviceBasedId();
       await this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
     }
     const data = { name, timing: { type: RealUserMonitoringTimings.ViewLoaded, duration } };
@@ -178,7 +178,7 @@ export default class RealUserMonitor {
       type: eventName,
       timestamp: timestamp.toISOString(),
       user: getCurrentUser(),
-      sessionId: this.curRUMSessionId,
+      sessionId: this.RealUserMonitoringSessionId,
       version: this.version,
       os: Platform.OS,
       osVersion,
@@ -292,4 +292,5 @@ export default class RealUserMonitor {
   }
 
   //#endregion--------------------------------------------------------------------------------------
+
 }
