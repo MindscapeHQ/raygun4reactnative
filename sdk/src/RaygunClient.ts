@@ -11,7 +11,6 @@ import {
   BeforeSendHandler, anonUser, Breadcrumb
 } from './Types';
 import {
-  clone,
   getCurrentTags,
   getDeviceBasedId,
   log,

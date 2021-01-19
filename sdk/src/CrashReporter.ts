@@ -1,6 +1,5 @@
 import {
   cleanFilePath,
-  clone,
   error,
   filterOutReactFrames, getCurrentTags, getCurrentUser,
   log,
