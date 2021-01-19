@@ -31,7 +31,7 @@ export default class RealUserMonitor {
   private requests = new Map<string, RequestMeta>();
   private RAYGUN_RUM_ENDPOINT = 'https://api.raygun.com/events';
 
-  lastSessionInteraction = Date.now();
+  lastSessionInteractionTime = Date.now();
   RealUserMonitoringSessionId: string = ''; //The id for generated RUM Timing events to be grouped under
 
   /**
@@ -63,13 +63,13 @@ export default class RealUserMonitor {
       this.setupNetworkMonitoring();
     }
 
-    this.lastSessionInteraction = Date.now();
+    this.markSessionInteraction();
     this.RealUserMonitoringSessionId = '';
 
     // Create native event listeners on this device
     const eventEmitter = new NativeEventEmitter(RaygunNativeBridge);
     eventEmitter.addListener(RaygunNativeBridge.ON_START, this.sendViewLoadedEvent.bind(this));
-    eventEmitter.addListener(RaygunNativeBridge.ON_PAUSE, this.markLastActiveTime.bind(this));
+    eventEmitter.addListener(RaygunNativeBridge.ON_PAUSE, this.markSessionInteraction.bind(this));
     eventEmitter.addListener(RaygunNativeBridge.ON_RESUME, this.rotateRUMSession.bind(this));
     eventEmitter.addListener(RaygunNativeBridge.ON_DESTROY, () => {
       eventEmitter.removeAllListeners(RaygunNativeBridge.ON_START);
@@ -98,7 +98,7 @@ export default class RealUserMonitor {
 
     //Begin a new session
     this.generateNewSessionId();
-    this.lastSessionInteraction = Date.now();
+    this.markSessionInteraction();
     return this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
   }
 
@@ -109,9 +109,9 @@ export default class RealUserMonitor {
   /**
    * Updates the time since last activity to be NOW.
    */
-  markLastActiveTime() {
+  markSessionInteraction() {
     log("MARK LAST ACTIVE TIME")
-    this.lastSessionInteraction = Date.now();
+    this.lastSessionInteractionTime = Date.now();
   }
 
   //#endregion--------------------------------------------------------------------------------------
@@ -200,6 +200,11 @@ export default class RealUserMonitor {
    * @param timeAt - The time at which this event occurred, defaults to NOW if undefined/null.
    */
   async transmitRealUserMonitoringEvent(eventName: string, data: Record<string, any>, timeAt?: number) {
+
+    //Check whether the session has been idle long enough to rotate it
+    if (Date.now() - this.lastSessionInteractionTime > SessionRotateThreshold) await this.rotateRUMSession();
+    else this.markSessionInteraction();
+
     const rumMessage = this.generateRealUserMonitorPayload(eventName, data, timeAt);
 
     return fetch(this.customRealUserMonitoringEndpoint || this.RAYGUN_RUM_ENDPOINT + '?apiKey=' + encodeURIComponent(this.apiKey), {

@@ -125,6 +125,9 @@ const setTags = (tags : string[]) => {
   if (!options.disableNativeCrashReporting) {
     RaygunNativeBridge.setTags(getCurrentTags());
   }
+  //Mark a user interaction with the Real User Monitor session
+  if (realUserMonitoringAvailable("setTags")) realUserMonitor.markSessionInteraction();
+
 };
 
 const getTags = () : string[] => {
@@ -139,8 +142,8 @@ const getTags = () : string[] => {
 const setUser = (user: User) => {
 
   if (realUserMonitoringAvailable("setUser")) {
-    //If we are changing from a non anonymous to a new user then rotate the session
-    if (!getUser().isAnonymous) realUserMonitor.rotateRUMSession();
+    if (!getUser().isAnonymous) realUserMonitor.rotateRUMSession(); //User is beginning a new event
+    else realUserMonitor.markSessionInteraction(); //User is logging in from anonymous
   }
 
   //Update user across the react side
