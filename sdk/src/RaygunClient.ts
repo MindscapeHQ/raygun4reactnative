@@ -119,7 +119,7 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
  * errors AND Real User Monitoring requests.
  * @param tags - The tag(s) to append to the session.
  */
-const setTags = (tags : string[]) => {
+const setTags = (...tags : string[]) => {
   let newTags = tags ? [...tags] : [];
   setCurrentTags(newTags);
   if (!options.disableNativeCrashReporting) {
@@ -238,7 +238,7 @@ const setCustomData = (customData: CustomData | null) => {
  * Appends custom data to the current set of custom data.
  * @param customData - The custom data to append
  */
-const getCustomData = (customData: CustomData | null) => {
+const getCustomData = () => {
   if (!crashReportingAvailable('setCustomData')) return;
   return crashReporter.getCustomData();
 };

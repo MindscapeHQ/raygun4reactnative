@@ -414,6 +414,13 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     RaygunClient.recordBreadcrumb(breadcrumbMessage);
   }
 
+  @ReactMethod
+  public void clearBreadcrumbs() {
+    RaygunClient.clearBreadcrumbs();
+  }
+
+
+
   /**
    * Set the max number of CrashReports that can be stored by the Android system.
    *
@@ -456,18 +463,6 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     String reportsJson = preferences.getString("reports", "[]"); //Retrieve the cache
     preferences.edit().putString("reports", "[]").apply(); //Clear the cache
     promise.resolve(reportsJson); //Return its contents
-  }
-
-  /**
-   * Resets Breadcrumbs, CustomData, User, and Tags to their default values in the Raygun4Android
-   * SDK.
-   */
-  @ReactMethod
-  public void clearSession() {
-    RaygunClient.clearBreadcrumbs();
-    RaygunClient.setCustomData(new HashMap<>());
-    RaygunClient.setUser("");
-    RaygunClient.setTags(new ArrayList<>());
   }
   //#endregion--------------------------------------------------------------------------------------
 }

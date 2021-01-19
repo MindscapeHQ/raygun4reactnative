@@ -37,13 +37,6 @@ export const getDeviceBasedId = () =>
     .toString(16)
     .replace('.', '')}`;
 
-/**
- * TODO: Remove usage from CrashReporter
- * Makes a deep clone of some object.
- * @param object - Object to clone.
- */
-export const clone = <T>(object: T): T => JSON.parse(JSON.stringify(object));
-
 //#endregion----------------------------------------------------------------------------------------
 
 //#region ----REGEX REFACTORING---------------------------------------------------------------------
