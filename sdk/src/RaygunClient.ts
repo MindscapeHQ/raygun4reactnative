@@ -147,6 +147,10 @@ const setUser = (user: User) => {
   }
 };
 
+const getUser = () : User  => {
+  return {...currentUser}
+}
+
 //#endregion----------------------------------------------------------------------------------------
 
 //#region ----CRASH REPORTING LOGIC-----------------------------------------------------------------
@@ -283,6 +287,7 @@ export {
   init,
   addTag,
   setUser,
+  getUser,
   recordBreadcrumb,
   addCustomData,
   sendError,
