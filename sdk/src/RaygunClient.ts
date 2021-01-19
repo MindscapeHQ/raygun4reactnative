@@ -141,7 +141,7 @@ const getTags = () : string[] => {
 const setUser = (user: User) => {
 
   if (realUserMonitoringAvailable("setUser")) {
-    if (!getUser().isAnonymous) realUserMonitor.rotateRUMSession(); //User is beginning a new event
+    if (!getUser().isAnonymous) realUserMonitor.rotateRUMSession(); //User is beginning a new session
     else realUserMonitor.markSessionInteraction(); //User is logging in from anonymous
   }
 
