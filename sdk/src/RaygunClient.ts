@@ -27,7 +27,6 @@ import event = Animated.event;
 
 const {RaygunNativeBridge} = NativeModules;
 
-
 /**
  * The RaygunClient is the interface in which this provider publicly shows. The bottom of this page
  * has an 'export' statement which exports the methods defined in the RaygunClient.ts file. Some
@@ -138,6 +137,12 @@ const getTags = () : string[] => {
  * @param user - The new name or user object to assign.
  */
 const setUser = (user: User) => {
+
+  if (realUserMonitoringAvailable("setUser")) {
+    //If we are changing from a non anonymous to a new user then rotate the session
+    if (!getUser().isAnonymous) realUserMonitor.rotateRUMSession();
+  }
+
   //Update user across the react side
   setCurrentUser(user ? {...user} : anonUser);
 
@@ -145,6 +150,7 @@ const setUser = (user: User) => {
   if (!options.disableNativeCrashReporting) {
     RaygunNativeBridge.setUser(getCurrentUser());
   }
+
 };
 
 const getUser = () : User => {
@@ -298,7 +304,6 @@ const realUserMonitoringAvailable = (calledFrom: string) => {
 };
 
 //#endregion----------------------------------------------------------------------------------------
-
 
 export {
   init,
