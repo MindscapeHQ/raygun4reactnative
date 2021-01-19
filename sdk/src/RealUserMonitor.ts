@@ -5,7 +5,15 @@ import {
   RequestMeta,
   User
 } from './Types';
-import {getDeviceBasedId, log, warn, shouldIgnore, getCurrentUser, getCurrentTags} from './Utils';
+import {
+  getDeviceBasedId,
+  log,
+  warn,
+  shouldIgnore,
+  getCurrentUser,
+  getCurrentTags,
+  getRandomGUID
+} from './Utils';
 // @ts-ignore
 import XHRInterceptor from 'react-native/Libraries/Network/XHRInterceptor';
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
@@ -102,8 +110,11 @@ export default class RealUserMonitor {
     return this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
   }
 
+  /**
+   * Updates the session id to be a new random guid
+   */
   generateNewSessionId() {
-    this.RealUserMonitoringSessionId = getDeviceBasedId();
+    this.RealUserMonitoringSessionId = getRandomGUID(32);
   }
 
   /**

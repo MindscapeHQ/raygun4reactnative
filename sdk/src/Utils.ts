@@ -33,9 +33,20 @@ export const getCurrentTags = () : string[] => {
  * Constructs an ID specific for the current device being used.
  */
 export const getDeviceBasedId = () =>
-  `${RaygunNativeBridge.DEVICE_ID}-${Date.now().toString(32)}-${(Math.random() * 100000)
-    .toString(16)
-    .replace('.', '')}`;
+  `${RaygunNativeBridge.DEVICE_ID}`;
+
+/**
+ * Produce a random identifier of a certain length.
+ * @param length
+ */
+export const getRandomGUID = (length : number) => {
+  //1.) n = 36^(l+1) - ([0.0, 1.0] * 36^l)
+  //2.) n = convertToBase36(n.roundToWholeNumber())
+  //3.) n = n.removeFirstCharacter
+  return Math.round(Math.pow(36, length + 1) - Math.random() * Math.pow(36, length))
+  .toString(36)
+  .slice(1);
+}
 
 //#endregion----------------------------------------------------------------------------------------
 
