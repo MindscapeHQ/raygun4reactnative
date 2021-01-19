@@ -4,12 +4,11 @@
  */
 
 import {
-  BreadcrumbOption,
   CustomData,
   RaygunClientOptions,
   User,
   RealUserMonitoringTimings,
-  BeforeSendHandler, anonUser
+  BeforeSendHandler, anonUser, Breadcrumb
 } from './Types';
 import {
   clone,
@@ -161,10 +160,26 @@ const getUser = () : User => {
  * @param message - A string to describe what this breadcrumb signifies.
  * @param details - Details about the breadcrumb.
  */
-const recordBreadcrumb = (message: string, details?: BreadcrumbOption) => {
+const recordBreadcrumb = (breadcrumb: Breadcrumb) => {
   if (!crashReportingAvailable('recordBreadcrumb')) return;
-  crashReporter.recordBreadcrumb(message, details);
+  crashReporter.recordBreadcrumb(breadcrumb);
 };
+
+/**
+ * Returns the current breadcrumbs.
+ */
+const getBreadcrumbs = (): Breadcrumb[] => {
+  if (!crashReportingAvailable('getBreadcrumbs')) return [];
+  return crashReporter.getBreadcrumbs();
+}
+
+/**
+ * Removes all breadcrumbs.
+ */
+const clearBreadcrumbs = () => {
+  if (!crashReportingAvailable('clearBreadcrumbs')) return;
+  crashReporter.clearBreadcrumbs();
+}
 
 /**
  * Allows for an error to be sent to the Crash Reporting error handler along with some customized
@@ -291,6 +306,8 @@ export {
   setUser,
   getUser,
   recordBreadcrumb,
+  getBreadcrumbs,
+  clearBreadcrumbs,
   addCustomData,
   sendError,
   setMaxReportsStoredOnDevice,

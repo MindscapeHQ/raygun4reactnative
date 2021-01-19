@@ -4,7 +4,7 @@ import {anonUser, User} from "./Types";
 
 const { RaygunNativeBridge } = NativeModules;
 
-
+//#region ----SHARED RESOURCES----------------------------------------------------------------------
 
 let currentUser: User = anonUser;
 let currentTags: string[] = [];
@@ -25,6 +25,8 @@ export const getCurrentTags = () : string[] => {
   return [...currentTags];
 }
 
+//#endregion----------------------------------------------------------------------------------------
+
 //#region ----GENERAL-------------------------------------------------------------------------------
 
 /**
@@ -41,8 +43,6 @@ export const getDeviceBasedId = () =>
  * @param object - Object to clone.
  */
 export const clone = <T>(object: T): T => JSON.parse(JSON.stringify(object));
-
-
 
 //#endregion----------------------------------------------------------------------------------------
 

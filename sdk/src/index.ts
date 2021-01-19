@@ -5,6 +5,8 @@ import {
   setUser,
   getUser,
   recordBreadcrumb,
+  getBreadcrumbs,
+  clearBreadcrumbs,
   addCustomData,
   sendError,
   setMaxReportsStoredOnDevice,
@@ -15,7 +17,6 @@ import {
 import {
   BeforeSendHandler,
   Breadcrumb,
-  BreadcrumbOption,
   CrashReportPayload,
   CustomData,
   Environment,
@@ -32,6 +33,8 @@ export default {
   setUser,
   getUser,
   recordBreadcrumb,
+  getBreadcrumbs,
+  clearBreadcrumbs,
   addCustomData,
   sendError,
   setMaxReportsStoredOnDevice,
@@ -42,7 +45,6 @@ export default {
 export type {
   BeforeSendHandler,
   Breadcrumb,
-  BreadcrumbOption,
   CrashReportPayload,
   CustomData,
   Environment,

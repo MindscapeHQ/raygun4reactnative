@@ -80,9 +80,6 @@ export type Breadcrumb = {
   customData?: CustomData;
   timestamp?: number;
 };
-
-export type BreadcrumbOption = Omit<Breadcrumb, 'message' | 'timestamp'>;
-
 export type BeforeSendHandler = (payload: CrashReportPayload) => CrashReportPayload | null;
 
 export type CrashReportPayload = {

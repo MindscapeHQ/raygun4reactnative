@@ -9,7 +9,7 @@ import {
   upperFirst,
   warn
 } from './Utils';
-import { BeforeSendHandler, Breadcrumb, BreadcrumbOption, CrashReportPayload, CustomData, User } from './Types';
+import { BeforeSendHandler, Breadcrumb, CrashReportPayload, CustomData, User } from './Types';
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
 import { NativeModules, Platform } from 'react-native';
 
@@ -108,19 +108,25 @@ export default class CrashReporter {
    * @param message - A string to describe what this breadcrumb signifies
    * @param details - Details about the breadcrumb
    */
-  recordBreadcrumb(message: string, details?: BreadcrumbOption) {
-    const breadcrumb: Breadcrumb = {
-      customData: {},
-      category: '',
-      level: 'info',
-      message,
-      ...details,
-      timestamp: new Date().getTime()
-    };
+  recordBreadcrumb(breadcrumb: Breadcrumb) {
     this.breadcrumbs.push(breadcrumb);
     if (!this.disableNativeCrashReporting) {
       RaygunNativeBridge.recordBreadcrumb(breadcrumb);
     }
+  }
+
+  /**
+   * Returns the current breadcrumbs.
+   */
+  getBreadcrumbs(): Breadcrumb[] {
+    return this.breadcrumbs;
+  }
+
+  /**
+   * Removes all breadcrumbs.
+   */
+  clearBreadcrumbs() {
+    this.breadcrumbs = [];
   }
 
   //#endregion--------------------------------------------------------------------------------------
