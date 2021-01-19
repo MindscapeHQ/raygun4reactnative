@@ -246,18 +246,15 @@ RCT_EXPORT_METHOD(recordBreadcrumb:(NSDictionary *) breadcrumb) {
     [RaygunClient.sharedInstance recordBreadcrumb:[RaygunBreadcrumb breadcrumbWithInformation:breadcrumb]];
 }
 
+RCT_EXPORT_METHOD(clearBreadcrumbs) {
+    [RaygunClient.sharedInstance clearBreadcrumbs];
+}
+
 RCT_EXPORT_METHOD(setUser:(NSDictionary *) user) {
     RaygunUserInformation * userInfo = [[RaygunUserInformation alloc] initWithIdentifier:
         user[@"idenfifier"] withEmail: user[@"email"] withFullName: user[@"fullName"] withFirstName: user[@"firstName"]
                                         ];
     [RaygunClient.sharedInstance setUserInformation: userInfo];
-}
-
-RCT_EXPORT_METHOD(clearSession) {
-    [RaygunClient.sharedInstance setTags: @[]];
-    [RaygunClient.sharedInstance setCustomData: nil];
-    [RaygunClient.sharedInstance setUserInformation: [RaygunUserInformation anonymousUser]];
-    [RaygunClient.sharedInstance clearBreadcrumbs];
 }
 
 //COLLECTING AND FORMATTING NECESSARY ENVIRONMENT INFORMATION

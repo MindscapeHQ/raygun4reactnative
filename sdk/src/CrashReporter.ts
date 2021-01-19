@@ -124,6 +124,9 @@ export default class CrashReporter {
    */
   clearBreadcrumbs() {
     this.breadcrumbs = [];
+    if (!this.disableNativeCrashReporting) {
+      RaygunNativeBridge.clearBreadcrumbs();
+    }
   }
 
   /**
