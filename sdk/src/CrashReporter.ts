@@ -1,7 +1,6 @@
 import {
   cleanFilePath,
-  clone,
-  error,
+  clone, error,
   filterOutReactFrames, getCurrentTags, getCurrentUser,
   log,
   noAddressAt,
@@ -197,6 +196,47 @@ export default class CrashReporter {
       return;
     }
 
+    if (isFatal) {
+      setCurrentTags(getCurrentTags().concat('UnhandledError'))
+    }
+
+    const stack = await this.cleanStackTrace(error);
+
+    const payload = await this.generateCrashReportPayload(error, stack);
+
+    this.managePayload(payload);
+  }
+
+  /**
+   * Processes a manually sent error (using local tags, not global).
+   * @param error - The Error to be processed.
+   * @param params - The parameters local to this error (sent in).
+   */
+  async processManualCrashReport(error: Error, ...params: any) {
+    if (!error || !error.stack) {
+      warn('Unrecognized error occurred');
+      return;
+    }
+
+    const [customData, tags] = params.length == 1 && Array.isArray(params[0]) ? [null, params[0]] : params;
+
+    const stack = await this.cleanStackTrace(error);
+
+    const payload = await this.generateCrashReportPayload(error, stack);
+
+    const payloadWithLocalParams: CrashReportPayload = {...payload};
+
+    payloadWithLocalParams.Details.UserCustomData = customData;
+    payloadWithLocalParams.Details.Tags = tags;
+
+    this.managePayload(payloadWithLocalParams);
+  }
+
+  /**
+   * Cleans the stack trace of some error.
+   * @param error - The error to be cleaned.
+   */
+  async cleanStackTrace(error: Error){
     //Extract the errors stack trace
     const parseErrorStack = require('react-native/Libraries/Core/Devtools/parseErrorStack');
     const stackFrames = parseErrorStack(error);
@@ -208,13 +248,14 @@ export default class CrashReporter {
       : {stack: cleanFilePath(stackFrames)};
 
     const stack = cleanedStackFrames || [].filter(filterOutReactFrames).map(noAddressAt);
+    return stack;
+  }
 
-    if (isFatal) {
-      setCurrentTags(getCurrentTags().concat('UnhandledError'))
-    }
-
-    const payload = await this.generateCrashReportPayload(error, stack);
-
+  /**
+   * Modifies and sends the Crash Report Payload (manages beforeSendHandler)
+   * @param payload - The payload to send away.
+   */
+  managePayload(payload: CrashReportPayload) {
     const modifiedPayload =
       this.onBeforeSendingCrashReport && typeof this.onBeforeSendingCrashReport === 'function'
         ? this.onBeforeSendingCrashReport(Object.freeze(payload))
@@ -224,7 +265,7 @@ export default class CrashReporter {
       return;
     }
 
-    log('Send crash report via JS');
+    log('Send manual crash report via JS');
     this.sendCrashReport(modifiedPayload, this.apiKey, this.customCrashReportingEndpoint);
   }
 

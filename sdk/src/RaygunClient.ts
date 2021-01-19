@@ -212,17 +212,7 @@ const clearBreadcrumbs = () => {
  */
 const sendError = async (error: Error, ...params: any) => {
   if (!crashReportingAvailable('sendError')) return;
-
-  const [customData, tags] = params.length == 1 && Array.isArray(params[0]) ? [null, params[0]] : params;
-
-  if (customData) {
-    setCustomData(customData as CustomData);
-  }
-  if (tags && tags.length) {
-    setTags(tags);
-  }
-
-  await crashReporter.processUnhandledError(error);
+  await crashReporter.processManualCrashReport(error, params);
 };
 
 /**
