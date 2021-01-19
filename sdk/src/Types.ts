@@ -32,7 +32,7 @@ export type User = {
 };
 
 export const anonUser: User = {
-  identifier: `anonymous-${getDeviceBasedId()}`,
+  identifier: `${getDeviceBasedId()}`,
   isAnonymous: true
 };
 
