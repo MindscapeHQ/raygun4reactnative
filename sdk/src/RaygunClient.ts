@@ -12,11 +12,12 @@ import {
 } from './Types';
 import {
   clone,
-  getCurrentTags, getCurrentUser,
+  getCurrentTags,
   getDeviceBasedId,
   log,
   setCurrentTags,
   setCurrentUser,
+  getCurrentUser,
   warn
 } from './Utils';
 import CrashReporter from './CrashReporter';
@@ -138,9 +139,9 @@ const getTags = () : string[] => {
  */
 const setUser = (user: User) => {
   //Update user across the react side
-  let newUser = user ? {...user} : anonUser;
-  setCurrentUser(user)
-  //Update user on the
+  setCurrentUser(user ? {...user} : anonUser);
+
+  //Update user on the native side
   if (!options.disableNativeCrashReporting) {
     RaygunNativeBridge.setUser(getCurrentUser());
   }
