@@ -1,4 +1,14 @@
-import { cleanFilePath, clone, error, filterOutReactFrames, log, noAddressAt, upperFirst, warn } from './Utils';
+import {
+  cleanFilePath,
+  clone,
+  error,
+  filterOutReactFrames, getCurrentTags, getCurrentUser,
+  log,
+  noAddressAt,
+  setCurrentTags,
+  upperFirst,
+  warn
+} from './Utils';
 import { BeforeSendHandler, Breadcrumb, BreadcrumbOption, CrashReportPayload, CustomData, User } from './Types';
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
 import { NativeModules, Platform } from 'react-native';
@@ -14,8 +24,6 @@ const { version: clientVersion } = require('../package.json');
 export default class CrashReporter {
   //#region ----INITIALIZATION----------------------------------------------------------------------
 
-  private user: User;
-  private tags: Set<string>;
   private breadcrumbs: Breadcrumb[] = [];
   private customData: CustomData = {};
   private apiKey: string;
@@ -39,8 +47,6 @@ export default class CrashReporter {
    */
   constructor(
     apiKey: string,
-    user: User,
-    tags: Set<string>,
     disableNativeCrashReporting: boolean,
     customCrashReportingEndpoint: string,
     onBeforeSendingCrashReport: BeforeSendHandler | null,
@@ -48,8 +54,6 @@ export default class CrashReporter {
   ) {
     // Assign the values parsed in (assuming initiation is the only time these are altered).
     this.apiKey = apiKey;
-    this.user = user;
-    this.tags = tags;
     this.disableNativeCrashReporting = disableNativeCrashReporting;
     this.customCrashReportingEndpoint = customCrashReportingEndpoint;
     this.onBeforeSendingCrashReport = onBeforeSendingCrashReport;
@@ -117,24 +121,6 @@ export default class CrashReporter {
     if (!this.disableNativeCrashReporting) {
       RaygunNativeBridge.recordBreadcrumb(breadcrumb);
     }
-  }
-
-  /**
-   * Set the crash reporters user object
-   * @param newUser
-   */
-  setUser(newUser: User) {
-    this.user = newUser;
-  }
-
-  /**
-   * Add a new tag to all Crash Reports
-   * @param newTag
-   */
-  addTags(newTags: string[]) {
-    newTags.forEach(tag => {
-      this.tags.add(tag);
-    });
   }
 
   //#endregion--------------------------------------------------------------------------------------
@@ -214,7 +200,7 @@ export default class CrashReporter {
     const stack = cleanedStackFrames || [].filter(filterOutReactFrames).map(noAddressAt);
 
     if (isFatal) {
-      this.tags.add('UnhandledError');
+      setCurrentTags(getCurrentTags().concat('UnhandledError'))
     }
 
     const payload = await this.generateCrashReportPayload(error, stack);
@@ -282,8 +268,8 @@ export default class CrashReporter {
           Version: clientVersion
         },
         UserCustomData: this.customData,
-        Tags: [...this.tags],
-        User: upperFirst(this.user),
+        Tags: getCurrentTags(),
+        User: upperFirst(getCurrentUser()),
         Breadcrumbs: upperFirst(this.breadcrumbs),
         Version: this.version || 'Not supplied'
       }

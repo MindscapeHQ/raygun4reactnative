@@ -11,7 +11,15 @@ import {
   RealUserMonitoringTimings,
   BeforeSendHandler, anonUser
 } from './Types';
-import {clone, getDeviceBasedId, log, warn} from './Utils';
+import {
+  clone,
+  getCurrentTags, getCurrentUser,
+  getDeviceBasedId,
+  log,
+  setCurrentTags,
+  setCurrentUser,
+  warn
+} from './Utils';
 import CrashReporter from './CrashReporter';
 import RealUserMonitor from './RealUserMonitor';
 import {Animated, NativeModules} from 'react-native';
@@ -34,8 +42,6 @@ let realUserMonitor: RealUserMonitor;
 let options: RaygunClientOptions;
 // Raygun Client Global Variables
 let initialized: boolean = false;
-let currentTags: Set<string> = new Set([]);
-let currentUser: User = anonUser;
 
 /**
  * Initializes the RaygunClient with customized options parse in through an instance of a
@@ -72,8 +78,6 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
   if (enableCrashReporting) {
     crashReporter = new CrashReporter(
       apiKey,
-      currentUser,
-      currentTags,
       disableNativeCrashReporting,
       customCrashReportingEndpoint || '',
       onBeforeSendingCrashReport as BeforeSendHandler,
@@ -93,7 +97,6 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
   if (enableRealUserMonitoring) {
     realUserMonitor = new RealUserMonitor(
       apiKey,
-      currentUser,
       disableNetworkMonitoring,
       ignoredURLs,
       customRealUserMonitoringEndpoint,
@@ -117,18 +120,17 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
  * errors AND Real User Monitoring requests.
  * @param tags - The tag(s) to append to the session.
  */
-const addTag = (...tags: string[]) => {
-  tags.forEach(tag => {
-    currentTags.add(tag);
-  });
-
-  //Apply tags change to crash reporter
-  if (crashReportingAvailable("addTags")) crashReporter.addTags(tags);
-
+const setTags = (tags : string[]) => {
+  let newTags = tags ? [...tags] : [];
+  setCurrentTags(newTags);
   if (!options.disableNativeCrashReporting) {
-    RaygunNativeBridge.setTags([...currentTags]);
+    RaygunNativeBridge.setTags(getCurrentTags());
   }
 };
+
+const getTags = () : string[] => {
+  return getCurrentTags();
+}
 
 /**
  * Set the user for the current session. This WILL overwrite an existing session user with
@@ -137,19 +139,18 @@ const addTag = (...tags: string[]) => {
  */
 const setUser = (user: User) => {
   //Update user across the react side
-  currentUser = user ? {...user} : anonUser;
-  if (crashReportingAvailable('setUser')) crashReporter.setUser(currentUser);
-  if (realUserMonitoringAvailable('setUser')) realUserMonitor.setUser(currentUser);
-
+  let newUser = user ? {...user} : anonUser;
+  setCurrentUser(user)
   //Update user on the
   if (!options.disableNativeCrashReporting) {
-    RaygunNativeBridge.setUser(currentUser);
+    RaygunNativeBridge.setUser(getCurrentUser());
   }
 };
 
-const getUser = () : User  => {
-  return {...currentUser}
+const getUser = () : User => {
+  return getCurrentUser();
 }
+
 
 //#endregion----------------------------------------------------------------------------------------
 
@@ -193,7 +194,7 @@ const sendError = async (error: Error, ...params: any) => {
     addCustomData(customData as CustomData);
   }
   if (tags && tags.length) {
-    addTag(...(tags as string[]));
+    setTags(tags);
   }
 
   await crashReporter.processUnhandledError(error);
@@ -285,7 +286,8 @@ const realUserMonitoringAvailable = (calledFrom: string) => {
 
 export {
   init,
-  addTag,
+  setTags,
+  getTags,
   setUser,
   getUser,
   recordBreadcrumb,

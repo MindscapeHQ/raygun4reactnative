@@ -1,7 +1,29 @@
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
 import { NativeModules } from 'react-native';
+import {anonUser, User} from "./Types";
 
 const { RaygunNativeBridge } = NativeModules;
+
+
+
+let currentUser: User = anonUser;
+let currentTags: string[] = [];
+
+export const setCurrentUser = (newUser: User) => {
+  currentUser = {...newUser};
+}
+
+export const getCurrentUser = () : User => {
+  return {...currentUser};
+}
+
+export const setCurrentTags = (newTags: string[]) => {
+  currentTags = [...newTags]
+}
+
+export const getCurrentTags = () : string[] => {
+  return [...currentTags];
+}
 
 //#region ----GENERAL-------------------------------------------------------------------------------
 
@@ -14,10 +36,13 @@ export const getDeviceBasedId = () =>
     .replace('.', '')}`;
 
 /**
+ * TODO: Remove usage from CrashReporter
  * Makes a deep clone of some object.
  * @param object - Object to clone.
  */
 export const clone = <T>(object: T): T => JSON.parse(JSON.stringify(object));
+
+
 
 //#endregion----------------------------------------------------------------------------------------
 

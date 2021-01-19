@@ -1,6 +1,7 @@
 import {
   init,
-  addTag,
+  setTags,
+  getTags,
   setUser,
   getUser,
   recordBreadcrumb,
@@ -26,7 +27,8 @@ import {
 
 export default {
   init,
-  addTag,
+  setTags,
+  getTags,
   setUser,
   getUser,
   recordBreadcrumb,
