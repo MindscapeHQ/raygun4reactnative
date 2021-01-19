@@ -11,7 +11,7 @@ import {
   getCustomData,
   sendError,
   setMaxReportsStoredOnDevice,
-  sendRUMTimingEvent
+  sendRUMTimingEvent,
 } from './RaygunClient';
 
 import {
@@ -39,7 +39,7 @@ export default {
   getCustomData,
   sendError,
   setMaxReportsStoredOnDevice,
-  sendRUMTimingEvent
+  sendRUMTimingEvent,
 };
 
 export type {
@@ -50,6 +50,9 @@ export type {
   Environment,
   RaygunClientOptions,
   RaygunStackFrame,
+  User,
+};
+
+export {
   RealUserMonitoringTimings,
-  User
 };
