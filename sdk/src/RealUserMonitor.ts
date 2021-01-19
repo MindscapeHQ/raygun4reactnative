@@ -5,7 +5,7 @@ import {
   RequestMeta,
   User
 } from './Types';
-import {getDeviceBasedId, log, warn, shouldIgnore, getCurrentUser} from './Utils';
+import {getDeviceBasedId, log, warn, shouldIgnore, getCurrentUser, getCurrentTags} from './Utils';
 // @ts-ignore
 import XHRInterceptor from 'react-native/Libraries/Network/XHRInterceptor';
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
@@ -182,6 +182,7 @@ export default class RealUserMonitor {
     return {
       type: eventName,
       timestamp: timestamp.toISOString(),
+      tags: getCurrentTags(),
       user: getCurrentUser(),
       sessionId: this.RealUserMonitoringSessionId,
       version: this.version,

@@ -122,6 +122,7 @@ export enum RealUserMonitoringTimings {
 export type RealUserMonitorPayload = {
   type: string;
   timestamp: string;
+  tags: string[];
   user: User;
   sessionId: string;
   version: string;
