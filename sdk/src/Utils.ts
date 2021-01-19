@@ -1,7 +1,31 @@
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
 import { NativeModules } from 'react-native';
+import {anonUser, User} from "./Types";
 
 const { RaygunNativeBridge } = NativeModules;
+
+//#region ----SHARED RESOURCES----------------------------------------------------------------------
+
+let currentUser: User = anonUser;
+let currentTags: string[] = [];
+
+export const setCurrentUser = (newUser: User) => {
+  currentUser = {...newUser};
+}
+
+export const getCurrentUser = () : User => {
+  return {...currentUser};
+}
+
+export const setCurrentTags = (newTags: string[]) => {
+  currentTags = [...newTags]
+}
+
+export const getCurrentTags = () : string[] => {
+  return [...currentTags];
+}
+
+//#endregion----------------------------------------------------------------------------------------
 
 //#region ----GENERAL-------------------------------------------------------------------------------
 
@@ -12,12 +36,6 @@ export const getDeviceBasedId = () =>
   `${RaygunNativeBridge.DEVICE_ID}-${Date.now().toString(32)}-${(Math.random() * 100000)
     .toString(16)
     .replace('.', '')}`;
-
-/**
- * Makes a deep clone of some object.
- * @param object - Object to clone.
- */
-export const clone = <T>(object: T): T => JSON.parse(JSON.stringify(object));
 
 //#endregion----------------------------------------------------------------------------------------
 

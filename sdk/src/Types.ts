@@ -1,4 +1,5 @@
 import { ErrorUtils } from 'react-native';
+import {getDeviceBasedId} from "./Utils";
 
 //#region ----RAYGUN CLIENT SESSION TYPES-----------------------------------------------------------
 
@@ -28,6 +29,11 @@ export type User = {
   firstName?: string;
   fullName?: string;
   uuid?: string;
+};
+
+export const anonUser: User = {
+  identifier: `${getDeviceBasedId()}`,
+  isAnonymous: true
 };
 
 //#endregion----------------------------------------------------------------------------------------
@@ -74,9 +80,6 @@ export type Breadcrumb = {
   customData?: CustomData;
   timestamp?: number;
 };
-
-export type BreadcrumbOption = Omit<Breadcrumb, 'message' | 'timestamp'>;
-
 export type BeforeSendHandler = (payload: CrashReportPayload) => CrashReportPayload | null;
 
 export type CrashReportPayload = {

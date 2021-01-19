@@ -5,7 +5,7 @@ import {
   RequestMeta,
   User
 } from './Types';
-import { getDeviceBasedId, log, warn, shouldIgnore } from './Utils';
+import {getDeviceBasedId, log, warn, shouldIgnore, getCurrentUser} from './Utils';
 // @ts-ignore
 import XHRInterceptor from 'react-native/Libraries/Network/XHRInterceptor';
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
@@ -22,7 +22,6 @@ const SessionRotateThreshold = 30 * 60 * 1000; //milliseconds (equivalent to 30 
 export default class RealUserMonitor {
   //#region ----INITIALIZATION----------------------------------------------------------------------
 
-  private user: User;
   private readonly apiKey: string;
   private readonly version: string;
   private readonly disableNetworkMonitoring: boolean;
@@ -37,7 +36,6 @@ export default class RealUserMonitor {
   /**
    * RealUserMonitor: Manages RUM specific logic tasks.
    * @param apiKey - The User's API key that gives them access to RUM. (User provided)
-   * @param user - A User object that represents the current user.
    * @param disableNetworkMonitoring - If true, XHRInterceptor is not switched on. All requests go through without monitoring.
    * @param ignoredURLs - A string array of URLs to ignore when watching the network.
    * @param customRealUserMonitoringEndpoint - The custom API URL endpoint where this API should send data to.
@@ -45,7 +43,6 @@ export default class RealUserMonitor {
    */
   constructor(
     apiKey: string,
-    user: User,
     disableNetworkMonitoring: boolean,
     ignoredURLs: string[],
     customRealUserMonitoringEndpoint: string,
@@ -53,7 +50,6 @@ export default class RealUserMonitor {
   ) {
     // Assign the values parsed in (assuming initiation is the only time these are altered).
     this.apiKey = apiKey;
-    this.user = user;
     this.disableNetworkMonitoring = disableNetworkMonitoring;
     this.customRealUserMonitoringEndpoint = customRealUserMonitoringEndpoint;
     this.version = version;
@@ -111,14 +107,6 @@ export default class RealUserMonitor {
   markLastActiveTime() {
     log("MARK LAST ACTIVE TIME")
     this.lastActiveAt = Date.now();
-  }
-
-  /**
-   * Set the real user monitor user object
-   * @param newUser
-   */
-  setUser(newUser: User) {
-    this.user = newUser;
   }
 
   //#endregion--------------------------------------------------------------------------------------
@@ -189,7 +177,7 @@ export default class RealUserMonitor {
     return {
       type: eventName,
       timestamp: timestamp.toISOString(),
-      user: this.user,
+      user: getCurrentUser(),
       sessionId: this.curRUMSessionId,
       version: this.version,
       os: Platform.OS,

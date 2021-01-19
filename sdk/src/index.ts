@@ -1,20 +1,22 @@
 import {
   init,
-  addTag,
+  setTags,
+  getTags,
   setUser,
-  clearSession,
+  getUser,
   recordBreadcrumb,
-  addCustomData,
+  getBreadcrumbs,
+  clearBreadcrumbs,
+  setCustomData,
+  getCustomData,
   sendError,
   setMaxReportsStoredOnDevice,
-  updateCustomData,
   sendRUMTimingEvent
 } from './RaygunClient';
 
 import {
   BeforeSendHandler,
   Breadcrumb,
-  BreadcrumbOption,
   CrashReportPayload,
   CustomData,
   Environment,
@@ -26,21 +28,23 @@ import {
 
 export default {
   init,
-  addTag,
+  setTags,
+  getTags,
   setUser,
-  clearSession,
+  getUser,
   recordBreadcrumb,
-  addCustomData,
+  getBreadcrumbs,
+  clearBreadcrumbs,
+  setCustomData,
+  getCustomData,
   sendError,
   setMaxReportsStoredOnDevice,
-  updateCustomData,
   sendRUMTimingEvent
 };
 
 export type {
   BeforeSendHandler,
   Breadcrumb,
-  BreadcrumbOption,
   CrashReportPayload,
   CustomData,
   Environment,

@@ -4,14 +4,22 @@
  */
 
 import {
-  BreadcrumbOption,
   CustomData,
   RaygunClientOptions,
   User,
   RealUserMonitoringTimings,
-  BeforeSendHandler
+  BeforeSendHandler, anonUser, Breadcrumb
 } from './Types';
-import {clone, getDeviceBasedId, log, warn} from './Utils';
+import {
+  clone,
+  getCurrentTags,
+  getDeviceBasedId,
+  log,
+  setCurrentTags,
+  setCurrentUser,
+  getCurrentUser,
+  warn
+} from './Utils';
 import CrashReporter from './CrashReporter';
 import RealUserMonitor from './RealUserMonitor';
 import {Animated, NativeModules} from 'react-native';
@@ -34,11 +42,6 @@ let realUserMonitor: RealUserMonitor;
 let options: RaygunClientOptions;
 // Raygun Client Global Variables
 let initialized: boolean = false;
-let currentTags: Set<string> = new Set([]);
-let currentUser: User = {
-  identifier: `anonymous-${getDeviceBasedId()}`,
-  isAnonymous: true
-};
 
 /**
  * Initializes the RaygunClient with customized options parse in through an instance of a
@@ -75,8 +78,6 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
   if (enableCrashReporting) {
     crashReporter = new CrashReporter(
       apiKey,
-      currentUser,
-      currentTags,
       disableNativeCrashReporting,
       customCrashReportingEndpoint || '',
       onBeforeSendingCrashReport as BeforeSendHandler,
@@ -96,7 +97,6 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
   if (enableRealUserMonitoring) {
     realUserMonitor = new RealUserMonitor(
       apiKey,
-      currentUser,
       disableNetworkMonitoring,
       ignoredURLs,
       customRealUserMonitoringEndpoint,
@@ -120,60 +120,37 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
  * errors AND Real User Monitoring requests.
  * @param tags - The tag(s) to append to the session.
  */
-const addTag = (...tags: string[]) => {
-  tags.forEach(tag => {
-    currentTags.add(tag);
-  });
-
-  //Apply tags change to crash reporter
-  if (CrashReportingAvailable("addTags")) crashReporter.addTags(tags);
-
+const setTags = (...tags : string[]) => {
+  let newTags = tags ? [...tags] : [];
+  setCurrentTags(newTags);
   if (!options.disableNativeCrashReporting) {
-    RaygunNativeBridge.setTags([...currentTags]);
+    RaygunNativeBridge.setTags(getCurrentTags());
   }
 };
+
+const getTags = () : string[] => {
+  return getCurrentTags();
+}
 
 /**
  * Set the user for the current session. This WILL overwrite an existing session user with
  * the new one.
  * @param user - The new name or user object to assign.
  */
-const setUser = (user: User | string) => {
-  //Discern the type of the user argument and apply it to the user field
-  const userObj = Object.assign(
-    {firstName: '', fullName: '', email: '', isAnonymous: true},
-    typeof user === 'string'
-      ? !!user
-      ? {identifier: user, isAnonymous: true}
-      : {identifier: `anonymous-${getDeviceBasedId()}`, isAnonymous: true}
-      : user
-  );
-
+const setUser = (user: User) => {
   //Update user across the react side
-  currentUser = userObj;
-  if (CrashReportingAvailable('setUser')) crashReporter.setUser(userObj);
-  if (RealUserMonitoringAvailable('setUser')) realUserMonitor.setUser(userObj);
+  setCurrentUser(user ? {...user} : anonUser);
 
-  //Update user on the
+  //Update user on the native side
   if (!options.disableNativeCrashReporting) {
-    RaygunNativeBridge.setUser(userObj);
+    RaygunNativeBridge.setUser(getCurrentUser());
   }
 };
 
-/**
- * Clear all session data and reset the Crash Reporter and Real User Monitor.
- */
-const clearSession = () => {
-  currentTags = new Set([]);
-  currentUser = {
-    identifier: `anonymous-${getDeviceBasedId()}`,
-    isAnonymous: true
-  };
-  if (!options.disableNativeCrashReporting) {
-    RaygunNativeBridge.clearSession();
-  }
-  crashReporter.resetCrashReporter();
-};
+const getUser = () : User => {
+  return getCurrentUser();
+}
+
 
 //#endregion----------------------------------------------------------------------------------------
 
@@ -184,10 +161,26 @@ const clearSession = () => {
  * @param message - A string to describe what this breadcrumb signifies.
  * @param details - Details about the breadcrumb.
  */
-const recordBreadcrumb = (message: string, details?: BreadcrumbOption) => {
-  if (!CrashReportingAvailable('recordBreadcrumb')) return;
-  crashReporter.recordBreadcrumb(message, details);
+const recordBreadcrumb = (breadcrumb: Breadcrumb) => {
+  if (!crashReportingAvailable('recordBreadcrumb')) return;
+  crashReporter.recordBreadcrumb(breadcrumb);
 };
+
+/**
+ * Returns the current breadcrumbs.
+ */
+const getBreadcrumbs = (): Breadcrumb[] => {
+  if (!crashReportingAvailable('getBreadcrumbs')) return [];
+  return crashReporter.getBreadcrumbs();
+}
+
+/**
+ * Removes all breadcrumbs.
+ */
+const clearBreadcrumbs = () => {
+  if (!crashReportingAvailable('clearBreadcrumbs')) return;
+  crashReporter.clearBreadcrumbs();
+}
 
 /**
  * Allows for an error to be sent to the Crash Reporting error handler along with some customized
@@ -209,15 +202,15 @@ const recordBreadcrumb = (message: string, details?: BreadcrumbOption) => {
  * @see CustomData
  */
 const sendError = async (error: Error, ...params: any) => {
-  if (!CrashReportingAvailable('sendError')) return;
+  if (!crashReportingAvailable('sendError')) return;
 
   const [customData, tags] = params.length == 1 && Array.isArray(params[0]) ? [null, params[0]] : params;
 
   if (customData) {
-    addCustomData(customData as CustomData);
+    setCustomData(customData as CustomData);
   }
   if (tags && tags.length) {
-    addTag(...(tags as string[]));
+    setTags(tags);
   }
 
   await crashReporter.processUnhandledError(error);
@@ -227,18 +220,18 @@ const sendError = async (error: Error, ...params: any) => {
  * Appends custom data to the current set of custom data.
  * @param customData - The custom data to append
  */
-const addCustomData = (customData: CustomData) => {
-  if (!CrashReportingAvailable('addCustomData')) return;
-  crashReporter.addCustomData(customData);
+const setCustomData = (customData: CustomData | null) => {
+  if (!crashReportingAvailable('setCustomData')) return;
+  crashReporter.setCustomData(customData ? customData : {});
 };
 
 /**
- * Apply some transformation lambda to all of the user's custom data.
- * @param updater - The transformation.
+ * Appends custom data to the current set of custom data.
+ * @param customData - The custom data to append
  */
-const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
-  if (!CrashReportingAvailable('updateCustomData')) return;
-  crashReporter.updateCustomData(updater);
+const getCustomData = () => {
+  if (!crashReportingAvailable('setCustomData')) return;
+  return crashReporter.getCustomData();
 };
 
 /**
@@ -246,7 +239,7 @@ const updateCustomData = (updater: (customData: CustomData) => CustomData) => {
  * @param size
  */
 const setMaxReportsStoredOnDevice = (size: number) => {
-  if (!CrashReportingAvailable('setCrashReportCacheSize')) return;
+  if (!crashReportingAvailable('setCrashReportCacheSize')) return;
   crashReporter.setMaxReportsStoredOnDevice(size);
 }
 
@@ -254,7 +247,7 @@ const setMaxReportsStoredOnDevice = (size: number) => {
  * Checks if the CrashReporter has been created (during RaygunClient.init) and if the user enabled
  * the CrashReporter during the init.
  */
-const CrashReportingAvailable = (calledFrom: string) => {
+const crashReportingAvailable = (calledFrom: string) => {
   if (!initialized) {
     warn(
       `Failed: "${calledFrom}" cannot be called before initialising RaygunClient. Please call RaygunClient.init(...) before trying to call RaygunClient.${calledFrom}(...)`
@@ -280,7 +273,7 @@ const CrashReportingAvailable = (calledFrom: string) => {
  * @param timeUsedInMs - Length this event took to execute.
  */
 const sendRUMTimingEvent = (eventType: RealUserMonitoringTimings, name: string, durationMs: number) => {
-  if (!RealUserMonitoringAvailable('sendRUMTimingEvent')) return;
+  if (!realUserMonitoringAvailable('sendRUMTimingEvent')) return;
   realUserMonitor.sendCustomRUMEvent(eventType, name, durationMs);
 };
 
@@ -288,7 +281,7 @@ const sendRUMTimingEvent = (eventType: RealUserMonitoringTimings, name: string, 
  * Checks if the RealUserMonitor has been created (during RaygunClient.init) and if the user enabled
  * the RealUserMonitor during the init.
  */
-const RealUserMonitoringAvailable = (calledFrom: string) => {
+const realUserMonitoringAvailable = (calledFrom: string) => {
   if (!initialized) {
     warn(
       `Failed: "${calledFrom}" cannot be called before initialising RaygunClient. Please call RaygunClient.init(...) before trying to call RaygunClient.${calledFrom}(...)`
@@ -309,13 +302,16 @@ const RealUserMonitoringAvailable = (calledFrom: string) => {
 
 export {
   init,
-  addTag,
+  setTags,
+  getTags,
   setUser,
-  clearSession,
+  getUser,
   recordBreadcrumb,
-  addCustomData,
+  getBreadcrumbs,
+  clearBreadcrumbs,
+  setCustomData,
+  getCustomData,
   sendError,
   setMaxReportsStoredOnDevice,
-  updateCustomData,
   sendRUMTimingEvent
 };

@@ -1,10 +1,20 @@
-import { cleanFilePath, clone, error, filterOutReactFrames, log, noAddressAt, upperFirst, warn } from './Utils';
-import { BeforeSendHandler, Breadcrumb, BreadcrumbOption, CrashReportPayload, CustomData, User } from './Types';
-import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
-import { NativeModules, Platform } from 'react-native';
+import {
+  cleanFilePath,
+  clone,
+  error,
+  filterOutReactFrames, getCurrentTags, getCurrentUser,
+  log,
+  noAddressAt,
+  setCurrentTags,
+  upperFirst,
+  warn
+} from './Utils';
+import {BeforeSendHandler, Breadcrumb, CrashReportPayload, CustomData, User} from './Types';
+import {StackFrame} from 'react-native/Libraries/Core/Devtools/parseErrorStack';
+import {NativeModules, Platform} from 'react-native';
 
-const { RaygunNativeBridge } = NativeModules;
-const { version: clientVersion } = require('../package.json');
+const {RaygunNativeBridge} = NativeModules;
+const {version: clientVersion} = require('../package.json');
 
 /**
  * The Crash Reporter is responsible for all of the functionality related to generating, catching
@@ -14,8 +24,6 @@ const { version: clientVersion } = require('../package.json');
 export default class CrashReporter {
   //#region ----INITIALIZATION----------------------------------------------------------------------
 
-  private user: User;
-  private tags: Set<string>;
   private breadcrumbs: Breadcrumb[] = [];
   private customData: CustomData = {};
   private apiKey: string;
@@ -39,8 +47,6 @@ export default class CrashReporter {
    */
   constructor(
     apiKey: string,
-    user: User,
-    tags: Set<string>,
     disableNativeCrashReporting: boolean,
     customCrashReportingEndpoint: string,
     onBeforeSendingCrashReport: BeforeSendHandler | null,
@@ -48,8 +54,6 @@ export default class CrashReporter {
   ) {
     // Assign the values parsed in (assuming initiation is the only time these are altered).
     this.apiKey = apiKey;
-    this.user = user;
-    this.tags = tags;
     this.disableNativeCrashReporting = disableNativeCrashReporting;
     this.customCrashReportingEndpoint = customCrashReportingEndpoint;
     this.onBeforeSendingCrashReport = onBeforeSendingCrashReport;
@@ -70,7 +74,9 @@ export default class CrashReporter {
       onUnhandled: this.processUnhandledRejection
     });
 
-    this.resendCachedReports(apiKey, customCrashReportingEndpoint).then(r => {log("Cache flushed")});
+    this.resendCachedReports(apiKey, customCrashReportingEndpoint).then(r => {
+      log("Cache flushed")
+    });
   }
 
   //#endregion--------------------------------------------------------------------------------------
@@ -81,22 +87,24 @@ export default class CrashReporter {
    * Append some custom data to the users current set of custom data.
    * @param customData - The custom data to append
    */
-  addCustomData(customData: CustomData) {
-    this.customData = Object.assign({}, this.customData, customData);
+  setCustomData(customData: CustomData) {
+    this.customData = {...customData};
     if (!this.disableNativeCrashReporting) {
-      RaygunNativeBridge.setCustomData(clone(this.customData));
+      RaygunNativeBridge.setCustomData({...customData});
     }
   }
 
   /**
-   * Apply some transformation lambda to all of the users custom data
-   * @param updater - The transformation
+   * Return the custom data as an immutable
    */
-  updateCustomData(updater: (customData: CustomData) => CustomData) {
-    this.customData = updater(this.customData);
-    if (!this.disableNativeCrashReporting) {
-      RaygunNativeBridge.setCustomData(clone(this.customData));
+  getCustomData() {
+    //If this object isnt empty then return it
+    for (let prop in this.customData) {
+      if (this.customData.hasOwnProperty(prop))
+        return this.customData;
     }
+
+    return null;
   }
 
   /**
@@ -104,37 +112,28 @@ export default class CrashReporter {
    * @param message - A string to describe what this breadcrumb signifies
    * @param details - Details about the breadcrumb
    */
-  recordBreadcrumb(message: string, details?: BreadcrumbOption) {
-    const breadcrumb: Breadcrumb = {
-      customData: {},
-      category: '',
-      level: 'info',
-      message,
-      ...details,
-      timestamp: new Date().getTime()
-    };
-    this.breadcrumbs.push(breadcrumb);
+  recordBreadcrumb(breadcrumb: Breadcrumb) {
+    this.breadcrumbs.push({...breadcrumb});
     if (!this.disableNativeCrashReporting) {
       RaygunNativeBridge.recordBreadcrumb(breadcrumb);
     }
   }
 
   /**
-   * Set the crash reporters user object
-   * @param newUser
+   * Removes all breadcrumbs.
    */
-  setUser(newUser: User) {
-    this.user = newUser;
+  clearBreadcrumbs() {
+    this.breadcrumbs = [];
+    if (!this.disableNativeCrashReporting) {
+      RaygunNativeBridge.clearBreadcrumbs();
+    }
   }
 
   /**
-   * Add a new tag to all Crash Reports
-   * @param newTag
+   * Returns the current breadcrumbs.
    */
-  addTags(newTags: string[]) {
-    newTags.forEach(tag => {
-      this.tags.add(tag);
-    });
+  getBreadcrumbs(): Breadcrumb[] {
+    return {...this.breadcrumbs};
   }
 
   //#endregion--------------------------------------------------------------------------------------
@@ -157,9 +156,9 @@ export default class CrashReporter {
   async resendCachedReports(apiKey: string, customEndpoint?: string) {
 
     //If there are Reports cached
-    if(!await RaygunNativeBridge.cacheEmpty()) {
+    if (!await RaygunNativeBridge.cacheEmpty()) {
       //Extract cached reports from the native side
-      const cache : CrashReportPayload[] = await RaygunNativeBridge.flushCrashReportCache()
+      const cache: CrashReportPayload[] = await RaygunNativeBridge.flushCrashReportCache()
       .then((reportsJson: string) => {
         try {
           //Format the cache and remove empty and null strings
@@ -182,7 +181,7 @@ export default class CrashReporter {
    * Change the size of the local cache
    * @param size - The new cache size, must be between 0 and 64
    */
-  async setMaxReportsStoredOnDevice(size : number) {
+  async setMaxReportsStoredOnDevice(size: number) {
     RaygunNativeBridge.setMaxReportsStoredOnDevice(size);
   }
 
@@ -209,12 +208,13 @@ export default class CrashReporter {
     const symbolicateStackTrace = require('react-native/Libraries/Core/Devtools/symbolicateStackTrace');
     const cleanedStackFrames: StackFrame[] = __DEV__
       ? await symbolicateStackTrace(stackFrames)
-      : { stack: cleanFilePath(stackFrames) };
+      : {stack: cleanFilePath(stackFrames)};
 
     const stack = cleanedStackFrames || [].filter(filterOutReactFrames).map(noAddressAt);
+    setCurrentTags(getCurrentTags().concat('UnhandledError'))
 
     if (isFatal) {
-      this.tags.add('UnhandledError');
+      setCurrentTags(getCurrentTags().concat('Fatal'))
     }
 
     const payload = await this.generateCrashReportPayload(error, stack);
@@ -254,7 +254,7 @@ export default class CrashReporter {
       (RaygunNativeBridge.getEnvironmentInfo && (await RaygunNativeBridge.getEnvironmentInfo())) || {};
 
     //Reformat Native Stack frames to the Raygun StackTrace format.
-    const convertToCrashReportingStackFrame = ({ file, methodName, lineNumber, column }: StackFrame) => ({
+    const convertToCrashReportingStackFrame = ({file, methodName, lineNumber, column}: StackFrame) => ({
       FileName: file,
       MethodName: methodName || '[anonymous]',
       LineNumber: lineNumber,
@@ -282,8 +282,8 @@ export default class CrashReporter {
           Version: clientVersion
         },
         UserCustomData: this.customData,
-        Tags: [...this.tags],
-        User: upperFirst(this.user),
+        Tags: getCurrentTags(),
+        User: upperFirst(getCurrentUser()),
         Breadcrumbs: upperFirst(this.breadcrumbs),
         Version: this.version || 'Not supplied'
       }
@@ -320,7 +320,9 @@ export default class CrashReporter {
       body: JSON.stringify(report)
     }).then(() => {
       //If the message is successfully sent then attempt to transmit the cache if it isn't empty
-      this.resendCachedReports(apiKey, this.customCrashReportingEndpoint).then(r => {log("Cache flushed")});
+      this.resendCachedReports(apiKey, this.customCrashReportingEndpoint).then(r => {
+        log("Cache flushed")
+      });
     })
     .catch(err => {
       //If there are any errors then
