@@ -21,12 +21,11 @@ import {
 
 import {Colors, Header} from 'react-native/Libraries/NewAppScreen';
 import RaygunClient, {
-    BeforeSendHandler,
-    BreadcrumbOption,
-    CustomData,
-    RaygunClientOptions,
-    RealUserMonitoringTimings,
-    User
+  Breadcrumb,
+  CustomData,
+  RaygunClientOptions,
+  RealUserMonitoringTimings,
+  User
 } from 'raygun4reactnative';
 
 declare const global: { HermesInternal: null | {} };
@@ -98,7 +97,7 @@ const App = () => {
                       accessibilityLabel="triggerUndefinedErrorBtn"
                       onPress={() => {
                           //@ts-ignore
-                          RaygunClient.sendRUMTimingEvent(RealUserMonitoringTimings.ViewLoaded, "TestEvent", 100)
+                          RaygunClient.sendRUMTimingEvent(RealUserMonitoringTimings.ViewLoaded, "TestEvent", 200)
                       }}
                       title="SEND CUSTOM RUM TIMING EVENT"
                   />
@@ -152,8 +151,8 @@ const App = () => {
                 color="green"
                 testID="addTagsBtn"
                 accessibilityLabel="addTagsBtn"
-                onPress={() => RaygunClient.addTag(`${new Date().toISOString()}`, "Testing")}
-                title="Add Testing Tags"
+                onPress={() => RaygunClient.setTags(["Testing_1", "Testing_2", "Testing_3"])}
+                title="Set Testing Tags"
               />
             </View>
 
@@ -189,53 +188,11 @@ const App = () => {
               }}>
               <Button
                 color="green"
-                testID="replaceCustomDataBtn"
-                accessibilityLabel="replaceCustomDataBtn"
-                onPress={() => {
-                  const updater = (customData: CustomData) => {
-                    // Do something with the custom data if you wish
-                    console.log("DATA - BEFORE:", customData, "\n");
-
-                    console.log("Removing all number and array properties...", "\n");
-
-                    for (let key in customData) {
-                      if (typeof customData[key] === "number"
-                        || Array.isArray(customData[key])) {
-                        delete customData[key];
-                      }
-                    }
-
-                    console.log("DATA - AFTER:", customData);
-
-                    return customData;
-                  }
-                  RaygunClient.updateCustomData(updater);
-                }
-                }
-                title="Update Custom Data"
-              />
-            </View>
-
-            <View
-              style={{
-                width: '45%',
-                marginBottom: 15
-              }}>
-              <Button
-                color="green"
                 testID="addCustomDataBtn"
                 accessibilityLabel="addCustomDataBtn"
                 onPress={() => {
                   const customData1: CustomData = {"Key_1": "Value"};
-                  const customData2: CustomData = {"Key_2": 401};
-                  const customData3: CustomData = {"Key_3": ["Value", "Another Value"]};
-                  const customData4: CustomData = {"Key_4": [42, 65]};
-                  const customData5: CustomData = {"Key_5": customData4};
-                  RaygunClient.addCustomData(customData1);
-                  RaygunClient.addCustomData(customData2);
-                  RaygunClient.addCustomData(customData3);
-                  RaygunClient.addCustomData(customData4);
-                  RaygunClient.addCustomData(customData5);
+                  RaygunClient.setCustomData(customData1);
                 }
                 }
                 title="Add Custom Data"
@@ -252,12 +209,14 @@ const App = () => {
                 testID="addBreadcrumbBtn"
                 accessibilityLabel="addBreadcrumbBtn"
                 onPress={() => {
-                  const breadcrumbOption: BreadcrumbOption = {
+                  const bc: Breadcrumb = {
+                    message: "Testing",
+                    timestamp: Date.now(),
                     category: 'Some String you choose',
                     level: 'debug',
-                    customData: {"Key_6": "My Data is bland"},
+                    customData: {"Key_2": "My Data is bland"}
                   }
-                  RaygunClient.recordBreadcrumb('Breadcrumb Message', breadcrumbOption)
+                  RaygunClient.recordBreadcrumb(bc)
                 }
                 }
                 title="Add Simple Breadcrumbs Data"
@@ -301,20 +260,6 @@ const App = () => {
                   .catch(console.log);
                 }}
                 title="Make network call"
-              />
-            </View>
-
-            <View
-              style={{
-                width: '45%',
-                marginBottom: 15
-              }}>
-              <Button
-                color="green"
-                testID="clearSessionBtn"
-                accessibilityLabel="clearSessionBtn"
-                onPress={() => RaygunClient.clearSession()}
-                title="Clear Session"
               />
             </View>
 
