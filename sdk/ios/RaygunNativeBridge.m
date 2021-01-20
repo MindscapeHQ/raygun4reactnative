@@ -23,7 +23,9 @@
 #endif
 
 
-//===============SYSTEM INFORMATION GETTERS===============//
+// ============================================================================
+#pragma mark - STATIC SYSTEM INFORMATION GETTERS -
+// ============================================================================
 
 static uint32_t ksdl_imageNamed(const char* const imageName, bool exactMatch)
 {
@@ -92,10 +94,9 @@ static uint64_t getMemorySize(void) {
     return value;
 }
 
-//==============================//
-
-
-
+// ============================================================================
+#pragma mark - BRIDGE FIELDS -
+// ============================================================================
 
 @implementation RaygunNativeBridge
 
@@ -113,8 +114,16 @@ NSString *onDestroy = @"ON_DESTROY";
 NSString *defaultsKey = @"__RAYGUN_CRASH_REPORTS__";
 
 
+// ============================================================================
+#pragma mark - INHERITED NATIVE MODULE STARTUP METHODS -
+// ============================================================================
+
 + (void)initialize {
     startedAt = processStartTime(); //Set the time that this bridge was initialised at
+}
+
++ (BOOL) requiresMainQueueSetup {
+    return YES;
 }
 
 static CFTimeInterval processStartTime() {
@@ -131,10 +140,6 @@ static CFTimeInterval processStartTime() {
 
     CFTimeInterval absoluteTimeToRelativeTime =  CACurrentMediaTime() - [NSDate date].timeIntervalSince1970;
     return startTime.tv_sec + startTime.tv_usec / 1e6 + absoluteTimeToRelativeTime;
-}
-
-+ (BOOL) requiresMainQueueSetup {
-    return YES;
 }
 
 - (NSString *)platform {
@@ -171,7 +176,15 @@ static CFTimeInterval processStartTime() {
     return nsVersion;
 }
 
+// ============================================================================
+#pragma mark - NATIVE BRIDGE INTERFACE -
+// ============================================================================
+
 RCT_EXPORT_MODULE();
+
+// ============================================================================
+#pragma mark - REAL USER MONITORING FUNCTIONALITY -
+// ============================================================================
 
 RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
 {
@@ -211,8 +224,10 @@ RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
   return @[onStart, onPause, onResume, onDestroy];
 }
 
+// ============================================================================
+#pragma mark - CRASH REPORTING FUNCTIONALITY -
+// ============================================================================
 
-//INITIALISE NATIVE CRASH REPORTING FUNCTIONALITY
 RCT_EXPORT_METHOD(initCrashReportingNativeSupport:(NSString*)apiKey
                   version: (NSString*)version
                   customCrashReportingEndpoint: (NSString*)customCREndpoint)
@@ -227,70 +242,9 @@ RCT_EXPORT_METHOD(initCrashReportingNativeSupport:(NSString*)apiKey
     hasInitialized = YES;
 }
 
-
-//========SESSION MANAGEMENT========//
-
-RCT_EXPORT_METHOD(hasInitialized:(RCTPromiseResolveBlock)resolve orNot:(RCTPromiseRejectBlock)reject) {
-    resolve([NSNumber numberWithBool:hasInitialized]);
-}
-
-RCT_EXPORT_METHOD(setTags:(NSArray *) tags) {
-    [RaygunClient.sharedInstance setTags:tags];
-}
-
-RCT_EXPORT_METHOD(setCustomData:(NSDictionary *) customData) {
-    [RaygunClient.sharedInstance setCustomData:customData];
-}
-
-RCT_EXPORT_METHOD(recordBreadcrumb:(NSDictionary *) breadcrumb) {
-    [RaygunClient.sharedInstance recordBreadcrumb:[RaygunBreadcrumb breadcrumbWithInformation:breadcrumb]];
-}
-
-RCT_EXPORT_METHOD(clearBreadcrumbs) {
-    [RaygunClient.sharedInstance clearBreadcrumbs];
-}
-
-RCT_EXPORT_METHOD(setUser:(NSDictionary *) user) {
-    RaygunUserInformation * userInfo = [[RaygunUserInformation alloc] initWithIdentifier:
-        user[@"idenfifier"] withEmail: user[@"email"] withFullName: user[@"fullName"] withFirstName: user[@"firstName"]
-                                        ];
-    [RaygunClient.sharedInstance setUserInformation: userInfo];
-}
-
-//COLLECTING AND FORMATTING NECESSARY ENVIRONMENT INFORMATION
-RCT_EXPORT_METHOD(getEnvironmentInfo:(RCTPromiseResolveBlock)resolve onError:(RCTPromiseRejectBlock)reject) {
-    NSMutableDictionary* environment = [[NSMutableDictionary alloc] init];
-    NSUInteger processorCount = [[NSProcessInfo processInfo] processorCount];
-    [environment setValue:@(processorCount) forKey: @"ProcessorCount"];
-    [environment setValue:[self getVersion: "kern.osversion"] forKey: @"OSVersion"];
-#if TARGET_OS_IOS || TARGET_OS_TV
-    UIDevice *currentDevice = [UIDevice currentDevice];
-    NSString *osVersion = [NSString stringWithFormat:@"%@ %@", currentDevice.systemName, currentDevice.systemVersion];
-    [environment setValue:osVersion forKey: @"OSVersion"];
-    [environment setValue:currentDevice.model forKey: @"DeviceName"];
-    CGRect screenBounds = [UIScreen mainScreen].bounds;
-    [environment setValue:@(screenBounds.size.width) forKey: @"WindowsBoundWidth"];
-    [environment setValue:@(screenBounds.size.height) forKey: @"WindowsBoundHeight"];
-    [environment setValue:@([UIScreen mainScreen].scale) forKey: @"ResolutionScale"];
-#else
-    NSRect frame = [[NSApplication sharedApplication].mainWindow frame];
-    [environment setValue:@(frame.size.width) forKey: @"WindowsBoundWidth"];
-    [environment setValue:@(frame.size.height) forKey: @"WindowsBoundHeight"];
-    [environment setValue:@([NSScreen mainScreen].backingScaleFactor) forKey: @"ResolutionScale"];
-#endif
-    NSLocale *locale = [NSLocale currentLocale];
-    NSString *localeStr = [locale displayNameForKey:NSLocaleIdentifier value: locale.localeIdentifier];
-    [environment setValue:localeStr forKey: @"Locale"];
-    [environment setValue:[self getVersion: "kern.version"] forKey:@"KernelVersion"];
-    [environment setValue:@(getFreeMemory()) forKey: @"AvailablePhysicalMemory"];
-    [environment setValue:@(getMemorySize()) forKey: @"TotalPhysicalMemory"];
-    resolve(environment);
-}
-
-//================//
-
-
-//========CRASH REPORT CACHING========//
+// ============================================================================
+#pragma mark - CRASH REPORT CACHING -
+// ============================================================================
 
 - (NSError *)saveReportsArray:(NSArray*)reports {
     NSError *jsonSerializeError;
@@ -348,6 +302,65 @@ RCT_EXPORT_METHOD(cacheCrashReport:(NSString *)jsonString withResolver: (RCTProm
     }
 }
 
-//================//
+// ============================================================================
+#pragma mark - SESSION MANAGEMENT -
+// ============================================================================
+
+RCT_EXPORT_METHOD(hasInitialized:(RCTPromiseResolveBlock)resolve orNot:(RCTPromiseRejectBlock)reject) {
+    resolve([NSNumber numberWithBool:hasInitialized]);
+}
+
+RCT_EXPORT_METHOD(setTags:(NSArray *) tags) {
+    [RaygunClient.sharedInstance setTags:tags];
+}
+
+RCT_EXPORT_METHOD(setCustomData:(NSDictionary *) customData) {
+    [RaygunClient.sharedInstance setCustomData:customData];
+}
+
+RCT_EXPORT_METHOD(recordBreadcrumb:(NSDictionary *) breadcrumb) {
+    [RaygunClient.sharedInstance recordBreadcrumb:[RaygunBreadcrumb breadcrumbWithInformation:breadcrumb]];
+}
+
+RCT_EXPORT_METHOD(clearBreadcrumbs) {
+    [RaygunClient.sharedInstance clearBreadcrumbs];
+}
+
+RCT_EXPORT_METHOD(setUser:(NSDictionary *) user) {
+    RaygunUserInformation * userInfo = [[RaygunUserInformation alloc] initWithIdentifier:
+        user[@"idenfifier"] withEmail: user[@"email"] withFullName: user[@"fullName"] withFirstName: user[@"firstName"]
+                                        ];
+    [RaygunClient.sharedInstance setUserInformation: userInfo];
+}
+
+//COLLECTING AND FORMATTING NECESSARY ENVIRONMENT INFORMATION
+RCT_EXPORT_METHOD(getEnvironmentInfo:(RCTPromiseResolveBlock)resolve onError:(RCTPromiseRejectBlock)reject) {
+    NSMutableDictionary* environment = [[NSMutableDictionary alloc] init];
+    NSUInteger processorCount = [[NSProcessInfo processInfo] processorCount];
+    [environment setValue:@(processorCount) forKey: @"ProcessorCount"];
+    [environment setValue:[self getVersion: "kern.osversion"] forKey: @"OSVersion"];
+#if TARGET_OS_IOS || TARGET_OS_TV
+    UIDevice *currentDevice = [UIDevice currentDevice];
+    NSString *osVersion = [NSString stringWithFormat:@"%@ %@", currentDevice.systemName, currentDevice.systemVersion];
+    [environment setValue:osVersion forKey: @"OSVersion"];
+    [environment setValue:currentDevice.model forKey: @"DeviceName"];
+    CGRect screenBounds = [UIScreen mainScreen].bounds;
+    [environment setValue:@(screenBounds.size.width) forKey: @"WindowsBoundWidth"];
+    [environment setValue:@(screenBounds.size.height) forKey: @"WindowsBoundHeight"];
+    [environment setValue:@([UIScreen mainScreen].scale) forKey: @"ResolutionScale"];
+#else
+    NSRect frame = [[NSApplication sharedApplication].mainWindow frame];
+    [environment setValue:@(frame.size.width) forKey: @"WindowsBoundWidth"];
+    [environment setValue:@(frame.size.height) forKey: @"WindowsBoundHeight"];
+    [environment setValue:@([NSScreen mainScreen].backingScaleFactor) forKey: @"ResolutionScale"];
+#endif
+    NSLocale *locale = [NSLocale currentLocale];
+    NSString *localeStr = [locale displayNameForKey:NSLocaleIdentifier value: locale.localeIdentifier];
+    [environment setValue:localeStr forKey: @"Locale"];
+    [environment setValue:[self getVersion: "kern.version"] forKey:@"KernelVersion"];
+    [environment setValue:@(getFreeMemory()) forKey: @"AvailablePhysicalMemory"];
+    [environment setValue:@(getMemorySize()) forKey: @"TotalPhysicalMemory"];
+    resolve(environment);
+}
 
 @end
