@@ -112,7 +112,6 @@ export default class RealUserMonitor {
    * Updates the time since last activity to be NOW.
    */
   markSessionInteraction() {
-    log('MARK LAST ACTIVE TIME');
     this.lastSessionInteractionTime = Date.now();
   }
 

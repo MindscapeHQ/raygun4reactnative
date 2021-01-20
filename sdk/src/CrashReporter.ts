@@ -10,12 +10,16 @@ import {
   upperFirst,
   warn
 } from './Utils';
-import { BeforeSendHandler, Breadcrumb, CrashReportPayload, CustomData, User } from './Types';
-import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
-import { NativeModules, Platform } from 'react-native';
+import {BeforeSendHandler, Breadcrumb, CrashReportPayload, CustomData} from './Types';
+import {StackFrame} from 'react-native/Libraries/Core/Devtools/parseErrorStack';
+import {NativeModules, Platform} from 'react-native';
 
-const { RaygunNativeBridge } = NativeModules;
-const { version: clientVersion } = require('../package.json');
+const {RaygunNativeBridge} = NativeModules;
+const {version: clientVersion} = require('../package.json');
+
+const {polyfillGlobal} = require('react-native/Libraries/Utilities/PolyfillFunctions')
+const Promise = require('promise/setimmediate/es6-extensions')
+const tracking = require('promise/setimmediate/rejection-tracking')
 
 /**
  * The Crash Reporter is responsible for all of the functionality related to generating, catching
@@ -68,12 +72,14 @@ export default class CrashReporter {
     });
 
     //Set up rejection handler to divert rejections to crash reporter
-    const rejectionTracking = require('promise/setimmediate/rejection-tracking');
-    rejectionTracking.disable();
-    rejectionTracking.enable({
-      allRejections: true,
-      onUnhandled: this.processUnhandledRejection
-    });
+    polyfillGlobal('Promise', () => {
+      tracking.enable({
+        allRejections: true,
+        onUnhandled: this.processUnhandledRejection.bind(this),
+      })
+
+      return Promise
+    })
 
     this.resendCachedReports(apiKey, customCrashReportingEndpoint).then(r => {
       log('Cache flushed');
@@ -89,9 +95,9 @@ export default class CrashReporter {
    * @param customData - The custom data to append
    */
   setCustomData(customData: CustomData) {
-    this.customData = { ...customData };
+    this.customData = {...customData};
     if (!this.disableNativeCrashReporting) {
-      RaygunNativeBridge.setCustomData({ ...customData });
+      RaygunNativeBridge.setCustomData({...customData});
     }
   }
 
@@ -113,7 +119,7 @@ export default class CrashReporter {
    * @param details - Details about the breadcrumb
    */
   recordBreadcrumb(breadcrumb: Breadcrumb) {
-    this.breadcrumbs.push({ ...breadcrumb });
+    this.breadcrumbs.push({...breadcrumb});
     if (!this.disableNativeCrashReporting) {
       RaygunNativeBridge.recordBreadcrumb(breadcrumb);
     }
@@ -133,7 +139,7 @@ export default class CrashReporter {
    * Returns the current breadcrumbs.
    */
   getBreadcrumbs(): Breadcrumb[] {
-    return { ...this.breadcrumbs };
+    return {...this.breadcrumbs};
   }
 
   //#endregion--------------------------------------------------------------------------------------
@@ -240,7 +246,7 @@ export default class CrashReporter {
    * Cleans the stack trace of some error.
    * @param error - The error to be cleaned.
    */
-  async cleanStackTrace(error: Error){
+  async cleanStackTrace(error: Error) {
     //Extract the errors stack trace
     const parseErrorStack = require('react-native/Libraries/Core/Devtools/parseErrorStack');
     const stackFrames = parseErrorStack(error);
@@ -249,10 +255,9 @@ export default class CrashReporter {
     const symbolicateStackTrace = require('react-native/Libraries/Core/Devtools/symbolicateStackTrace');
     const cleanedStackFrames: StackFrame[] = __DEV__
       ? await symbolicateStackTrace(stackFrames)
-      : { stack: cleanFilePath(stackFrames) };
+      : {stack: cleanFilePath(stackFrames)};
 
-    const stack = cleanedStackFrames || [].filter(filterOutReactFrames).map(noAddressAt);
-    return stack;
+    return cleanedStackFrames || [].filter(filterOutReactFrames).map(noAddressAt);
   }
 
   /**
@@ -269,15 +274,17 @@ export default class CrashReporter {
       return;
     }
 
-    log('Send manual crash report via JS');
+    log('Send crash report via JS');
     this.sendCrashReport(modifiedPayload, this.apiKey, this.customCrashReportingEndpoint);
   }
 
   /**
-   * the promise rejection handler to catch and reroute rejections to the default error handler.
-   * @param error - the caught rejection
+   * The promise rejection handler to catch and reroute rejections to the default error handler.
+   * This method footprint is laid out as such "(id: string, error: Error)". This
+   * @param id - The promise rejection's id
+   * @param error - The caught rejection
    */
-  processUnhandledRejection(error: any) {
+  processUnhandledRejection(id: string, error: Error) {
     this.processUnhandledError(error, false);
   }
 
@@ -295,7 +302,12 @@ export default class CrashReporter {
       (RaygunNativeBridge.getEnvironmentInfo && (await RaygunNativeBridge.getEnvironmentInfo())) || {};
 
     //Reformat Native Stack frames to the Raygun StackTrace format.
-    const convertToCrashReportingStackFrame = ({ file, methodName, lineNumber, column }: StackFrame) => ({
+    const convertToCrashReportingStackFrame = ({
+                                                 file,
+                                                 methodName,
+                                                 lineNumber,
+                                                 column
+                                               }: StackFrame) => ({
       FileName: file,
       MethodName: methodName || '[anonymous]',
       LineNumber: lineNumber,
@@ -356,17 +368,17 @@ export default class CrashReporter {
       },
       body: JSON.stringify(report)
     })
-      .then(() => {
-        //If the message is successfully sent then attempt to transmit the cache if it isn't empty
-        this.resendCachedReports(apiKey, this.customCrashReportingEndpoint).then(r => {
-          log('Cache flushed');
-        });
-      })
-      .catch(err => {
-        //If there are any errors then
-        error(err);
-        return this.cacheCrashReport(report);
+    .then(() => {
+      //If the message is successfully sent then attempt to transmit the cache if it isn't empty
+      this.resendCachedReports(apiKey, this.customCrashReportingEndpoint).then(r => {
+        log('Cache flushed');
       });
+    })
+    .catch(err => {
+      //If there are any errors then
+      error(err);
+      return this.cacheCrashReport(report);
+    });
   }
 
   //#endregion--------------------------------------------------------------------------------------
