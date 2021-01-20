@@ -1,6 +1,6 @@
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
 import { NativeModules } from 'react-native';
-import {anonUser, User} from "./Types";
+import { anonUser, User } from './Types';
 
 const { RaygunNativeBridge } = NativeModules;
 
@@ -10,20 +10,20 @@ let currentUser: User = anonUser;
 let currentTags: string[] = [];
 
 export const setCurrentUser = (newUser: User) => {
-  currentUser = {...newUser};
-}
+  currentUser = { ...newUser };
+};
 
-export const getCurrentUser = () : User => {
-  return {...currentUser};
-}
+export const getCurrentUser = (): User => {
+  return { ...currentUser };
+};
 
 export const setCurrentTags = (newTags: string[]) => {
-  currentTags = [...newTags]
-}
+  currentTags = [...newTags];
+};
 
-export const getCurrentTags = () : string[] => {
+export const getCurrentTags = (): string[] => {
   return [...currentTags];
-}
+};
 
 //#endregion----------------------------------------------------------------------------------------
 
@@ -32,17 +32,20 @@ export const getCurrentTags = () : string[] => {
 /**
  * Constructs an ID specific for the current device being used.
  */
-export const getDeviceBasedId = () =>
-  `${RaygunNativeBridge.DEVICE_ID}-${Date.now().toString(32)}-${(Math.random() * 100000)
-    .toString(16)
-    .replace('.', '')}`;
+export const getDeviceBasedId = () => `${RaygunNativeBridge.DEVICE_ID}`;
 
 /**
- * TODO: Remove usage from CrashReporter
- * Makes a deep clone of some object.
- * @param object - Object to clone.
+ * Produce a random identifier of a certain length.
+ * @param length
  */
-export const clone = <T>(object: T): T => JSON.parse(JSON.stringify(object));
+export const getRandomGUID = (length: number) => {
+  //1.) n = 36^(l+1) - ([0.0, 1.0] * 36^l)
+  //2.) n = convertToBase36(n.roundToWholeNumber())
+  //3.) n = n.removeFirstCharacter
+  return Math.round(Math.pow(36, length + 1) - Math.random() * Math.pow(36, length))
+    .toString(36)
+    .slice(1);
+};
 
 //#endregion----------------------------------------------------------------------------------------
 

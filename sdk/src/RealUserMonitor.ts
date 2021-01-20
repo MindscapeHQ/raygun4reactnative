@@ -5,7 +5,7 @@ import {
   RequestMeta,
   User
 } from './Types';
-import {getDeviceBasedId, log, warn, shouldIgnore, getCurrentUser, getCurrentTags} from './Utils';
+import { getDeviceBasedId, log, warn, shouldIgnore, getCurrentUser, getCurrentTags, getRandomGUID } from './Utils';
 // @ts-ignore
 import XHRInterceptor from 'react-native/Libraries/Network/XHRInterceptor';
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
@@ -20,7 +20,6 @@ const SessionRotateThreshold = 30 * 60 * 1000; //milliseconds (equivalent to 30 
  * The Real User Monitor class is responsible for managing all logic for RUM specific tasks.
  */
 export default class RealUserMonitor {
-
   //#region ----INITIALIZATION----------------------------------------------------------------------
 
   private readonly apiKey: string;
@@ -91,7 +90,7 @@ export default class RealUserMonitor {
    *  user -> anon_user = YES (logout)
    */
   async rotateRUMSession() {
-    log("ROTATE RUM SESSION")
+    log('ROTATE RUM SESSION');
 
     //Terminate the current session
     await this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionEnd, {});
@@ -102,15 +101,18 @@ export default class RealUserMonitor {
     return this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
   }
 
+  /**
+   * Updates the session id to be a new random guid
+   */
   generateNewSessionId() {
-    this.RealUserMonitoringSessionId = getDeviceBasedId();
+    this.RealUserMonitoringSessionId = getRandomGUID(32);
   }
 
   /**
    * Updates the time since last activity to be NOW.
    */
   markSessionInteraction() {
-    log("MARK LAST ACTIVE TIME")
+    log('MARK LAST ACTIVE TIME');
     this.lastSessionInteractionTime = Date.now();
   }
 
@@ -128,7 +130,7 @@ export default class RealUserMonitor {
    */
   sendCustomRUMEvent(eventType: RealUserMonitoringTimings, name: string, duration: number) {
     if (eventType === RealUserMonitoringTimings.ViewLoaded) {
-      this.sendViewLoadedEvent({ "duration": duration, "name": name});
+      this.sendViewLoadedEvent({ duration: duration, name: name });
       return;
     }
     if (eventType === RealUserMonitoringTimings.NetworkCall) {
@@ -159,9 +161,9 @@ export default class RealUserMonitor {
    * @param payload
    */
   async sendViewLoadedEvent(payload: Record<string, any>) {
-    const {name, duration} = payload;
+    const { name, duration } = payload;
 
-	if (!this.RealUserMonitoringSessionId) {
+    if (!this.RealUserMonitoringSessionId) {
       this.RealUserMonitoringSessionId = getDeviceBasedId();
       await this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
     }
@@ -201,20 +203,22 @@ export default class RealUserMonitor {
    * @param timeAt - The time at which this event occurred, defaults to NOW if undefined/null.
    */
   async transmitRealUserMonitoringEvent(eventName: string, data: Record<string, any>, timeAt?: number) {
-
     //Check whether the session has been idle long enough to rotate it
     if (Date.now() - this.lastSessionInteractionTime > SessionRotateThreshold) await this.rotateRUMSession();
     else this.markSessionInteraction();
 
     const rumMessage = this.generateRealUserMonitorPayload(eventName, data, timeAt);
 
-    return fetch(this.customRealUserMonitoringEndpoint || this.RAYGUN_RUM_ENDPOINT + '?apiKey=' + encodeURIComponent(this.apiKey), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ eventData: [rumMessage] })
-    }).catch(err => {
+    return fetch(
+      this.customRealUserMonitoringEndpoint || this.RAYGUN_RUM_ENDPOINT + '?apiKey=' + encodeURIComponent(this.apiKey),
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ eventData: [rumMessage] })
+      }
+    ).catch(err => {
       log(err);
     });
   }
@@ -303,5 +307,4 @@ export default class RealUserMonitor {
   }
 
   //#endregion--------------------------------------------------------------------------------------
-
 }
