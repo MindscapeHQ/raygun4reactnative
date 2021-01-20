@@ -271,22 +271,24 @@ RCT_EXPORT_METHOD(cacheCrashReport:(NSString *)jsonString withResolver: (RCTProm
 {
     NSError *jsonParseError;
     NSError *jsonSerializeError;
+    //Convert the report to a dictionary object
     NSDictionary *report = [NSJSONSerialization JSONObjectWithData:[jsonString dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableContainers error:&jsonParseError];
     if (jsonParseError) {
         reject(@"Parsing JSON error", [jsonParseError localizedDescription], jsonParseError);
         return;
     }
 
-    NSString *rawReports = [[NSUserDefaults standardUserDefaults] stringForKey:defaultsKey];
+    NSString *rawReports = [[NSUserDefaults standardUserDefaults] stringForKey:defaultsKey]; //Read raw reports from cache
     if (rawReports) {
+        //convert raw reports to an array
         NSArray *reports = [NSJSONSerialization JSONObjectWithData:[rawReports dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableContainers error:&jsonParseError];
         if (jsonParseError) {
             reject(@"Error parsing saved reports", [jsonParseError localizedDescription], jsonParseError);
             return;
         }
-
+        //Insert the new report into the array
         NSArray *newReports = sizeof(reports) >= 10 ? [[reports subarrayWithRange: NSMakeRange(1, 9)] arrayByAddingObject: report] : [reports arrayByAddingObject:report];
-        NSError *error = [self saveReportsArray:newReports];
+        NSError *error = [self saveReportsArray:newReports]; //Update the cache with the new report
         if (error) {
             reject(@"Serialize JSON error", [jsonSerializeError localizedDescription], jsonSerializeError);
             return;
@@ -294,8 +296,9 @@ RCT_EXPORT_METHOD(cacheCrashReport:(NSString *)jsonString withResolver: (RCTProm
         resolve([[NSNumber alloc] initWithUnsignedLong:sizeof(newReports)]);
 
     } else {
+        //If cache is empty then create a new NSArray containing only the incoming report
         NSArray *newReports = [[NSArray alloc] initWithObjects:report, nil];
-        NSError *error = [self saveReportsArray:newReports];
+        NSError *error = [self saveReportsArray:newReports]; //Save this new array to the cache
         if (error) {
             reject(@"Serialize JSON error", [jsonSerializeError localizedDescription], jsonSerializeError);
             return;
