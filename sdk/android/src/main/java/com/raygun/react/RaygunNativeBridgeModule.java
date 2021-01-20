@@ -134,16 +134,6 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
   //#region---INFORMATION GATHERING METHODS---------------------------------------------------------
 
   /**
-   * Returns true if the Bridge has already had it's "init" method called.
-   *
-   * @param promise - Resolves with true if the Bridge has already been initialized.
-   */
-  @ReactMethod
-  public void hasInitialized(Promise promise) {
-    promise.resolve(initialized);
-  }
-
-  /**
    * Collects all the environment information about this device and returns it to the promise in the
    * form of a WritableMap.
    *
@@ -239,12 +229,6 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
 
   //#region---REAL USER MONITORING EVENT EMITTING METHODS-------------------------------------------
 
-  /**
-   * Emit an event on the JS side that has been recorded as occurring on the Native Side.
-   *
-   * @param eventType - START, RESUME, PAUSE, DESTROY
-   * @param payload   - WritableMap with format {"name": String, "duration": Number}.
-   */
   /**
    * Emits an event to the ReactContext.
    *
@@ -414,12 +398,13 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     RaygunClient.recordBreadcrumb(breadcrumbMessage);
   }
 
+  /**
+   * Clear the breadcrumbs.
+   */
   @ReactMethod
   public void clearBreadcrumbs() {
     RaygunClient.clearBreadcrumbs();
   }
-
-
 
   /**
    * Set the max number of CrashReports that can be stored by the Android system.
