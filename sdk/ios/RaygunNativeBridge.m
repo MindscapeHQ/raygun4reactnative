@@ -111,8 +111,9 @@ NSString *onPause = @"ON_PAUSE";
 NSString *onResume = @"ON_RESUME";
 NSString *onDestroy = @"ON_DESTROY";
 
+//Caching fields
 NSString *defaultsKey = @"__RAYGUN_CRASH_REPORTS__";
-
+int cacheSize = 10;
 
 // ============================================================================
 #pragma mark - INHERITED NATIVE MODULE STARTUP METHODS -
@@ -287,7 +288,7 @@ RCT_EXPORT_METHOD(cacheCrashReport:(NSString *)jsonString withResolver: (RCTProm
             return;
         }
         //Insert the new report into the array
-        NSArray *newReports = sizeof(reports) >= 10 ? [[reports subarrayWithRange: NSMakeRange(1, 9)] arrayByAddingObject: report] : [reports arrayByAddingObject:report];
+        NSArray *newReports = sizeof(reports) >= cacheSize ? [[reports subarrayWithRange: NSMakeRange(1, 9)] arrayByAddingObject: report] : [reports arrayByAddingObject:report];
         NSError *error = [self saveReportsArray:newReports]; //Update the cache with the new report
         if (error) {
             reject(@"Serialize JSON error", [jsonSerializeError localizedDescription], jsonSerializeError);
