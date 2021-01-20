@@ -306,10 +306,6 @@ RCT_EXPORT_METHOD(cacheCrashReport:(NSString *)jsonString withResolver: (RCTProm
 #pragma mark - SESSION MANAGEMENT -
 // ============================================================================
 
-RCT_EXPORT_METHOD(hasInitialized:(RCTPromiseResolveBlock)resolve orNot:(RCTPromiseRejectBlock)reject) {
-    resolve([NSNumber numberWithBool:hasInitialized]);
-}
-
 RCT_EXPORT_METHOD(setTags:(NSArray *) tags) {
     [RaygunClient.sharedInstance setTags:tags];
 }
