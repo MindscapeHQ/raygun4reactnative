@@ -257,11 +257,13 @@ RCT_EXPORT_METHOD(initCrashReportingNativeSupport:(NSString*)apiKey
 }
 
 RCT_EXPORT_METHOD(flushCrashReportCache:(RCTPromiseResolveBlock)resolve onError:(RCTPromiseRejectBlock)reject) {
-    NSString *rawReports = [[NSUserDefaults standardUserDefaults] stringForKey:defaultsKey];
+    NSString *rawReports = [[NSUserDefaults standardUserDefaults] stringForKey:defaultsKey]; //Get cached reports
     if (rawReports) {
-        resolve(rawReports);
+        [self saveReportsArray]NSError *error = [self saveReportsArray:[NSMutableArray array]]; //Clear the cache
+        resolve(rawReports); //Return the caches contents to the React side
         return;
     }
+    //Cache is empty
     resolve(@"[]");
 }
 
