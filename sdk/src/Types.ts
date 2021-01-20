@@ -1,5 +1,5 @@
 import { ErrorUtils } from 'react-native';
-import {getDeviceBasedId} from "./Utils";
+import { getDeviceBasedId } from './Utils';
 
 //#region ----RAYGUN CLIENT SESSION TYPES-----------------------------------------------------------
 
@@ -122,6 +122,7 @@ export enum RealUserMonitoringTimings {
 export type RealUserMonitorPayload = {
   type: string;
   timestamp: string;
+  tags: string[];
   user: User;
   sessionId: string;
   version: string;

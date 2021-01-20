@@ -5,7 +5,7 @@ import {
   RequestMeta,
   User
 } from './Types';
-import {getDeviceBasedId, log, warn, shouldIgnore, getCurrentUser} from './Utils';
+import { getDeviceBasedId, log, warn, shouldIgnore, getCurrentUser, getCurrentTags, getRandomGUID } from './Utils';
 // @ts-ignore
 import XHRInterceptor from 'react-native/Libraries/Network/XHRInterceptor';
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
@@ -30,8 +30,8 @@ export default class RealUserMonitor {
   private requests = new Map<string, RequestMeta>();
   private RAYGUN_RUM_ENDPOINT = 'https://api.raygun.com/events';
 
-  lastActiveAt = Date.now();
-  curRUMSessionId: string = '';
+  lastSessionInteractionTime = Date.now();
+  RealUserMonitoringSessionId: string = ''; //The id for generated RUM Timing events to be grouped under
 
   /**
    * RealUserMonitor: Manages RUM specific logic tasks.
@@ -62,13 +62,13 @@ export default class RealUserMonitor {
       this.setupNetworkMonitoring();
     }
 
-    this.lastActiveAt = Date.now();
-    this.curRUMSessionId = '';
+    this.markSessionInteraction();
+    this.RealUserMonitoringSessionId = '';
 
     // Create native event listeners on this device
     const eventEmitter = new NativeEventEmitter(RaygunNativeBridge);
     eventEmitter.addListener(RaygunNativeBridge.ON_START, this.sendViewLoadedEvent.bind(this));
-    eventEmitter.addListener(RaygunNativeBridge.ON_PAUSE, this.markLastActiveTime.bind(this));
+    eventEmitter.addListener(RaygunNativeBridge.ON_PAUSE, this.markSessionInteraction.bind(this));
     eventEmitter.addListener(RaygunNativeBridge.ON_RESUME, this.rotateRUMSession.bind(this));
     eventEmitter.addListener(RaygunNativeBridge.ON_DESTROY, () => {
       eventEmitter.removeAllListeners(RaygunNativeBridge.ON_START);
@@ -87,26 +87,33 @@ export default class RealUserMonitor {
    * a rotation is needed:
    *  anon_user -> user = NO (login)
    *  user1 -> user2 = YES (switch accounts)
-   *  user -> anon = YES (logout)
+   *  user -> anon_user = YES (logout)
    */
   async rotateRUMSession() {
+    log('ROTATE RUM SESSION');
 
-    log("ROTATE RUM SESSION")
+    //Terminate the current session
+    await this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionEnd, {});
 
-    if (Date.now() - this.lastActiveAt > SessionRotateThreshold) {
-      this.lastActiveAt = Date.now();
-      await this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionEnd, {});
-      this.curRUMSessionId = getDeviceBasedId();
-      return this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
-    }
+    //Begin a new session
+    this.generateNewSessionId();
+    this.markSessionInteraction();
+    return this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
+  }
+
+  /**
+   * Updates the session id to be a new random guid
+   */
+  generateNewSessionId() {
+    this.RealUserMonitoringSessionId = getRandomGUID(32);
   }
 
   /**
    * Updates the time since last activity to be NOW.
    */
-  markLastActiveTime() {
-    log("MARK LAST ACTIVE TIME")
-    this.lastActiveAt = Date.now();
+  markSessionInteraction() {
+    log('MARK LAST ACTIVE TIME');
+    this.lastSessionInteractionTime = Date.now();
   }
 
   //#endregion--------------------------------------------------------------------------------------
@@ -123,7 +130,7 @@ export default class RealUserMonitor {
    */
   sendCustomRUMEvent(eventType: RealUserMonitoringTimings, name: string, duration: number) {
     if (eventType === RealUserMonitoringTimings.ViewLoaded) {
-      this.sendViewLoadedEvent({ "duration": duration, "name": name});
+      this.sendViewLoadedEvent({ duration: duration, name: name });
       return;
     }
     if (eventType === RealUserMonitoringTimings.NetworkCall) {
@@ -154,10 +161,10 @@ export default class RealUserMonitor {
    * @param payload
    */
   async sendViewLoadedEvent(payload: Record<string, any>) {
-    const {name, duration} = payload;
+    const { name, duration } = payload;
 
-	if (!this.curRUMSessionId) {
-      this.curRUMSessionId = getDeviceBasedId();
+    if (!this.RealUserMonitoringSessionId) {
+      this.RealUserMonitoringSessionId = getDeviceBasedId();
       await this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
     }
     const data = { name, timing: { type: RealUserMonitoringTimings.ViewLoaded, duration } };
@@ -177,8 +184,9 @@ export default class RealUserMonitor {
     return {
       type: eventName,
       timestamp: timestamp.toISOString(),
+      tags: getCurrentTags(),
       user: getCurrentUser(),
-      sessionId: this.curRUMSessionId,
+      sessionId: this.RealUserMonitoringSessionId,
       version: this.version,
       os: Platform.OS,
       osVersion,
@@ -195,15 +203,22 @@ export default class RealUserMonitor {
    * @param timeAt - The time at which this event occurred, defaults to NOW if undefined/null.
    */
   async transmitRealUserMonitoringEvent(eventName: string, data: Record<string, any>, timeAt?: number) {
+    //Check whether the session has been idle long enough to rotate it
+    if (Date.now() - this.lastSessionInteractionTime > SessionRotateThreshold) await this.rotateRUMSession();
+    else this.markSessionInteraction();
+
     const rumMessage = this.generateRealUserMonitorPayload(eventName, data, timeAt);
 
-    return fetch(this.customRealUserMonitoringEndpoint || this.RAYGUN_RUM_ENDPOINT + '?apiKey=' + encodeURIComponent(this.apiKey), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ eventData: [rumMessage] })
-    }).catch(err => {
+    return fetch(
+      this.customRealUserMonitoringEndpoint || this.RAYGUN_RUM_ENDPOINT + '?apiKey=' + encodeURIComponent(this.apiKey),
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ eventData: [rumMessage] })
+      }
+    ).catch(err => {
       log(err);
     });
   }

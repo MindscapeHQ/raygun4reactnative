@@ -50,6 +50,7 @@ export type {
   Environment,
   RaygunClientOptions,
   RaygunStackFrame,
-  RealUserMonitoringTimings,
   User
 };
+
+export { RealUserMonitoringTimings };

@@ -8,25 +8,17 @@ import {
   RaygunClientOptions,
   User,
   RealUserMonitoringTimings,
-  BeforeSendHandler, anonUser, Breadcrumb
+  BeforeSendHandler,
+  anonUser,
+  Breadcrumb
 } from './Types';
-import {
-  clone,
-  getCurrentTags,
-  getDeviceBasedId,
-  log,
-  setCurrentTags,
-  setCurrentUser,
-  getCurrentUser,
-  warn
-} from './Utils';
+import { getCurrentTags, getDeviceBasedId, log, setCurrentTags, setCurrentUser, getCurrentUser, warn } from './Utils';
 import CrashReporter from './CrashReporter';
 import RealUserMonitor from './RealUserMonitor';
-import {Animated, NativeModules} from 'react-native';
+import { Animated, NativeModules } from 'react-native';
 import event = Animated.event;
 
-const {RaygunNativeBridge} = NativeModules;
-
+const { RaygunNativeBridge } = NativeModules;
 
 /**
  * The RaygunClient is the interface in which this provider publicly shows. The bottom of this page
@@ -57,7 +49,7 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
     return false;
   }
 
-  options = {...raygunClientOptions};
+  options = { ...raygunClientOptions };
 
   //Cleans options with defaults
   const {
@@ -73,7 +65,6 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
     ignoredURLs = []
   } = options;
 
-
   //Enable Crash Reporting
   if (enableCrashReporting) {
     crashReporter = new CrashReporter(
@@ -84,12 +75,8 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
       version
     );
     if (!disableNativeCrashReporting) {
-      log("Native Bridge Initialized");
-      RaygunNativeBridge.initCrashReportingNativeSupport(
-          apiKey,
-          version,
-          customCrashReportingEndpoint
-      );
+      log('Native Bridge Initialized');
+      RaygunNativeBridge.initCrashReportingNativeSupport(apiKey, version, customCrashReportingEndpoint);
     }
   }
 
@@ -120,17 +107,19 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
  * errors AND Real User Monitoring requests.
  * @param tags - The tag(s) to append to the session.
  */
-const setTags = (...tags : string[]) => {
+const setTags = (...tags: string[]) => {
   let newTags = tags ? [...tags] : [];
   setCurrentTags(newTags);
   if (!options.disableNativeCrashReporting) {
     RaygunNativeBridge.setTags(getCurrentTags());
   }
+  //Mark a user interaction with the Real User Monitor session
+  if (realUserMonitoringAvailable('setTags')) realUserMonitor.markSessionInteraction();
 };
 
-const getTags = () : string[] => {
+const getTags = (): string[] => {
   return getCurrentTags();
-}
+};
 
 /**
  * Set the user for the current session. This WILL overwrite an existing session user with
@@ -138,8 +127,14 @@ const getTags = () : string[] => {
  * @param user - The new name or user object to assign.
  */
 const setUser = (user: User) => {
+  if (realUserMonitoringAvailable('setUser')) {
+    if (!getUser().isAnonymous) realUserMonitor.rotateRUMSession();
+    //User is beginning a new session
+    else realUserMonitor.markSessionInteraction(); //User is logging in from anonymous
+  }
+
   //Update user across the react side
-  setCurrentUser(user ? {...user} : anonUser);
+  setCurrentUser(user ? { ...user } : anonUser);
 
   //Update user on the native side
   if (!options.disableNativeCrashReporting) {
@@ -147,10 +142,9 @@ const setUser = (user: User) => {
   }
 };
 
-const getUser = () : User => {
+const getUser = (): User => {
   return getCurrentUser();
-}
-
+};
 
 //#endregion----------------------------------------------------------------------------------------
 
@@ -172,7 +166,7 @@ const recordBreadcrumb = (breadcrumb: Breadcrumb) => {
 const getBreadcrumbs = (): Breadcrumb[] => {
   if (!crashReportingAvailable('getBreadcrumbs')) return [];
   return crashReporter.getBreadcrumbs();
-}
+};
 
 /**
  * Removes all breadcrumbs.
@@ -180,7 +174,7 @@ const getBreadcrumbs = (): Breadcrumb[] => {
 const clearBreadcrumbs = () => {
   if (!crashReportingAvailable('clearBreadcrumbs')) return;
   crashReporter.clearBreadcrumbs();
-}
+};
 
 /**
  * Allows for an error to be sent to the Crash Reporting error handler along with some customized
@@ -241,7 +235,7 @@ const getCustomData = () => {
 const setMaxReportsStoredOnDevice = (size: number) => {
   if (!crashReportingAvailable('setCrashReportCacheSize')) return;
   crashReporter.setMaxReportsStoredOnDevice(size);
-}
+};
 
 /**
  * Checks if the CrashReporter has been created (during RaygunClient.init) and if the user enabled
@@ -298,7 +292,6 @@ const realUserMonitoringAvailable = (calledFrom: string) => {
 };
 
 //#endregion----------------------------------------------------------------------------------------
-
 
 export {
   init,

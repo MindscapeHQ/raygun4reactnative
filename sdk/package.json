@@ -11,9 +11,9 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "eslint": "eslint src/**",
-    "cleaner": "npx rimraf node_modules dist raygun4reactnative-0.0.3-alpha.tgz ../demo/node_modules ../demo/dist ../demo/raygun4reactnative-0.0.3-alpha.tgz",
-    "builder": "npm run build_pack_1 && npm run build_demo_2",
-    "build_run": "npm run cleaner && npm run builder && npm run run_demo_3",
+    "clean": "npx rimraf node_modules dist raygun4reactnative-0.0.3-alpha.tgz ../demo/node_modules ../demo/dist ../demo/raygun4reactnative-0.0.3-alpha.tgz",
+    "builder": "npm run clean && npm run build_pack_1 && npm run build_demo_2",
+    "build_run": "npm run builder && npm run run_demo_3",
     "prepublish": "tsc -p ./",
     "prebuild": "npx rimraf release",
     "build_pack_1": "cd ../sdk && npm update && npm i && npm pack && run-script-os",
@@ -27,7 +27,7 @@
     "run_demo_3": "run-script-os",
     "run_demo_3:windows": "cd ../demo && npx react-native run-android",
     "run_demo_3:macos": "cd ../demo && cd ios && pod install && cd ../ && npx react-native run-ios",
-    "run_demo_3:linux": "cd ../demo && npx react-native run-android",
+    "run_demo_3:linux": "cd ../demo && gnome-terminal -x bash -c \"npx react-native start\" && npx react-native run-android",
     "prettier": "npx prettier --write src"
   },
   "repository": {
