@@ -10,7 +10,7 @@ import {
   RealUserMonitoringTimings,
   BeforeSendHandler,
   anonUser,
-  Breadcrumb
+  Breadcrumb, ManualCrashReportDetails
 } from './Types';
 import { getCurrentTags, getDeviceId, log, setCurrentTags, setCurrentUser, getCurrentUser, warn } from './Utils';
 import CrashReporter from './CrashReporter';
@@ -192,12 +192,12 @@ const clearBreadcrumbs = () => {
  * 3)   RaygunClient.sendError(new Error(), "Foo", "Bar");
  *
  * @param error - The error.
- * @param params
+ * @param details
  * @see CustomData
  */
-const sendError = async (error: Error, ...params: any[]) => {
+const sendError = async (error: Error, details?: ManualCrashReportDetails) => {
   if (!crashReportingAvailable('sendError')) return;
-  await crashReporter.processManualCrashReport(error, params);
+  await crashReporter.processManualCrashReport(error, details);
 };
 
 /**

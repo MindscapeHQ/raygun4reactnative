@@ -104,6 +104,14 @@ export type CrashReportPayload = {
   };
 };
 
+export type ManualCrashReportDetails = {
+  customData?: CustomData,
+  tags?: string[]
+}
+
+
+
+
 //#endregion----------------------------------------------------------------------------------------
 
 //#region ----REAL USER MONITORING SPECIFIC TYPES---------------------------------------------------

@@ -22,7 +22,7 @@ import {
 import {Colors, Header} from 'react-native/Libraries/NewAppScreen';
 import RaygunClient, {
   Breadcrumb,
-  CustomData,
+  CustomData, ManualCrashReportDetails,
   RaygunClientOptions,
   RealUserMonitoringTimings,
   User
@@ -112,21 +112,14 @@ const App = () => {
                 testID="triggerCustomErrorBtn"
                 accessibilityLabel="triggerCustomErrorBtn"
                 onPress={() => {
-                  // Current user of the application
-                  const user = "Guest"
-
                   // You caught some error, and now you can send it away
-                  const customData: CustomData = {"Who's to blame: ": user}
+                  const customData: CustomData = {"Key": "Value"};
+                  const tags: string[] = ["Error", "Caught", "Test"];
+
+                  const details: ManualCrashReportDetails = {customData, tags};
 
                   // Send the error away with custom data
-                  RaygunClient.sendError(new Error("Test Error: Custom Error"),  customData, "Error", "Caught", "Test");
-
-                  // Here are three other means of sending an error, the custom data and tags placed in this method are local
-                  // to the error. If you want to use the custom data and tags for other errors and rum events,
-                  // set them using the RaygunClient.setCustomData or RaygunClient.setTags methods
-                  // RaygunClient.sendError(new Error("Test Error: Custom Error"));
-                  // RaygunClient.sendError(new Error("Test Error: Custom Error (Custom Data)"),  customData);
-                  // RaygunClient.sendError(new Error("Test Error: Custom Error (Tags)"), "Error", "Caught", "Test");
+                  RaygunClient.sendError(new Error("Test Error: Custom Error"), details);
                 }}
                 title="Trigger Customize Error"
               />

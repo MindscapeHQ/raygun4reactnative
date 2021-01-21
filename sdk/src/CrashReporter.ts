@@ -10,7 +10,13 @@ import {
   upperFirst,
   warn
 } from './Utils';
-import {BeforeSendHandler, Breadcrumb, CrashReportPayload, CustomData} from './Types';
+import {
+  BeforeSendHandler,
+  Breadcrumb,
+  CrashReportPayload,
+  CustomData,
+  ManualCrashReportDetails
+} from './Types';
 import {StackFrame} from 'react-native/Libraries/Core/Devtools/parseErrorStack';
 import {NativeModules, Platform} from 'react-native';
 
@@ -222,9 +228,9 @@ export default class CrashReporter {
   /**
    * Processes a manually sent error (using local tags, not global).
    * @param error - The Error to be processed.
-   * @param params
+   * @param details
    */
-  async processManualCrashReport(error: Error, params: any[]) {
+  async processManualCrashReport(error: Error, details?: ManualCrashReportDetails) {
     if (!error || !error.stack) {
       warn('Unrecognized error occurred');
       return;
@@ -236,11 +242,14 @@ export default class CrashReporter {
 
     const payloadWithLocalParams: CrashReportPayload = {...payload};
 
-    const [customData, tags] = typeof params[0] === "string" ? [null, params] : [params[0], params.slice(1)];
-
-
-    payloadWithLocalParams.Details.UserCustomData = Object.assign(this.customData ? this.customData : {}, customData);
-    payloadWithLocalParams.Details.Tags = getCurrentTags().concat(tags);
+    if(details){
+      if(details.customData){
+        payloadWithLocalParams.Details.UserCustomData = Object.assign(this.customData ? this.customData : {}, details.customData);
+      }
+      if(details.tags){
+        payloadWithLocalParams.Details.Tags = getCurrentTags().concat(details.tags);
+      }
+    }
 
     this.managePayload(payloadWithLocalParams);
   }
