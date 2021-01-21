@@ -113,13 +113,14 @@ NSString *onDestroy = @"ON_DESTROY";
 
 //Caching fields
 NSString *defaultsKey = @"__RAYGUN_CRASH_REPORTS__";
-NSInteger cacheSize = 10;
+NSNumber *cacheSize;
 
 // ============================================================================
 #pragma mark - INHERITED NATIVE MODULE STARTUP METHODS -
 // ============================================================================
 
 + (void)initialize {
+    cacheSize = [[NSNumber alloc] initWithInteger:10];
     startedAt = processStartTime(); //Set the time that this bridge was initialised at
 }
 
@@ -310,7 +311,7 @@ RCT_EXPORT_METHOD(cacheCrashReport:(NSString *)jsonString withResolver: (RCTProm
 
 RCT_EXPORT_METHOD(getMaxReportsStoredOnDevice: (RCTPromiseResolveBlock)resolve rejecter: (RCTPromiseRejectBlock)reject) {
     RCTLogInfo(@"getting max reports stored on device");
-    resolve([[NSNumber alloc] initWithInt:cacheSize]);
+    resolve(cacheSize);
 }
 
 RCT_EXPORT_METHOD(numReportsStoredOnDevice: (RCTPromiseResolveBlock)resolve rejecter: (RCTPromiseRejectBlock)reject) {
