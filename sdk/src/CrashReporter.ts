@@ -34,7 +34,6 @@ export default class CrashReporter {
   private apiKey: string;
   private version: string;
   private disableNativeCrashReporting: boolean;
-  private customCrashReportingEndpoint: string;
   private onBeforeSendingCrashReport: BeforeSendHandler | null;
   private RAYGUN_CRASH_REPORT_ENDPOINT = 'https://api.raygun.com/entries';
 
@@ -60,9 +59,12 @@ export default class CrashReporter {
     // Assign the values parsed in (assuming initiation is the only time these are altered).
     this.apiKey = apiKey;
     this.disableNativeCrashReporting = disableNativeCrashReporting;
-    this.customCrashReportingEndpoint = customCrashReportingEndpoint;
     this.onBeforeSendingCrashReport = onBeforeSendingCrashReport;
     this.version = version;
+
+    if (customCrashReportingEndpoint && customCrashReportingEndpoint.length > 0) {
+      this.RAYGUN_CRASH_REPORT_ENDPOINT = customCrashReportingEndpoint;
+    }
 
     //Set up error handler to divert errors to crash reporter
     const prevHandler = ErrorUtils.getGlobalHandler();
@@ -179,7 +181,7 @@ export default class CrashReporter {
       log('Cache flushed', cache);
 
       //Attempt to send each of the cached reports
-      await Promise.all(cache.map(cachedReport => this.sendCrashReport(cachedReport, apiKey, customEndpoint)));
+      await Promise.all(cache.map(cachedReport => this.sendCrashReport(cachedReport)));
     }
   }
 
@@ -276,7 +278,7 @@ export default class CrashReporter {
     }
 
     log('Send crash report via JS');
-    this.sendCrashReport(modifiedPayload, this.apiKey, this.customCrashReportingEndpoint);
+    this.sendCrashReport(modifiedPayload);
   }
 
   /**
@@ -303,12 +305,7 @@ export default class CrashReporter {
       (RaygunNativeBridge.getEnvironmentInfo && (await RaygunNativeBridge.getEnvironmentInfo())) || {};
 
     //Reformat Native Stack frames to the Raygun StackTrace format.
-    const convertToCrashReportingStackFrame = ({
-                                                 file,
-                                                 methodName,
-                                                 lineNumber,
-                                                 column
-                                               }: StackFrame) => ({
+    const convertToCrashReportingStackFrame = ({file, methodName, lineNumber, column}: StackFrame) => ({
       FileName: file,
       MethodName: methodName || '[anonymous]',
       LineNumber: lineNumber,
@@ -356,12 +353,10 @@ export default class CrashReporter {
    * Output a CrashReportPayload to Raygun or a custom endpoint
    * @param report
    * @param apiKey
-   * @param customEndpoint
-   * @param isAlreadyCached
    */
-  async sendCrashReport(report: CrashReportPayload, apiKey: string, customEndpoint?: string) {
+  async sendCrashReport(report: CrashReportPayload) {
     //Send the message
-    return fetch(customEndpoint || this.RAYGUN_CRASH_REPORT_ENDPOINT + '?apiKey=' + encodeURIComponent(apiKey), {
+    return fetch( this.RAYGUN_CRASH_REPORT_ENDPOINT + '?apiKey=' + encodeURIComponent(this.apiKey), {
       method: 'POST',
       mode: 'cors',
       headers: {
@@ -371,7 +366,7 @@ export default class CrashReporter {
     })
     .then(() => {
       //If the message is successfully sent then attempt to transmit the cache if it isn't empty
-      this.resendCachedReports(apiKey, this.customCrashReportingEndpoint).then(r => {
+      this.resendCachedReports(this.apiKey, this.RAYGUN_CRASH_REPORT_ENDPOINT).then(r => {
         log('Cache flushed');
       });
     })
