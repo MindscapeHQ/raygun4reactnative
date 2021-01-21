@@ -239,8 +239,8 @@ export default class CrashReporter {
     const [customData, tags] = typeof params[0] === "string" ? [null, params] : [params[0], params.slice(1)];
 
 
-    payloadWithLocalParams.Details.UserCustomData = customData;
-    payloadWithLocalParams.Details.Tags = tags;
+    payloadWithLocalParams.Details.UserCustomData = Object.assign(this.customData ? this.customData : {}, customData);
+    payloadWithLocalParams.Details.Tags = getCurrentTags().concat(tags);
 
     this.managePayload(payloadWithLocalParams);
   }
