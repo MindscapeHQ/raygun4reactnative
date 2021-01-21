@@ -120,7 +120,7 @@ NSString *DEVICE_ID = @"iOS DEVICE";
     startedAt = processStartTime(); //Set the time that this bridge was initialised at
 
     //Get the device id and store it
-    [self DEVICE_ID] = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
+    DEVICE_ID = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
 }
 
 + (BOOL) requiresMainQueueSetup {
@@ -151,13 +151,8 @@ static CFTimeInterval processStartTime() {
 
 - (NSDictionary<NSString *, id> *) constantsToExport {
     NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
-#if TARGET_OS_IOS || TARGET_OS_TV
-    UIDevice *currentDevice = [UIDevice currentDevice];
-    [dict setValue:currentDevice.identifierForVendor forKey: @"DEVICE_ID"];
-#else
-    NSUUID *uuid = [NSUUID UUID];
-    [dict setValue:[uuid UUIDString] forKey: @"DEVICE_ID"];
-#endif
+    
+    [dict setValue: DEVICE_ID forKey: @"DEVICE_ID"];
     [dict setValue: onStart forKey: onStart];
     [dict setValue: onPause forKey: onPause];
     [dict setValue: onResume forKey: onResume];

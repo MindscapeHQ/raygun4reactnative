@@ -263,7 +263,7 @@ export default class CrashReporter {
         },
         UserCustomData: this.customData,
         Tags: getCurrentTags(),
-        User: upperFirst(getCurrentUser()),
+        User: getCurrentUser(),
         Breadcrumbs: upperFirst(this.breadcrumbs),
         Version: this.version || 'Not supplied'
       }
