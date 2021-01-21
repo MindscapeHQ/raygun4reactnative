@@ -102,7 +102,7 @@ static uint64_t getMemorySize(void) {
 
 static CFTimeInterval startedAt; //Time that this object was created
 
-BOOL hasInitialized = FALSE;
+BOOL crashReportingInitialized = FALSE;
 
 //RUM events to capture and send to the react layer
 NSString *viewName = @"RCTView";
@@ -234,11 +234,17 @@ RCT_EXPORT_METHOD(initCrashReportingNativeSupport:(NSString*)apiKey
                   version: (NSString*)version
                   customCrashReportingEndpoint: (NSString*)customCREndpoint)
 {
+    if (crashReportingInitialized) {
+        RCTLogInfo(@"Cannot initialise native native Crash Reporting more than once");
+        return;
+    }
+    
     //ENABLE NATIVE SIDE CRASH REPORTING
     [[RaygunClient sharedInstanceWithApiKey:apiKey] setCrashReportingApiEndpoint: customCREndpoint];
     [RaygunClient.sharedInstance enableCrashReporting];
     
     hasInitialized = YES;
+    crashReportingInitialized = TRUE;
 }
 
 // ============================================================================
@@ -256,6 +262,11 @@ RCT_EXPORT_METHOD(initCrashReportingNativeSupport:(NSString*)apiKey
 }
 
 RCT_EXPORT_METHOD(flushCrashReportCache:(RCTPromiseResolveBlock)resolve onError:(RCTPromiseRejectBlock)reject) {
+    if (!crashReportingInitialized) {
+        RCTLogInfo(@"Cannot flush cache until native Crash Reporting is initialised");
+        return;
+    }
+    
     NSString *rawReports = [[NSUserDefaults standardUserDefaults] stringForKey:defaultsKey]; //Get cached reports
     if (rawReports) {
         NSError *error = [self saveReportsArray:[NSMutableArray array]]; //Clear the cache
@@ -268,6 +279,11 @@ RCT_EXPORT_METHOD(flushCrashReportCache:(RCTPromiseResolveBlock)resolve onError:
 
 RCT_EXPORT_METHOD(cacheCrashReport:(NSString *)jsonString withResolver: (RCTPromiseResolveBlock)resolve rejecter: (RCTPromiseRejectBlock)reject)
 {
+    if (!crashReportingInitialized) {
+        RCTLogInfo(@"Cannot cache crash reports until native Crash Reporting is initialised");
+        return;
+    }
+    
     NSError *jsonParseError;
     NSError *jsonSerializeError;
     //Convert the report to a dictionary object
@@ -307,6 +323,10 @@ RCT_EXPORT_METHOD(cacheCrashReport:(NSString *)jsonString withResolver: (RCTProm
 }
 
 RCT_EXPORT_METHOD(setMaxReportsStoredOnDevice: (nonnull NSNumber *) newSize) {
+    if (!crashReportingInitialized) {
+        RCTLogInfo(@"Cannot set cache size native Crash Reporting is initialised");
+        return;
+    }
     cacheSize = newSize;
 }
 
@@ -330,22 +350,43 @@ RCT_EXPORT_METHOD(numReportsStoredOnDevice: (RCTPromiseResolveBlock)resolve reje
 // ============================================================================
 
 RCT_EXPORT_METHOD(setTags:(NSArray *) tags) {
+    if (!crashReportingInitialized) {
+        RCTLogInfo(@"Cannot set native tags until native Crash Reporting is initialised");
+        return;
+    }
     [RaygunClient.sharedInstance setTags:tags];
 }
 
 RCT_EXPORT_METHOD(setCustomData:(NSDictionary *) customData) {
+    if (!crashReportingInitialized) {
+        RCTLogInfo(@"Cannot set custom data until native Crash Reporting is initialised");
+        return;
+    }
     [RaygunClient.sharedInstance setCustomData:customData];
 }
 
 RCT_EXPORT_METHOD(recordBreadcrumb:(NSDictionary *) breadcrumb) {
+    if (!crashReportingInitialized) {
+        RCTLogInfo(@"Cannot record native breadcrumbs until native Crash Reporting is initialised");
+        return;
+    }
     [RaygunClient.sharedInstance recordBreadcrumb:[RaygunBreadcrumb breadcrumbWithInformation:breadcrumb]];
 }
 
 RCT_EXPORT_METHOD(clearBreadcrumbs) {
+    if (!crashReportingInitialized) {
+        RCTLogInfo(@"Cannot clear native breadcrumbs until native Crash Reporting is initialised");
+        return;
+    }
     [RaygunClient.sharedInstance clearBreadcrumbs];
 }
 
 RCT_EXPORT_METHOD(setUser:(NSDictionary *) user) {
+    if (!crashReportingInitialized) {
+        RCTLogInfo(@"Cannot set native user until native Crash Reporting is initialised");
+        return;
+    }
+    
     RaygunUserInformation * userInfo = [[RaygunUserInformation alloc] initWithIdentifier:
         user[@"idenfifier"] withEmail: user[@"email"] withFullName: user[@"fullName"] withFirstName: user[@"firstName"]];
     [RaygunClient.sharedInstance setUserInformation: userInfo];
