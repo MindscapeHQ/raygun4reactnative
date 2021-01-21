@@ -113,7 +113,7 @@ NSString *onDestroy = @"ON_DESTROY";
 
 //Caching fields
 NSString *defaultsKey = @"__RAYGUN_CRASH_REPORTS__";
-int cacheSize = 10;
+NSInteger cacheSize = 10;
 
 // ============================================================================
 #pragma mark - INHERITED NATIVE MODULE STARTUP METHODS -
@@ -260,7 +260,7 @@ RCT_EXPORT_METHOD(initCrashReportingNativeSupport:(NSString*)apiKey
 RCT_EXPORT_METHOD(flushCrashReportCache:(RCTPromiseResolveBlock)resolve onError:(RCTPromiseRejectBlock)reject) {
     NSString *rawReports = [[NSUserDefaults standardUserDefaults] stringForKey:defaultsKey]; //Get cached reports
     if (rawReports) {
-        [self saveReportsArray]NSError *error = [self saveReportsArray:[NSMutableArray array]]; //Clear the cache
+        NSError *error = [self saveReportsArray:[NSMutableArray array]]; //Clear the cache
         resolve(rawReports); //Return the caches contents to the React side
         return;
     }
@@ -288,7 +288,7 @@ RCT_EXPORT_METHOD(cacheCrashReport:(NSString *)jsonString withResolver: (RCTProm
             return;
         }
         //Insert the new report into the array
-        NSArray *newReports = sizeof(reports) >= cacheSize ? [[reports subarrayWithRange: NSMakeRange(1, 9)] arrayByAddingObject: report] : [reports arrayByAddingObject:report];
+        NSArray *newReports = [reports count] >= cacheSize ? [[reports subarrayWithRange: NSMakeRange(1, 9)] arrayByAddingObject: report] : [reports arrayByAddingObject:report];
         NSError *error = [self saveReportsArray:newReports]; //Update the cache with the new report
         if (error) {
             reject(@"Serialize JSON error", [jsonSerializeError localizedDescription], jsonSerializeError);
@@ -330,8 +330,7 @@ RCT_EXPORT_METHOD(clearBreadcrumbs) {
 
 RCT_EXPORT_METHOD(setUser:(NSDictionary *) user) {
     RaygunUserInformation * userInfo = [[RaygunUserInformation alloc] initWithIdentifier:
-        user[@"idenfifier"] withEmail: user[@"email"] withFullName: user[@"fullName"] withFirstName: user[@"firstName"]
-                                        ];
+        user[@"idenfifier"] withEmail: user[@"email"] withFullName: user[@"fullName"] withFirstName: user[@"firstName"]];
     [RaygunClient.sharedInstance setUserInformation: userInfo];
 }
 
