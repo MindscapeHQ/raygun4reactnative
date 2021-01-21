@@ -11,8 +11,8 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "eslint": "eslint src/**",
-    "clean": "npx rimraf node_modules dist raygun4reactnative-0.0.3-alpha.tgz ../demo/node_modules ../demo/dist ../demo/raygun4reactnative-0.0.3-alpha.tgz",
     "builder": "npm run clean && npm run build_pack_1 && npm run build_demo_2",
+    "clean": "npx rimraf node_modules dist package-lock.json raygun4reactnative-0.0.3-alpha.tgz ../demo/node_modules ../demo/dist ../demo/raygun4reactnative-0.0.3-alpha.tgz ../demo/ios/Pods ../demo/ios/Podfile.lock ../demo/package-lock.json",
     "build_run": "npm run builder && npm run run_demo_3",
     "prepublish": "tsc -p ./",
     "prebuild": "npx rimraf release",
