@@ -113,14 +113,14 @@ NSString *onDestroy = @"ON_DESTROY";
 
 //Caching fields
 NSString *defaultsKey = @"__RAYGUN_CRASH_REPORTS__";
-NSNumber *cacheSize;
+NSNumber *maxNumLocallyStoredReports;
 
 // ============================================================================
 #pragma mark - INHERITED NATIVE MODULE STARTUP METHODS -
 // ============================================================================
 
 + (void)initialize {
-    cacheSize = [[NSNumber alloc] initWithInteger:10];
+    maxNumLocallyStoredReports = [[NSNumber alloc] initWithInteger:10];
     startedAt = processStartTime(); //Set the time that this bridge was initialised at
 }
 
@@ -286,7 +286,7 @@ RCT_EXPORT_METHOD(cacheCrashReport:(NSString *)jsonString withResolver: (RCTProm
             return;
         }
         //Insert the new report into the array
-        NSArray *newReports = [reports count] >= cacheSize ? [[reports subarrayWithRange: NSMakeRange(1, 9)] arrayByAddingObject: report] : [reports arrayByAddingObject:report];
+        NSArray *newReports = [reports count] >= maxNumLocallyStoredReports ? [[reports subarrayWithRange: NSMakeRange(1, 9)] arrayByAddingObject: report] : [reports arrayByAddingObject:report];
         NSError *error = [self saveReportsArray:newReports]; //Update the cache with the new report
         if (error) {
             reject(@"Serialize JSON error", [jsonSerializeError localizedDescription], jsonSerializeError);
