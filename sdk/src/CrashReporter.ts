@@ -220,15 +220,13 @@ export default class CrashReporter {
   /**
    * Processes a manually sent error (using local tags, not global).
    * @param error - The Error to be processed.
-   * @param params - The parameters local to this error (sent in).
+   * @param params
    */
-  async processManualCrashReport(error: Error, ...params: any) {
+  async processManualCrashReport(error: Error, params: any[]) {
     if (!error || !error.stack) {
       warn('Unrecognized error occurred');
       return;
     }
-
-    const [customData, tags] = params.length == 1 && Array.isArray(params[0]) ? [null, params[0]] : params;
 
     const stack = await this.cleanStackTrace(error);
 
@@ -236,10 +234,15 @@ export default class CrashReporter {
 
     const payloadWithLocalParams: CrashReportPayload = {...payload};
 
-    payloadWithLocalParams.Details.UserCustomData = customData;
-    payloadWithLocalParams.Details.Tags = tags;
+    if (typeof params[0] === "string"){
+      payloadWithLocalParams.Details.Tags = params;
+    }
 
-    this.managePayload(payloadWithLocalParams);
+    const [customData, tags] = typeof params[0] === "string" ? [null, params] : [params[0], params.slice(1)];
+
+    log("CUSTOM DATA", customData);
+    log("TAGS", tags)
+    // this.managePayload(payloadWithLocalParams);
   }
 
   /**

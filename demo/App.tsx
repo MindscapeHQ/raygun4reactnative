@@ -117,10 +117,16 @@ const App = () => {
 
                   // You caught some error, and now you can send it away
                   const customData: CustomData = {"Who's to blame: ": user}
-                  const tags: string[] = ["Error", "Caught", "Test"]
 
                   // Send the error away with custom data
-                  RaygunClient.sendError(new Error("Test Error: Custom Error"), customData, tags);
+                  RaygunClient.sendError(new Error("Test Error: Custom Error"),  customData, "Error", "Caught", "Test");
+
+                  // Here are three other means of sending an error, the custom data and tags placed in this method are local
+                  // to the error. If you want to use the custom data and tags for other errors and rum events,
+                  // set them using the RaygunClient.setCustomData or RaygunClient.setTags methods
+                  // RaygunClient.sendError(new Error("Test Error: Custom Error"));
+                  // RaygunClient.sendError(new Error("Test Error: Custom Error (Custom Data)"),  customData);
+                  // RaygunClient.sendError(new Error("Test Error: Custom Error (Tags)"), "Error", "Caught", "Test");
                 }}
                 title="Trigger Customize Error"
               />
@@ -151,7 +157,7 @@ const App = () => {
                 color="green"
                 testID="addTagsBtn"
                 accessibilityLabel="addTagsBtn"
-                onPress={() => RaygunClient.setTags(["Testing_1", "Testing_2", "Testing_3"])}
+                onPress={() => RaygunClient.setTags("Testing_1", "Testing_2", "Testing_3")}
                 title="Set Testing Tags"
               />
             </View>

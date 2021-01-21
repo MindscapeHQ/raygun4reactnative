@@ -192,10 +192,10 @@ const clearBreadcrumbs = () => {
  * 3)   RaygunClient.sendError(new Error(), "Foo", "Bar");
  *
  * @param error - The error.
- * @param params - Custom data or tags alongside the error.
+ * @param params
  * @see CustomData
  */
-const sendError = async (error: Error, ...params: any) => {
+const sendError = async (error: Error, ...params: any[]) => {
   if (!crashReportingAvailable('sendError')) return;
   await crashReporter.processManualCrashReport(error, params);
 };
