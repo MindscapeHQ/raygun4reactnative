@@ -330,7 +330,13 @@ RCT_EXPORT_METHOD(setMaxReportsStoredOnDevice: (nonnull NSNumber *) newSize) {
     cacheSize = newSize;
 }
 
-RCT_EXPORT_METHOD(numReportsStoredOnDevice: (RCTPromiseResolveBlock)resolve rejecter: (RCTPromiseRejectBlock)reject) {
+
+- (NSNumber*)numReportsStoredOnDevice {
+    if (!crashReportingInitialized) {
+        RCTLogInfo(@"Cannot read from cache until native Crash Reporting is initialised");
+        return [[NSNumber alloc] initWithInt:0];
+    }
+    
     NSError *jsonParseError;
     
     NSString *rawReports = [[NSUserDefaults standardUserDefaults] stringForKey:defaultsKey]; //Read raw reports from cache
@@ -339,10 +345,14 @@ RCT_EXPORT_METHOD(numReportsStoredOnDevice: (RCTPromiseResolveBlock)resolve reje
         NSArray *reports = [NSJSONSerialization JSONObjectWithData:[rawReports dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableContainers error:&jsonParseError];
         
         //Return current size of the cache
-        resolve([[NSNumber alloc] initWithInt:[reports count]]);
+        return [[NSNumber alloc] initWithInt:[reports count]];
     }
     
-    resolve(@0); //Return whether or not the cache size is equal to 0
+    return [[NSNumber alloc] initWithInt:0]; //If there are no reports then the size is 0
+}
+
+RCT_EXPORT_METHOD(numReportsStoredOnDevice: (RCTPromiseResolveBlock)resolve rejecter: (RCTPromiseRejectBlock)reject) {
+    resolve([self numReportsStoredOnDevice]);
 }
 
 // ============================================================================
