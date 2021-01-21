@@ -234,15 +234,13 @@ export default class CrashReporter {
 
     const payloadWithLocalParams: CrashReportPayload = {...payload};
 
-    if (typeof params[0] === "string"){
-      payloadWithLocalParams.Details.Tags = params;
-    }
-
     const [customData, tags] = typeof params[0] === "string" ? [null, params] : [params[0], params.slice(1)];
 
-    log("CUSTOM DATA", customData);
-    log("TAGS", tags)
-    // this.managePayload(payloadWithLocalParams);
+
+    payloadWithLocalParams.Details.UserCustomData = customData;
+    payloadWithLocalParams.Details.Tags = tags;
+
+    this.managePayload(payloadWithLocalParams);
   }
 
   /**
