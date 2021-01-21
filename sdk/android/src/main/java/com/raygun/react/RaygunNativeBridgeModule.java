@@ -47,8 +47,6 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
   // Is the NativeBridge/RUMEventHandler initialized
   private boolean initialized = false;
   private boolean lifecycleInitialized = false;
-  // Max number of CrashReports that can be stored.
-  private int cacheSize = 10;
   // Maintains a value of when the ReactNativeBridgePackage was initiated (start of the project).
   private final long startedTime;
   // Constants that indicate the current state of the Activity.
@@ -57,7 +55,6 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
   private static final String ON_DESTROY = "ON_DESTROY";
   private static final String ON_START = "ON_START";
   private static final String DEVICE_ID = "DEVICE_ID";
-  private static final String STORAGE_KEY = "__RAYGUN_CRASH_REPORT__";
   //#endregion--------------------------------------------------------------------------------------
 
   //#region---CONSTRUCTION METHODS------------------------------------------------------------------
@@ -129,6 +126,27 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     sendJSEvent(ON_START, payload);
     lifecycleInitialized = true;
   }
+
+  /**
+   * This class is designed to implement CrashReportingOnBeforeSend interface from the
+   * Raygun4Android SDK. Before Sending some CrashReport, this handler will ensure that the crash
+   * didn't occur in the ReactNative space, else the ReactNative provider will have picked up on
+   * that (else we will have two of the same CrashReport going through).
+   */
+  private static class OnBeforeSendHandler implements CrashReportingOnBeforeSend {
+
+    // Prevent the JS side error from being processed again as it propagate to the native side
+    @Override
+    public RaygunMessage onBeforeSend(RaygunMessage raygunMessage) {
+      RaygunErrorMessage error = raygunMessage.getDetails().getError();
+      if (error.getMessage().contains("JavascriptException")) {
+        System.out.println("DO NOT SEND: " + raygunMessage.getDetails().getError().getMessage());
+        return null;
+      }
+      return raygunMessage;
+    }
+  }
+
   //#endregion--------------------------------------------------------------------------------------
 
   //#region---INFORMATION GATHERING METHODS---------------------------------------------------------
@@ -214,7 +232,6 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     return getString(getReactApplicationContext().getContentResolver(), Settings.Secure.ANDROID_ID);
   }
 
-
   /**
    * Gets the name of the activity (current view of the application where the UI resides). This is
    * used to monitor events on the screen and to maintain a track on the window responsible for the
@@ -273,57 +290,6 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     WritableMap payload = Arguments.createMap();
     payload.putString("name", getActivityName());
     this.sendJSEvent(ON_DESTROY, payload);
-  }
-  //#endregion--------------------------------------------------------------------------------------
-
-  //#region---CRASH REPORTING CACHING METHOD--------------------------------------------------------
-
-  /**
-   * Saves a JSON version of the CrashReport to the SharedPreferences of this android device.
-   *
-   * @param report  - The JSON version of a CrashReport.
-   * @param promise - If some error occurs with the report, the error is returned to the promise.
-   */
-  @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-  @ReactMethod
-  public void cacheCrashReport(String report, Promise promise) {
-    Timber.tag("Cached Report").d(report);
-    SharedPreferences preferences = reactContext
-      .getSharedPreferences(STORAGE_KEY, Context.MODE_PRIVATE);
-    String reportsJson = preferences.getString("reports", "[]"); //Retrieve the cache
-    try {
-      JSONArray reports = new JSONArray(reportsJson);
-      while (reports.length() >= cacheSize) {
-        reports.remove(0); //Clip to max size cache
-      }
-      //Add the new report and store the new cache
-      reports.put(new JSONObject(report));
-      preferences.edit().putString("reports", reports.toString()).apply();
-      promise.resolve(null);
-    } catch (Exception e) {
-      Timber.tag("Save Report Error").e(e);
-      promise.reject(e);
-    }
-  }
-
-  /**
-   * This class is designed to implement CrashReportingOnBeforeSend interface from the
-   * Raygun4Android SDK. Before Sending some CrashReport, this handler will ensure that the crash
-   * didn't occur in the ReactNative space, else the ReactNative provider will have picked up on
-   * that (else we will have two of the same CrashReport going through).
-   */
-  private static class OnBeforeSendHandler implements CrashReportingOnBeforeSend {
-
-    // Prevent the JS side error from being processed again as it propagate to the native side
-    @Override
-    public RaygunMessage onBeforeSend(RaygunMessage raygunMessage) {
-      RaygunErrorMessage error = raygunMessage.getDetails().getError();
-      if (error.getMessage().contains("JavascriptException")) {
-        System.out.println("DO NOT SEND: " + raygunMessage.getDetails().getError().getMessage());
-        return null;
-      }
-      return raygunMessage;
-    }
   }
   //#endregion--------------------------------------------------------------------------------------
 
@@ -406,50 +372,5 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     RaygunClient.clearBreadcrumbs();
   }
 
-  /**
-   * Set the max number of CrashReports that can be stored by the Android system.
-   *
-   * @param newSize - int, max number of reports that can be stored.
-   * @param promise -
-   */
-  @ReactMethod
-  public void setMaxReportsStoredOnDevice(int newSize, Promise promise) {
-    //Set the cache size to the new value clamped between the min and max
-    cacheSize = Math.max(0, Math.min(newSize, 64));
-    RaygunClient.setMaxReportsStoredOnDevice(newSize);
-  }
-
   //#endregion--------------------------------------------------------------------------------------
 
-  //#region---CLEAR & UPDATE INFORMATION------------------------------------------------------------
-
-  /**
-   * Checks if the Cache is empty.
-   *
-   * @param promise - Resolves with the outcome of asking if the cache is empty (true/false).
-   */
-  @ReactMethod
-  public void cacheEmpty(Promise promise) {
-    String cache = reactContext.getSharedPreferences(STORAGE_KEY, Context.MODE_PRIVATE)
-      .getString("reports", "[]");
-
-    JSONArray reports = new JSONArray(reportsJson);
-    promise.resolve(reports.length());
-  }
-
-  /**
-   * Removes all stored crash reports from the cache.
-   *
-   * @param promise - returns the cache as a JSON after everything is removed.
-   */
-  @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-  @ReactMethod
-  public void flushCrashReportCache(Promise promise) {
-    SharedPreferences preferences = reactContext
-      .getSharedPreferences(STORAGE_KEY, Context.MODE_PRIVATE);
-    String reportsJson = preferences.getString("reports", "[]"); //Retrieve the cache
-    preferences.edit().putString("reports", "[]").apply(); //Clear the cache
-    promise.resolve(reportsJson); //Return its contents
-  }
-  //#endregion--------------------------------------------------------------------------------------
-}
