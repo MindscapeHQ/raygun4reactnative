@@ -309,6 +309,12 @@ RCT_EXPORT_METHOD(cacheCrashReport:(NSString *)jsonString withResolver: (RCTProm
     }
 }
 
+RCT_EXPORT_METHOD(setMaxReportsStoredOnDevice: (NSNumber *) newSize) {
+    RCTLogInfo(@"Setting cache size: %@");
+    cacheSize = newSize;
+    RCTLogInfo(@"Set cache size done. Set as new NSNumber");
+}
+
 RCT_EXPORT_METHOD(getMaxReportsStoredOnDevice: (RCTPromiseResolveBlock)resolve rejecter: (RCTPromiseRejectBlock)reject) {
     RCTLogInfo(@"getting max reports stored on device");
     resolve(cacheSize);
