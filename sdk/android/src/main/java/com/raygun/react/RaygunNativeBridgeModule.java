@@ -371,6 +371,5 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
   public void clearBreadcrumbs() {
     RaygunClient.clearBreadcrumbs();
   }
-
   //#endregion--------------------------------------------------------------------------------------
 
