@@ -243,7 +243,6 @@ RCT_EXPORT_METHOD(initCrashReportingNativeSupport:(NSString*)apiKey
     [[RaygunClient sharedInstanceWithApiKey:apiKey] setCrashReportingApiEndpoint: customCREndpoint];
     [RaygunClient.sharedInstance enableCrashReporting];
     
-    hasInitialized = YES;
     crashReportingInitialized = TRUE;
 }
 
@@ -327,7 +326,7 @@ RCT_EXPORT_METHOD(setMaxReportsStoredOnDevice: (nonnull NSNumber *) newSize) {
         RCTLogInfo(@"Cannot set cache size native Crash Reporting is initialised");
         return;
     }
-    cacheSize = newSize;
+    maxNumLocallyStoredReports = newSize;
 }
 
 

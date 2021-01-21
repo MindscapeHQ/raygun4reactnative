@@ -432,7 +432,9 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
   public void cacheEmpty(Promise promise) {
     String cache = reactContext.getSharedPreferences(STORAGE_KEY, Context.MODE_PRIVATE)
       .getString("reports", "[]");
-    promise.resolve(cache.equals("[]"));
+
+    JSONArray reports = new JSONArray(reportsJson);
+    promise.resolve(reports.length());
   }
 
   /**

@@ -155,7 +155,7 @@ export default class CrashReporter {
    */
   async resendCachedReports(apiKey: string, customEndpoint?: string) {
     //If there are Reports cached
-    if (!(await RaygunNativeBridge.cacheEmpty())) {
+    if (!(await RaygunNativeBridge.numReportsStoredOnDevice() === 0)) {
       //Extract cached reports from the native side
       const cache: CrashReportPayload[] = await RaygunNativeBridge.flushCrashReportCache().then(
         (reportsJson: string) => {
