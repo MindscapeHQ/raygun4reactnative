@@ -208,13 +208,13 @@ export default class CrashReporter {
       return;
     }
 
-    if (isFatal) {
-      setCurrentTags(getCurrentTags().concat('UnhandledError'))
-    }
-
     const stack = await this.cleanStackTrace(error);
 
     const payload = await this.generateCrashReportPayload(error, stack);
+
+    if (isFatal) {
+      payload.Details.Tags = getCurrentTags().concat("UnhandledError");
+    }
 
     this.managePayload(payload);
   }
