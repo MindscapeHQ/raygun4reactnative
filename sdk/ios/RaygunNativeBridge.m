@@ -111,16 +111,11 @@ NSString *onPause = @"ON_PAUSE";
 NSString *onResume = @"ON_RESUME";
 NSString *onDestroy = @"ON_DESTROY";
 
-//Caching fields
-NSString *defaultsKey = @"__RAYGUN_CRASH_REPORTS__";
-NSNumber *maxNumLocallyStoredReports;
-
 // ============================================================================
 #pragma mark - INHERITED NATIVE MODULE STARTUP METHODS -
 // ============================================================================
 
 + (void)initialize {
-    maxNumLocallyStoredReports = [[NSNumber alloc] initWithInteger:10];
     startedAt = processStartTime(); //Set the time that this bridge was initialised at
 }
 
@@ -227,7 +222,7 @@ RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
 }
 
 // ============================================================================
-#pragma mark - CRASH REPORTING FUNCTIONALITY -
+#pragma mark - CRASH REPORTING INITIALISATION -
 // ============================================================================
 
 RCT_EXPORT_METHOD(initCrashReportingNativeSupport:(NSString*)apiKey
@@ -244,114 +239,6 @@ RCT_EXPORT_METHOD(initCrashReportingNativeSupport:(NSString*)apiKey
     [RaygunClient.sharedInstance enableCrashReporting];
     
     crashReportingInitialized = TRUE;
-}
-
-// ============================================================================
-#pragma mark - CRASH REPORT CACHING -
-// ============================================================================
-
-- (NSError *)saveReportsArray:(NSArray*)reports {
-    NSError *jsonSerializeError;
-    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:reports options: NSJSONWritingFragmentsAllowed error: &jsonSerializeError];
-    if (jsonSerializeError){
-        return jsonSerializeError;
-    }
-    [[NSUserDefaults standardUserDefaults] setObject:jsonData forKey: defaultsKey];
-    return nil;
-}
-
-RCT_EXPORT_METHOD(flushCrashReportCache:(RCTPromiseResolveBlock)resolve onError:(RCTPromiseRejectBlock)reject) {
-    if (!crashReportingInitialized) {
-        RCTLogInfo(@"Cannot flush cache until native Crash Reporting is initialised");
-        return;
-    }
-    
-    NSString *rawReports = [[NSUserDefaults standardUserDefaults] stringForKey:defaultsKey]; //Get cached reports
-    if (rawReports) {
-        NSError *error = [self saveReportsArray:[NSMutableArray array]]; //Clear the cache
-        resolve(rawReports); //Return the caches contents to the React side
-        return;
-    }
-    //Cache is empty
-    resolve(@"[]");
-}
-
-RCT_EXPORT_METHOD(cacheCrashReport:(NSString *)jsonString withResolver: (RCTPromiseResolveBlock)resolve rejecter: (RCTPromiseRejectBlock)reject)
-{
-    if (!crashReportingInitialized) {
-        RCTLogInfo(@"Cannot cache crash reports until native Crash Reporting is initialised");
-        return;
-    }
-    
-    NSError *jsonParseError;
-    NSError *jsonSerializeError;
-    //Convert the report to a dictionary object
-    NSDictionary *report = [NSJSONSerialization JSONObjectWithData:[jsonString dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableContainers error:&jsonParseError];
-    if (jsonParseError) {
-        reject(@"Parsing JSON error", [jsonParseError localizedDescription], jsonParseError);
-        return;
-    }
-
-    NSString *rawReports = [[NSUserDefaults standardUserDefaults] stringForKey:defaultsKey]; //Read raw reports from cache
-    if (rawReports) {
-        //convert raw reports to an array
-        NSArray *reports = [NSJSONSerialization JSONObjectWithData:[rawReports dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableContainers error:&jsonParseError];
-        if (jsonParseError) {
-            reject(@"Error parsing saved reports", [jsonParseError localizedDescription], jsonParseError);
-            return;
-        }
-        //Insert the new report into the array
-        NSArray *newReports = [reports count] >= maxNumLocallyStoredReports ? [[reports subarrayWithRange: NSMakeRange(1, 9)] arrayByAddingObject: report] : [reports arrayByAddingObject:report];
-        NSError *error = [self saveReportsArray:newReports]; //Update the cache with the new report
-        if (error) {
-            reject(@"Serialize JSON error", [jsonSerializeError localizedDescription], jsonSerializeError);
-            return;
-        }
-        resolve([[NSNumber alloc] initWithUnsignedLong:sizeof(newReports)]);
-
-    } else {
-        //If cache is empty then create a new NSArray containing only the incoming report
-        NSArray *newReports = [[NSArray alloc] initWithObjects:report, nil];
-        NSError *error = [self saveReportsArray:newReports]; //Save this new array to the cache
-        if (error) {
-            reject(@"Serialize JSON error", [jsonSerializeError localizedDescription], jsonSerializeError);
-            return;
-        }
-        resolve([[NSNumber alloc] initWithInt:1]);
-    }
-}
-
-RCT_EXPORT_METHOD(setMaxReportsStoredOnDevice: (nonnull NSNumber *) newSize) {
-    if (!crashReportingInitialized) {
-        RCTLogInfo(@"Cannot set cache size native Crash Reporting is initialised");
-        return;
-    }
-    maxNumLocallyStoredReports = newSize;
-}
-
-
-- (NSNumber*)numReportsStoredOnDevice {
-    if (!crashReportingInitialized) {
-        RCTLogInfo(@"Cannot read from cache until native Crash Reporting is initialised");
-        return [[NSNumber alloc] initWithInt:0];
-    }
-    
-    NSError *jsonParseError;
-    
-    NSString *rawReports = [[NSUserDefaults standardUserDefaults] stringForKey:defaultsKey]; //Read raw reports from cache
-    if (rawReports) {
-        //convert raw reports to an array
-        NSArray *reports = [NSJSONSerialization JSONObjectWithData:[rawReports dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableContainers error:&jsonParseError];
-        
-        //Return current size of the cache
-        return [[NSNumber alloc] initWithInt:[reports count]];
-    }
-    
-    return [[NSNumber alloc] initWithInt:0]; //If there are no reports then the size is 0
-}
-
-RCT_EXPORT_METHOD(numReportsStoredOnDevice: (RCTPromiseResolveBlock)resolve rejecter: (RCTPromiseRejectBlock)reject) {
-    resolve([self numReportsStoredOnDevice]);
 }
 
 // ============================================================================
