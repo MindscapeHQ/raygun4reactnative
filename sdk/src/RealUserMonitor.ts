@@ -27,7 +27,7 @@ export default class RealUserMonitor {
   private readonly disableNetworkMonitoring: boolean;
   private readonly ignoredURLs: string[];
   private requests = new Map<string, RequestMeta>();
-  private RAYGUN_RUM_ENDPOINT = 'https://api.raygun.com/events';
+  private raygunRumEndpoint = 'https://api.raygun.com/events';
 
   lastSessionInteractionTime = Date.now();
   RealUserMonitoringSessionId: string = ''; //The id for generated RUM Timing events to be grouped under
@@ -54,7 +54,7 @@ export default class RealUserMonitor {
     this.ignoredURLs = ignoredURLs.concat(defaultURLIgnoreList, customRealUserMonitoringEndpoint || []);
 
     if (customRealUserMonitoringEndpoint && customRealUserMonitoringEndpoint.length > 0){
-      this.RAYGUN_RUM_ENDPOINT = customRealUserMonitoringEndpoint;
+      this.raygunRumEndpoint = customRealUserMonitoringEndpoint;
     }
 
     // If the USER has not defined disabling network monitoring, setup the XHRInterceptor (see
@@ -210,7 +210,7 @@ export default class RealUserMonitor {
 
     const rumMessage = this.generateRealUserMonitorPayload(eventName, data, timeAt);
 
-    return fetch(this.RAYGUN_RUM_ENDPOINT + '?apiKey=' + encodeURIComponent(this.apiKey),
+    return fetch(this.raygunRumEndpoint + '?apiKey=' + encodeURIComponent(this.apiKey),
       {
         method: 'POST',
         headers: {

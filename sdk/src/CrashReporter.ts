@@ -35,7 +35,7 @@ export default class CrashReporter {
   private version: string;
   private disableNativeCrashReporting: boolean;
   private onBeforeSendingCrashReport: BeforeSendHandler | null;
-  private RAYGUN_CRASH_REPORT_ENDPOINT = 'https://api.raygun.com/entries';
+  private raygunCrashReportEndpoint = 'https://api.raygun.com/entries';
 
   /**
    * Initialise Javascript side error/promise rejection handlers and identify whether the Native or
@@ -63,7 +63,7 @@ export default class CrashReporter {
     this.version = version;
 
     if (customCrashReportingEndpoint && customCrashReportingEndpoint.length > 0) {
-      this.RAYGUN_CRASH_REPORT_ENDPOINT = customCrashReportingEndpoint;
+      this.raygunCrashReportEndpoint = customCrashReportingEndpoint;
     }
 
     //Set up error handler to divert errors to crash reporter
@@ -356,7 +356,7 @@ export default class CrashReporter {
    */
   async sendCrashReport(report: CrashReportPayload) {
     //Send the message
-    return fetch( this.RAYGUN_CRASH_REPORT_ENDPOINT + '?apiKey=' + encodeURIComponent(this.apiKey), {
+    return fetch( this.raygunCrashReportEndpoint + '?apiKey=' + encodeURIComponent(this.apiKey), {
       method: 'POST',
       mode: 'cors',
       headers: {
@@ -366,7 +366,7 @@ export default class CrashReporter {
     })
     .then(() => {
       //If the message is successfully sent then attempt to transmit the cache if it isn't empty
-      this.resendCachedReports(this.apiKey, this.RAYGUN_CRASH_REPORT_ENDPOINT).then(r => {
+      this.resendCachedReports(this.apiKey, this.raygunCrashReportEndpoint).then(r => {
         log('Cache flushed');
       });
     })
