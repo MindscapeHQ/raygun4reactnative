@@ -308,6 +308,11 @@ RCT_EXPORT_METHOD(cacheCrashReport:(NSString *)jsonString withResolver: (RCTProm
     }
 }
 
+RCT_EXPORT_METHOD(getMaxReportsStoredOnDevice: (RCTPromiseResolveBlock)resolve rejecter: (RCTPromiseRejectBlock)reject) {
+    RCTLogInfo(@"getting max reports stored on device");
+    resolve([[NSNumber alloc] initWithInt:cacheSize]);
+}
+
 RCT_EXPORT_METHOD(numReportsStoredOnDevice: (RCTPromiseResolveBlock)resolve rejecter: (RCTPromiseRejectBlock)reject) {
     RCTLogInfo(@"Stored Devices");
     NSError *jsonParseError;
@@ -327,6 +332,7 @@ RCT_EXPORT_METHOD(numReportsStoredOnDevice: (RCTPromiseResolveBlock)resolve reje
     
     resolve(@0); //Return whether or not the cache size is equal to 0
 }
+
 // ============================================================================
 #pragma mark - SESSION MANAGEMENT -
 // ============================================================================
