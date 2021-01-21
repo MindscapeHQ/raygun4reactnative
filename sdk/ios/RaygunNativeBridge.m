@@ -315,11 +315,6 @@ RCT_EXPORT_METHOD(setMaxReportsStoredOnDevice: (NSNumber *) newSize) {
     RCTLogInfo(@"Set cache size done. Set as new NSNumber");
 }
 
-RCT_EXPORT_METHOD(getMaxReportsStoredOnDevice: (RCTPromiseResolveBlock)resolve rejecter: (RCTPromiseRejectBlock)reject) {
-    RCTLogInfo(@"getting max reports stored on device");
-    resolve(cacheSize);
-}
-
 RCT_EXPORT_METHOD(numReportsStoredOnDevice: (RCTPromiseResolveBlock)resolve rejecter: (RCTPromiseRejectBlock)reject) {
     RCTLogInfo(@"Stored Devices");
     NSError *jsonParseError;
