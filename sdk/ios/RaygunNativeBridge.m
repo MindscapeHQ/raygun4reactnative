@@ -234,9 +234,6 @@ RCT_EXPORT_METHOD(initCrashReportingNativeSupport:(NSString*)apiKey
                   version: (NSString*)version
                   customCrashReportingEndpoint: (NSString*)customCREndpoint)
 {
-    //LOGGING ARGUMENTS
-    RCTLogInfo(apiKey, version, customCREndpoint);
-
     //ENABLE NATIVE SIDE CRASH REPORTING
     [[RaygunClient sharedInstanceWithApiKey:apiKey] setCrashReportingApiEndpoint: customCREndpoint];
     [RaygunClient.sharedInstance enableCrashReporting];
@@ -310,13 +307,10 @@ RCT_EXPORT_METHOD(cacheCrashReport:(NSString *)jsonString withResolver: (RCTProm
 }
 
 RCT_EXPORT_METHOD(setMaxReportsStoredOnDevice: (NSNumber *) newSize) {
-    RCTLogInfo(@"Setting cache size: %@");
     cacheSize = newSize;
-    RCTLogInfo(@"Set cache size done. Set as new NSNumber");
 }
 
 RCT_EXPORT_METHOD(numReportsStoredOnDevice: (RCTPromiseResolveBlock)resolve rejecter: (RCTPromiseRejectBlock)reject) {
-    RCTLogInfo(@"Stored Devices");
     NSError *jsonParseError;
     
     NSString *rawReports = [[NSUserDefaults standardUserDefaults] stringForKey:defaultsKey]; //Read raw reports from cache
@@ -324,13 +318,9 @@ RCT_EXPORT_METHOD(numReportsStoredOnDevice: (RCTPromiseResolveBlock)resolve reje
         //convert raw reports to an array
         NSArray *reports = [NSJSONSerialization JSONObjectWithData:[rawReports dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableContainers error:&jsonParseError];
         
-        RCTLogInfo(@"reports converted");
-        
         //Return current size of the cache
         resolve([[NSNumber alloc] initWithInt:[reports count]]);
     }
-    
-    RCTLogInfo(@"Cache doesnt exist");
     
     resolve(@0); //Return whether or not the cache size is equal to 0
 }
