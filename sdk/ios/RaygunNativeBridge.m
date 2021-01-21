@@ -308,6 +308,25 @@ RCT_EXPORT_METHOD(cacheCrashReport:(NSString *)jsonString withResolver: (RCTProm
     }
 }
 
+RCT_EXPORT_METHOD(numReportsStoredOnDevice: (RCTPromiseResolveBlock)resolve rejecter: (RCTPromiseRejectBlock)reject) {
+    RCTLogInfo(@"Stored Devices");
+    NSError *jsonParseError;
+    
+    NSString *rawReports = [[NSUserDefaults standardUserDefaults] stringForKey:defaultsKey]; //Read raw reports from cache
+    if (rawReports) {
+        //convert raw reports to an array
+        NSArray *reports = [NSJSONSerialization JSONObjectWithData:[rawReports dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableContainers error:&jsonParseError];
+        
+        RCTLogInfo(@"reports converted");
+        
+        //Return current size of the cache
+        resolve([[NSNumber alloc] initWithInt:[reports count]]);
+    }
+    
+    RCTLogInfo(@"Cache doesnt exist");
+    
+    resolve(@0); //Return whether or not the cache size is equal to 0
+}
 // ============================================================================
 #pragma mark - SESSION MANAGEMENT -
 // ============================================================================
