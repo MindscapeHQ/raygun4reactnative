@@ -306,7 +306,7 @@ RCT_EXPORT_METHOD(cacheCrashReport:(NSString *)jsonString withResolver: (RCTProm
     }
 }
 
-RCT_EXPORT_METHOD(setMaxReportsStoredOnDevice: (NSNumber *) newSize) {
+RCT_EXPORT_METHOD(setMaxReportsStoredOnDevice: (nonnull NSNumber *) newSize) {
     cacheSize = newSize;
 }
 
