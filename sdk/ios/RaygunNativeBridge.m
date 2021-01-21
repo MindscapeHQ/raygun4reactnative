@@ -110,6 +110,7 @@ NSString *onStart = @"ON_START";
 NSString *onPause = @"ON_PAUSE";
 NSString *onResume = @"ON_RESUME";
 NSString *onDestroy = @"ON_DESTROY";
+NSString *DEVICE_ID = @"iOS DEVICE";
 
 // ============================================================================
 #pragma mark - INHERITED NATIVE MODULE STARTUP METHODS -
@@ -117,6 +118,9 @@ NSString *onDestroy = @"ON_DESTROY";
 
 + (void)initialize {
     startedAt = processStartTime(); //Set the time that this bridge was initialised at
+
+    //Get the device id and store it
+    [self DEVICE_ID] = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
 }
 
 + (BOOL) requiresMainQueueSetup {
