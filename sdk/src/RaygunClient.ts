@@ -12,7 +12,7 @@ import {
   anonUser,
   Breadcrumb
 } from './Types';
-import { getCurrentTags, getDeviceBasedId, log, setCurrentTags, setCurrentUser, getCurrentUser, warn } from './Utils';
+import { getCurrentTags, getDeviceId, log, setCurrentTags, setCurrentUser, getCurrentUser, warn } from './Utils';
 import CrashReporter from './CrashReporter';
 import RealUserMonitor from './RealUserMonitor';
 import { Animated, NativeModules } from 'react-native';

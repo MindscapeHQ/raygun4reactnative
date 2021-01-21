@@ -5,7 +5,7 @@ import {
   RequestMeta,
   User
 } from './Types';
-import { getDeviceBasedId, log, warn, shouldIgnore, getCurrentUser, getCurrentTags, getRandomGUID } from './Utils';
+import { getDeviceId, log, warn, shouldIgnore, getCurrentUser, getCurrentTags, getRandomGUID } from './Utils';
 // @ts-ignore
 import XHRInterceptor from 'react-native/Libraries/Network/XHRInterceptor';
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
@@ -163,7 +163,7 @@ export default class RealUserMonitor {
     const { name, duration } = payload;
 
     if (!this.RealUserMonitoringSessionId) {
-      this.RealUserMonitoringSessionId = getDeviceBasedId();
+      this.RealUserMonitoringSessionId = getDeviceId();
       await this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
     }
     const data = { name, timing: { type: RealUserMonitoringTimings.ViewLoaded, duration } };
@@ -241,7 +241,7 @@ export default class RealUserMonitor {
       return;
     }
     // Obtain the device ID
-    const id = getDeviceBasedId();
+    const id = getDeviceId();
 
     // Set the ID of the XHRInterceptor to the device ID
     xhr._id_ = id;
