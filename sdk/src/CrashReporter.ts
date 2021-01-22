@@ -245,7 +245,7 @@ export default class CrashReporter {
 
     if(details){
       if(details.customData){
-        payloadWithLocalParams.Details.UserCustomData = Object.assign(this.customData ? this.customData : {}, details.customData);
+        payloadWithLocalParams.Details.UserCustomData = Object.assign({...this.customData}, details.customData);
       }
       if(details.tags){
         payloadWithLocalParams.Details.Tags = getCurrentTags().concat(details.tags);
