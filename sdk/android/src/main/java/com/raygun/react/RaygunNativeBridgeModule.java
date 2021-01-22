@@ -373,3 +373,6 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
   }
   //#endregion--------------------------------------------------------------------------------------
 
+}
+
+
