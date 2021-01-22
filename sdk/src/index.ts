@@ -20,6 +20,7 @@ import {
   CrashReportPayload,
   CustomData,
   Environment,
+  ManualCrashReportDetails,
   RaygunClientOptions,
   RaygunStackFrame,
   RealUserMonitoringTimings,
@@ -48,6 +49,7 @@ export type {
   CrashReportPayload,
   CustomData,
   Environment,
+  ManualCrashReportDetails,
   RaygunClientOptions,
   RaygunStackFrame,
   User
