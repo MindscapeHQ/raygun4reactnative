@@ -227,7 +227,7 @@ export default class CrashReporter {
   }
 
   /**
-   * Processes a manually sent error (using local tags, not global).
+   * Processes a manually sent error (using local tags).
    * @param error - The Error to be processed.
    * @param details
    */
