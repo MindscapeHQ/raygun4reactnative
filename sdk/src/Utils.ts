@@ -10,11 +10,15 @@ let currentUser: User = anonUser;
 let currentTags: string[] = [];
 
 export const setCurrentUser = (newUser: User) => {
+  if (!newUser){
+    currentUser = {...anonUser};
+    return;
+  }
   currentUser = { ...newUser };
 };
 
 export const getCurrentUser = (): User => {
-  if (!currentUser) currentUser = anonUser;
+  if (!currentUser) currentUser = {...anonUser};
   return { ...currentUser };
 };
 
@@ -33,7 +37,7 @@ export const getCurrentTags = (): string[] => {
 /**
  * Constructs an ID specific for the current device being used.
  */
-export const getDeviceBasedId = () => `${RaygunNativeBridge.DEVICE_ID}`;
+export const getDeviceId = () => `${RaygunNativeBridge.DEVICE_ID}`;
 
 /**
  * Produce a random identifier of a certain length.

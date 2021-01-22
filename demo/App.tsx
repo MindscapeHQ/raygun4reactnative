@@ -22,7 +22,7 @@ import {
 import {Colors, Header} from 'react-native/Libraries/NewAppScreen';
 import RaygunClient, {
   Breadcrumb,
-  CustomData,
+  CustomData, ManualCrashReportDetails,
   RaygunClientOptions,
   RealUserMonitoringTimings,
   User
@@ -112,15 +112,14 @@ const App = () => {
                 testID="triggerCustomErrorBtn"
                 accessibilityLabel="triggerCustomErrorBtn"
                 onPress={() => {
-                  // Current user of the application
-                  const user = "Guest"
-
                   // You caught some error, and now you can send it away
-                  const customData: CustomData = {"Who's to blame: ": user}
-                  const tags: string[] = ["Error", "Caught", "Test"]
+                  const customData: CustomData = {"Key": "Value"};
+                  const tags: string[] = ["Error", "Caught", "Test"];
+
+                  const details: ManualCrashReportDetails = {customData, tags};
 
                   // Send the error away with custom data
-                  RaygunClient.sendError(new Error("Test Error: Custom Error"), customData, tags);
+                  RaygunClient.sendError(new Error("Test Error: Custom Error"), details);
                 }}
                 title="Trigger Customize Error"
               />
@@ -151,7 +150,7 @@ const App = () => {
                 color="green"
                 testID="addTagsBtn"
                 accessibilityLabel="addTagsBtn"
-                onPress={() => RaygunClient.setTags(["Testing_1", "Testing_2", "Testing_3"])}
+                onPress={() => RaygunClient.setTags("Testing_1", "Testing_2", "Testing_3")}
                 title="Set Testing Tags"
               />
             </View>

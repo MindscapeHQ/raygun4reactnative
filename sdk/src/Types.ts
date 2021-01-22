@@ -1,5 +1,5 @@
 import { ErrorUtils } from 'react-native';
-import { getDeviceBasedId } from './Utils';
+import { getDeviceId } from './Utils';
 
 //#region ----RAYGUN CLIENT SESSION TYPES-----------------------------------------------------------
 
@@ -32,7 +32,7 @@ export type User = {
 };
 
 export const anonUser: User = {
-  identifier: `${getDeviceBasedId()}`,
+  identifier: `${getDeviceId()}`,
   isAnonymous: true
 };
 
@@ -103,6 +103,14 @@ export type CrashReportPayload = {
     Version: string;
   };
 };
+
+export type ManualCrashReportDetails = {
+  customData?: CustomData,
+  tags?: string[]
+}
+
+
+
 
 //#endregion----------------------------------------------------------------------------------------
 
