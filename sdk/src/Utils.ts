@@ -10,10 +10,6 @@ let currentUser: User = anonUser;
 let currentTags: string[] = [];
 
 export const setCurrentUser = (newUser: User) => {
-  if (!newUser){
-    currentUser = {...anonUser};
-    return;
-  }
   currentUser = { ...newUser };
 };
 
