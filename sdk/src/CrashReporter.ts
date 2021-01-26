@@ -91,7 +91,7 @@ export default class CrashReporter {
       return Promise
     })
 
-    this.resendCachedReports(apiKey, customCrashReportingEndpoint).then(r => {});
+    this.resendCachedReports().then(r => {});
   }
 
   //#endregion--------------------------------------------------------------------------------------
@@ -195,6 +195,34 @@ export default class CrashReporter {
     log(`Cache size: ${newCache.length}`);
   }
 
+  async resendCachedReports() {
+    log(`Resending reports`);
+    let cache : CrashReportPayload[] = await this.getCachedCrashReports();
+    let reCache : CrashReportPayload[] = [];
+
+    log("^")
+    await cache.forEach((cr) => {
+      log(`- ${cr.Details.Error.Message}`)
+    })
+    log("V")
+    log(`Cache size: ${cache.length}`);
+
+    await cache.forEach((cr) => {
+      this.sendCrashReport(cr).then((success) => {
+        log(`Report resent, success: ${success}`);
+        if (!success) reCache.concat(cr);
+      });
+    });
+
+    await this.setCachedCrashReports(reCache);
+
+    log("After resend:");
+    log("^")
+    await reCache.forEach((cr) => {
+      log(`- ${cr.Details.Error.Message}`)
+    })
+    log("V")
+    log(`Cache size: ${reCache.length}`);
   }
 
   /**
