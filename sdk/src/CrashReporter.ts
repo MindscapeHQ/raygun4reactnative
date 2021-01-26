@@ -89,9 +89,7 @@ export default class CrashReporter {
       return Promise
     })
 
-    this.resendCachedReports(apiKey, customCrashReportingEndpoint).then(r => {
-      log('Cache flushed');
-    });
+    this.resendCachedReports(apiKey, customCrashReportingEndpoint).then(r => {});
   }
 
   //#endregion--------------------------------------------------------------------------------------
@@ -357,7 +355,6 @@ export default class CrashReporter {
     .then(() => {
       //If the message is successfully sent then attempt to transmit the cache if it isn't empty
       this.resendCachedReports(this.apiKey, this.raygunCrashReportEndpoint).then(r => {
-        log('Cache flushed');
       });
     })
     .catch(err => {
