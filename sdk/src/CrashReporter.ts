@@ -184,7 +184,12 @@ export default class CrashReporter {
   }
 
   async cacheCrashReports(...reports: CrashReportPayload[]) {
-    let appendedCache : CrashReportPayload[] = (await this.getCachedCrashReports()).concat(reports);
+    let currentCache : CrashReportPayload[] = await this.getCachedCrashReports();
+
+    //If the cache is already full then ignore this report
+    if (currentCache.length >= this.maxLocallyStoredCrashReports) return;
+
+    let appendedCache : CrashReportPayload[] = currentCache.concat(reports);
     await this.setCachedCrashReports(appendedCache);
 
     let newCache = await this.getCachedCrashReports();
