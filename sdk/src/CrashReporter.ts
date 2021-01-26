@@ -44,6 +44,7 @@ export default class CrashReporter {
   private onBeforeSendingCrashReport: BeforeSendHandler | null;
   private raygunCrashReportEndpoint = 'https://api.raygun.com/entries';
   private local_storage_key : string = "raygun4reactnative_local_storage";
+  private readonly RAYGUN_RATE_LIMITING_STATUS_CODE : number = 429;
 
   /**
    * Initialise Javascript side error/promise rejection handlers and identify whether the Native or
@@ -322,7 +323,13 @@ export default class CrashReporter {
     }
 
     log('Send crash report via JS');
-    this.sendCrashReport(modifiedPayload);
+
+    //Send the crash report, caching it if the transmission is not successful
+    this.sendCrashReport(modifiedPayload).then((success) => {
+      log(`Crash report sent, success: ${success}`);
+      if (!success) this.cacheCrashReports(modifiedPayload);
+      else {this.resendCachedReports()}
+    });
   }
 
   /**
