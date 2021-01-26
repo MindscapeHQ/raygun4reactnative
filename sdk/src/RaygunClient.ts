@@ -134,7 +134,7 @@ const setUser = (user: User) => {
   }
 
   //Update user across the react side
-  setCurrentUser(user ? { ...user } : anonUser);
+  setCurrentUser(!user.isAnonymous ? { ...user } : anonUser);
 
   //Update user on the native side
   if (!options.disableNativeCrashReporting) {

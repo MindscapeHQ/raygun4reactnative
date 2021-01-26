@@ -19,11 +19,7 @@
 #package-lock.json
 
 #-----------------------------------------#
-
-
-#gitignoring the demo while we arent altering it for the repo, will delete later
 /demo/
-!/demo/screens/
 /sdk/dist/
 /sdk/node_modules/
 /sdk/package-lock.json
