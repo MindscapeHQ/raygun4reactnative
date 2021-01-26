@@ -46,10 +46,11 @@
   "readmeFilename": "README.md",
   "peerDependencies": {
     "react": "^16.8.1",
-    "react-native": ">=0.60.0-rc.0 <1.0.x"
+    "react-native": ">=0.60.0-rc.0 <1.0.x",
+    "@react-native-async-storage/async-storage": "^1.13.3"
   },
   "devDependencies": {
-    "@react-native-community/async-storage": "^1.11.0",
+    "@react-native-async-storage/async-storage": "^1.13.3",
     "@types/jest": "^25.2.3",
     "@types/node": "^12.12.47",
     "@types/react": "^16.9.35",
