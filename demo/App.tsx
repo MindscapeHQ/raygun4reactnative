@@ -33,7 +33,7 @@ declare const global: { HermesInternal: null | {} };
 const {RaygunDemoBridge} = NativeModules;
 
 const options: RaygunClientOptions = {
-  apiKey:'', // YOUR APIKEY
+  apiKey:'w8Jy8Ky0kHZJ1ydU561QmA', // YOUR APIKEY
   version: '0.0.2', // YOUR APP VERSION
   enableCrashReporting: true,
   enableRealUserMonitoring: true,
@@ -219,6 +219,23 @@ const App = () => {
                 }
                 }
                 title="Add Simple Breadcrumbs Data"
+              />
+            </View>
+
+            <View
+              style={{
+                width: '45%',
+                marginBottom: 15
+              }}>
+              <Button
+                color="orange"
+                testID="THING"
+                accessibilityLabel="THING"
+                onPress={() => {
+                  RaygunClient.cacheAReport();
+                }
+                }
+                title="CACHE SOMETHING"
               />
             </View>
 

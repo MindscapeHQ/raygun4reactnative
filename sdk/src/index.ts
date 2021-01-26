@@ -11,7 +11,8 @@ import {
   getCustomData,
   sendError,
   setMaxReportsStoredOnDevice,
-  sendRUMTimingEvent
+  sendRUMTimingEvent,
+  cacheAReport
 } from './RaygunClient';
 
 import {
@@ -40,7 +41,8 @@ export default {
   getCustomData,
   sendError,
   setMaxReportsStoredOnDevice,
-  sendRUMTimingEvent
+  sendRUMTimingEvent,
+  cacheAReport
 };
 
 export type {
