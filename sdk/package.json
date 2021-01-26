@@ -27,7 +27,7 @@
     "run_demo_3": "run-script-os",
     "run_demo_3:windows": "cd ../demo && npx react-native run-android",
     "run_demo_3:macos": "cd ../demo && cd ios && pod install && cd ../ && npx react-native run-ios",
-    "run_demo_3:linux": "cd ../demo && gnome-terminal -x bash -c \"npx react-native start\" && npx react-native run-android",
+    "run_demo_3:linux": "cd ../demo && gnome-terminal -x bash -c \"npm start -- --reset-cache\" && npx react-native run-android",
     "prettier": "npx prettier --write src"
   },
   "repository": {
