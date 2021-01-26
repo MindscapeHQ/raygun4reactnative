@@ -43,8 +43,10 @@ export default class CrashReporter {
   private disableNativeCrashReporting: boolean;
   private onBeforeSendingCrashReport: BeforeSendHandler | null;
   private raygunCrashReportEndpoint = 'https://api.raygun.com/entries';
+
   private local_storage_key : string = "raygun4reactnative_local_storage";
   private readonly RAYGUN_RATE_LIMITING_STATUS_CODE : number = 429;
+  private maxLocallyStoredCrashReports : number = 32;
 
   /**
    * Initialise Javascript side error/promise rejection handlers and identify whether the Native or
@@ -230,8 +232,15 @@ export default class CrashReporter {
    * Change the size of the local cache
    * @param size - The new cache size, must be between 0 and 64
    */
-  async setMaxReportsStoredOnDevice(size: number) {
+  async setMaxReportsStoredOnDevice(newSize: number) {
+    //Set the maximum keeping between a range of [0, 64]
+    this.maxLocallyStoredCrashReports = Math.min(Math.max(newSize, 0), 64)
 
+    //Remove excess cached reports where necessary, prioritising older reports
+    let cache : CrashReportPayload[] = await this.getCachedCrashReports();
+    if (cache.length > this.maxLocallyStoredCrashReports) {
+      await this.setCachedCrashReports(cache.slice(0, this.maxLocallyStoredCrashReports));
+    }
   }
 
   //#endregion--------------------------------------------------------------------------------------
