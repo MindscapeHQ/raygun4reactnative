@@ -180,12 +180,20 @@ export default class CrashReporter {
     }
   }
 
-  /**
-   * Transmit cached reports.
-   * @param apiKey - The Raygun application to transmit too
-   * @param customEndpoint
-   */
-  async resendCachedReports(apiKey: string, customEndpoint?: string) {
+  async cacheCrashReports(...reports: CrashReportPayload[]) {
+    let appendedCache : CrashReportPayload[] = (await this.getCachedCrashReports()).concat(reports);
+    await this.setCachedCrashReports(appendedCache);
+
+    let newCache = await this.getCachedCrashReports();
+
+    log("Cache is now:")
+    log("^")
+    await newCache.forEach((cr) => {
+      log(`- ${cr.Details.Error.Message}`)
+    })
+    log("V")
+    log(`Cache size: ${newCache.length}`);
+  }
 
   }
 
