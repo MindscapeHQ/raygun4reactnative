@@ -19,6 +19,7 @@ import {
 } from './Types';
 import {StackFrame} from 'react-native/Libraries/Core/Devtools/parseErrorStack';
 import {NativeModules, Platform} from 'react-native';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const {RaygunNativeBridge} = NativeModules;
 const {version: clientVersion} = require('../package.json');
@@ -42,6 +43,7 @@ export default class CrashReporter {
   private disableNativeCrashReporting: boolean;
   private onBeforeSendingCrashReport: BeforeSendHandler | null;
   private raygunCrashReportEndpoint = 'https://api.raygun.com/entries';
+  private local_storage_key : string = "raygun4reactnative_local_storage";
 
   /**
    * Initialise Javascript side error/promise rejection handlers and identify whether the Native or
@@ -152,12 +154,30 @@ export default class CrashReporter {
 
   //#region ----LOCAL CACHING OF CRASH REPORTS------------------------------------------------------
 
-  /**
-   * Cache a given Report to be sent later.
-   * @param report - the Report to cache
-   */
-  async cacheCrashReport(report: CrashReportPayload) {
+  async getCachedCrashReports() : Promise<CrashReportPayload[]>{
+    try {
+      const rawCache = await AsyncStorage.getItem(this.local_storage_key)
+      if(rawCache !== null) {
+        try {
+          let jsonCache : CrashReportPayload[] = JSON.parse(rawCache);
+          return jsonCache;
+        }
+        catch(e) {
+          error("Error parsing local crash report cache as JSON")
+        }
+      }
+    } catch(e) {
+      error("Error reading local crash report cache")
+    }
+    return [];
+  }
 
+  async setCachedCrashReports(newCache : CrashReportPayload[]) {
+    try {
+      await AsyncStorage.setItem(this.local_storage_key, JSON.stringify(newCache));
+    } catch(e) {
+      error("Error writing to local crash report cache")
+    }
   }
 
   /**
