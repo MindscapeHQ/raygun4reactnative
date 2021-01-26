@@ -338,30 +338,33 @@ export default class CrashReporter {
   }
 
   /**
-   * Output a CrashReportPayload to Raygun or a custom endpoint
+   * Outputs a CrashReportPayload to Raygun or a custom endpoint, returning
    * @param report
-   * @param apiKey
    */
-  async sendCrashReport(report: CrashReportPayload) {
+  async sendCrashReport(report: CrashReportPayload) : Promise<boolean> {
     //Send the message
-    return fetch( this.raygunCrashReportEndpoint + '?apiKey=' + encodeURIComponent(this.apiKey), {
-      method: 'POST',
-      mode: 'cors',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(report)
-    })
-    .then(() => {
-      //If the message is successfully sent then attempt to transmit the cache if it isn't empty
-      this.resendCachedReports(this.apiKey, this.raygunCrashReportEndpoint).then(r => {
-      });
-    })
-    .catch(err => {
-      //If there are any errors then
-      error(err);
-      return this.cacheCrashReport(report);
-    });
+    try {
+      return await fetch(this.raygunCrashReportEndpoint + '?apiKey=' + encodeURIComponent(this.apiKey), {
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(report)
+      })
+      .then((response) => {
+        log(`Report sent! status: ${response.status}`)
+        if (response.status === this.RAYGUN_RATE_LIMITING_STATUS_CODE) return false
+        return true;
+      }).catch((error) => {
+        error(error);
+        return false;
+      })
+    }
+    catch (e) {
+      error(e);
+      return false;
+    }
   }
 
   //#endregion--------------------------------------------------------------------------------------
