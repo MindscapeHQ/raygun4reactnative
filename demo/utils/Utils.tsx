@@ -9,8 +9,8 @@ export const styles = StyleSheet.create({
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: "20%",
-    marginBottom: "20%",
+    marginTop: "10%",
+    marginBottom: "10%",
   },
   secondView: {
     display: "flex",
