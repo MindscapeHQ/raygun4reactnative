@@ -23,7 +23,9 @@
 #endif
 
 
-//===============SYSTEM INFORMATION GETTERS===============//
+// ============================================================================
+#pragma mark - STATIC SYSTEM INFORMATION GETTERS -
+// ============================================================================
 
 static uint32_t ksdl_imageNamed(const char* const imageName, bool exactMatch)
 {
@@ -92,16 +94,15 @@ static uint64_t getMemorySize(void) {
     return value;
 }
 
-//==============================//
-
-
-
+// ============================================================================
+#pragma mark - BRIDGE FIELDS -
+// ============================================================================
 
 @implementation RaygunNativeBridge
 
 static CFTimeInterval startedAt; //Time that this object was created
 
-BOOL hasInitialized = FALSE;
+BOOL crashReportingInitialized = FALSE;
 
 //RUM events to capture and send to the react layer
 NSString *viewName = @"RCTView";
@@ -110,11 +111,23 @@ NSString *onPause = @"ON_PAUSE";
 NSString *onResume = @"ON_RESUME";
 NSString *onDestroy = @"ON_DESTROY";
 
-NSString *defaultsKey = @"__RAYGUN_CRASH_REPORTS__";
+//Retrieving and storing the device UUID
+static NSString *DEVICE_UUID = nil;
+static NSString *_Nonnull const nativeIdentifierKey = @"com.raygun.identifier";
 
+// ============================================================================
+#pragma mark - INHERITED NATIVE MODULE STARTUP METHODS -
+// ============================================================================
 
 + (void)initialize {
     startedAt = processStartTime(); //Set the time that this bridge was initialised at
+
+    //Get the device id and store it
+    [self init_Device_UUID];
+}
+
++ (BOOL) requiresMainQueueSetup {
+    return YES;
 }
 
 static CFTimeInterval processStartTime() {
@@ -133,10 +146,6 @@ static CFTimeInterval processStartTime() {
     return startTime.tv_sec + startTime.tv_usec / 1e6 + absoluteTimeToRelativeTime;
 }
 
-+ (BOOL) requiresMainQueueSetup {
-    return YES;
-}
-
 - (NSString *)platform {
     struct utsname systemInfo;
     uname(&systemInfo);
@@ -145,13 +154,8 @@ static CFTimeInterval processStartTime() {
 
 - (NSDictionary<NSString *, id> *) constantsToExport {
     NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
-#if TARGET_OS_IOS || TARGET_OS_TV
-    UIDevice *currentDevice = [UIDevice currentDevice];
-    [dict setValue:currentDevice.identifierForVendor forKey: @"DEVICE_ID"];
-#else
-    NSUUID *uuid = [NSUUID UUID];
-    [dict setValue:[uuid UUIDString] forKey: @"DEVICE_ID"];
-#endif
+    
+    [dict setValue: DEVICE_UUID forKey: @"DEVICE_ID"];
     [dict setValue: onStart forKey: onStart];
     [dict setValue: onPause forKey: onPause];
     [dict setValue: onResume forKey: onResume];
@@ -171,7 +175,50 @@ static CFTimeInterval processStartTime() {
     return nsVersion;
 }
 
++ (NSString *)init_Device_UUID {
+    if (DEVICE_UUID == nil) {
+        // Check if we have stored one before
+        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+        DEVICE_UUID = [defaults stringForKey:nativeIdentifierKey];
+        
+        if (!DEVICE_UUID) {
+            
+            //If not then generate a new UUID
+            #if TARGET_OS_IOS || TARGET_OS_TV
+            if ([UIDevice.currentDevice respondsToSelector:@selector(identifierForVendor)]) {
+                DEVICE_UUID = UIDevice.currentDevice.identifierForVendor.UUIDString;
+            }
+            else {
+                CFUUIDRef theUUID = CFUUIDCreate(NULL);
+                DEVICE_UUID = (__bridge NSString *)CFUUIDCreateString(NULL, theUUID);
+                CFRelease(theUUID);
+            }
+            #else
+            CFUUIDRef theUUID = CFUUIDCreate(NULL);
+            DEVICE_UUID = (__bridge NSString *)CFUUIDCreateString(NULL, theUUID);
+            CFRelease(theUUID);
+            #endif
+            
+            // Store the new UUID
+            NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+            [defaults setObject:DEVICE_UUID forKey:nativeIdentifierKey];
+            [defaults synchronize];
+        }
+    }
+    
+    return DEVICE_UUID;
+}
+
+
+// ============================================================================
+#pragma mark - NATIVE BRIDGE INTERFACE -
+// ============================================================================
+
 RCT_EXPORT_MODULE();
+
+// ============================================================================
+#pragma mark - REAL USER MONITORING FUNCTIONALITY -
+// ============================================================================
 
 RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
 {
@@ -211,49 +258,70 @@ RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
   return @[onStart, onPause, onResume, onDestroy];
 }
 
+// ============================================================================
+#pragma mark - CRASH REPORTING INITIALISATION -
+// ============================================================================
 
-//INITIALISE NATIVE CRASH REPORTING FUNCTIONALITY
 RCT_EXPORT_METHOD(initCrashReportingNativeSupport:(NSString*)apiKey
                   version: (NSString*)version
                   customCrashReportingEndpoint: (NSString*)customCREndpoint)
 {
-    //LOGGING ARGUMENTS
-    RCTLogInfo(apiKey, version, customCREndpoint);
-
+    if (crashReportingInitialized) {
+        RCTLogInfo(@"Cannot initialise native native Crash Reporting more than once");
+        return;
+    }
+    
     //ENABLE NATIVE SIDE CRASH REPORTING
     [[RaygunClient sharedInstanceWithApiKey:apiKey] setCrashReportingApiEndpoint: customCREndpoint];
     [RaygunClient.sharedInstance enableCrashReporting];
     
-    hasInitialized = YES;
+    crashReportingInitialized = TRUE;
 }
 
-
-//========SESSION MANAGEMENT========//
-
-RCT_EXPORT_METHOD(hasInitialized:(RCTPromiseResolveBlock)resolve orNot:(RCTPromiseRejectBlock)reject) {
-    resolve([NSNumber numberWithBool:hasInitialized]);
-}
+// ============================================================================
+#pragma mark - SESSION MANAGEMENT -
+// ============================================================================
 
 RCT_EXPORT_METHOD(setTags:(NSArray *) tags) {
+    if (!crashReportingInitialized) {
+        RCTLogInfo(@"Cannot set native tags until native Crash Reporting is initialised");
+        return;
+    }
     [RaygunClient.sharedInstance setTags:tags];
 }
 
 RCT_EXPORT_METHOD(setCustomData:(NSDictionary *) customData) {
+    if (!crashReportingInitialized) {
+        RCTLogInfo(@"Cannot set custom data until native Crash Reporting is initialised");
+        return;
+    }
     [RaygunClient.sharedInstance setCustomData:customData];
 }
 
 RCT_EXPORT_METHOD(recordBreadcrumb:(NSDictionary *) breadcrumb) {
+    if (!crashReportingInitialized) {
+        RCTLogInfo(@"Cannot record native breadcrumbs until native Crash Reporting is initialised");
+        return;
+    }
     [RaygunClient.sharedInstance recordBreadcrumb:[RaygunBreadcrumb breadcrumbWithInformation:breadcrumb]];
 }
 
 RCT_EXPORT_METHOD(clearBreadcrumbs) {
+    if (!crashReportingInitialized) {
+        RCTLogInfo(@"Cannot clear native breadcrumbs until native Crash Reporting is initialised");
+        return;
+    }
     [RaygunClient.sharedInstance clearBreadcrumbs];
 }
 
 RCT_EXPORT_METHOD(setUser:(NSDictionary *) user) {
+    if (!crashReportingInitialized) {
+        RCTLogInfo(@"Cannot set native user until native Crash Reporting is initialised");
+        return;
+    }
+    
     RaygunUserInformation * userInfo = [[RaygunUserInformation alloc] initWithIdentifier:
-        user[@"idenfifier"] withEmail: user[@"email"] withFullName: user[@"fullName"] withFirstName: user[@"firstName"]
-                                        ];
+        user[@"idenfifier"] withEmail: user[@"email"] withFullName: user[@"fullName"] withFirstName: user[@"firstName"]];
     [RaygunClient.sharedInstance setUserInformation: userInfo];
 }
 
@@ -286,68 +354,5 @@ RCT_EXPORT_METHOD(getEnvironmentInfo:(RCTPromiseResolveBlock)resolve onError:(RC
     [environment setValue:@(getMemorySize()) forKey: @"TotalPhysicalMemory"];
     resolve(environment);
 }
-
-//================//
-
-
-//========CRASH REPORT CACHING========//
-
-- (NSError *)saveReportsArray:(NSArray*)reports {
-    NSError *jsonSerializeError;
-    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:reports options: NSJSONWritingFragmentsAllowed error: &jsonSerializeError];
-    if (jsonSerializeError){
-        return jsonSerializeError;
-    }
-    [[NSUserDefaults standardUserDefaults] setObject:jsonData forKey: defaultsKey];
-    return nil;
-}
-
-RCT_EXPORT_METHOD(flushCrashReportCache:(RCTPromiseResolveBlock)resolve onError:(RCTPromiseRejectBlock)reject) {
-    NSString *rawReports = [[NSUserDefaults standardUserDefaults] stringForKey:defaultsKey];
-    if (rawReports) {
-        resolve(rawReports);
-        return;
-    }
-    resolve(@"[]");
-}
-
-RCT_EXPORT_METHOD(cacheCrashReport:(NSString *)jsonString withResolver: (RCTPromiseResolveBlock)resolve rejecter: (RCTPromiseRejectBlock)reject)
-{
-    NSError *jsonParseError;
-    NSError *jsonSerializeError;
-    NSDictionary *report = [NSJSONSerialization JSONObjectWithData:[jsonString dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableContainers error:&jsonParseError];
-    if (jsonParseError) {
-        reject(@"Parsing JSON error", [jsonParseError localizedDescription], jsonParseError);
-        return;
-    }
-
-    NSString *rawReports = [[NSUserDefaults standardUserDefaults] stringForKey:defaultsKey];
-    if (rawReports) {
-        NSArray *reports = [NSJSONSerialization JSONObjectWithData:[rawReports dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableContainers error:&jsonParseError];
-        if (jsonParseError) {
-            reject(@"Error parsing saved reports", [jsonParseError localizedDescription], jsonParseError);
-            return;
-        }
-
-        NSArray *newReports = sizeof(reports) >= 10 ? [[reports subarrayWithRange: NSMakeRange(1, 9)] arrayByAddingObject: report] : [reports arrayByAddingObject:report];
-        NSError *error = [self saveReportsArray:newReports];
-        if (error) {
-            reject(@"Serialize JSON error", [jsonSerializeError localizedDescription], jsonSerializeError);
-            return;
-        }
-        resolve([[NSNumber alloc] initWithUnsignedLong:sizeof(newReports)]);
-
-    } else {
-        NSArray *newReports = [[NSArray alloc] initWithObjects:report, nil];
-        NSError *error = [self saveReportsArray:newReports];
-        if (error) {
-            reject(@"Serialize JSON error", [jsonSerializeError localizedDescription], jsonSerializeError);
-            return;
-        }
-        resolve([[NSNumber alloc] initWithInt:1]);
-    }
-}
-
-//================//
 
 @end

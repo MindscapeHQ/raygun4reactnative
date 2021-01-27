@@ -158,8 +158,8 @@ export default class CrashReporter {
    * Cache a given Report to be sent later.
    * @param report - the Report to cache
    */
-  async cacheCrashReport(report: CrashReportPayload): Promise<null> {
-    return RaygunNativeBridge.cacheCrashReport(JSON.stringify(report));
+  async cacheCrashReport(report: CrashReportPayload) {
+
   }
 
   /**
@@ -168,27 +168,7 @@ export default class CrashReporter {
    * @param customEndpoint
    */
   async resendCachedReports(apiKey: string, customEndpoint?: string) {
-    //If there are Reports cached
-    if (!(await RaygunNativeBridge.cacheEmpty())) {
-      //Extract cached reports from the native side
-      const cache: CrashReportPayload[] = await RaygunNativeBridge.flushCrashReportCache().then(
-        (reportsJson: string) => {
-          try {
-            //Format the cache and remove empty and null strings
-            return JSON.parse(reportsJson).filter(Boolean) as CrashReportPayload[];
-          } catch (err) {
-            //If there are no cached reports then return an empty array
-            error(err);
-            return [];
-          }
-        }
-      );
-
-      log('Cache flushed', cache);
-
-      //Attempt to send each of the cached reports
-      await Promise.all(cache.map(cachedReport => this.sendCrashReport(cachedReport)));
-    }
+  
   }
 
   /**
@@ -196,7 +176,7 @@ export default class CrashReporter {
    * @param size - The new cache size, must be between 0 and 64
    */
   async setMaxReportsStoredOnDevice(size: number) {
-    RaygunNativeBridge.setMaxReportsStoredOnDevice(size);
+
   }
 
   //#endregion--------------------------------------------------------------------------------------
@@ -344,7 +324,7 @@ export default class CrashReporter {
         },
         UserCustomData: this.customData,
         Tags: getCurrentTags(),
-        User: upperFirst(getCurrentUser()),
+        User: getCurrentUser(),
         Breadcrumbs: upperFirst(this.breadcrumbs),
         Version: this.version || 'Not supplied'
       }
