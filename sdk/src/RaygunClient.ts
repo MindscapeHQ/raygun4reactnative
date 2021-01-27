@@ -283,11 +283,6 @@ const realUserMonitoringAvailable = (calledFrom: string) => {
 
 //#endregion----------------------------------------------------------------------------------------
 
-
-const cacheAReport = async () => {
-  await crashReporter.cacheCrashReports(await crashReporter.generateCrashReportPayload(new Error("Cached Me!!"), []))
-}
-
 export {
   init,
   setTags,
@@ -301,6 +296,5 @@ export {
   getCustomData,
   sendError,
   setMaxReportsStoredOnDevice,
-  sendRUMTimingEvent,
-  cacheAReport
+  sendRUMTimingEvent
 };
