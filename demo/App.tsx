@@ -54,10 +54,10 @@ const options: RaygunClientOptions = {
   onBeforeSendingCrashReport: beforeSendFunc,
   ignoredURLs: ignoredUrls,
   // Other settings to customize your Raygun usage
-  disableNativeCrashReporting: true,
-  disableNetworkMonitoring: true,
-  customCrashReportingEndpoint: "http://some-url-of-your-choice",
-  customRealUserMonitoringEndpoint: "http://some-url-of-your-choice"
+  // disableNativeCrashReporting: true,
+  // disableNetworkMonitoring: true,
+  // customCrashReportingEndpoint: "http://some-url-of-your-choice",
+  // customRealUserMonitoringEndpoint: "http://some-url-of-your-choice"
 
 }
 
@@ -66,7 +66,7 @@ const options: RaygunClientOptions = {
  * initialized as soon as possible. Any calls on the RaygunClient before calling the init method
  * will be ignored.
  */
-RaygunClient.init(options);
+raygunClient.init(options);
 
 //#region -- REACT-NATIVE APPLICATION SETUP --------------------------------------------------------
 
