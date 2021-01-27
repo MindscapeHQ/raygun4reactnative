@@ -215,8 +215,8 @@ export default class CrashReporter {
     log("V")
     log(`Cache size: ${cache.length}`);
 
-    await cache.forEach((cr) => {
-      this.sendCrashReport(cr).then((success) => {
+    await cache.forEach(async (cr) => {
+      await this.sendCrashReport(cr).then((success) => {
         log(`Report resent, success: ${success}`);
         if (!success) reCache.concat(cr);
       });
@@ -439,7 +439,7 @@ export default class CrashReporter {
       })
     }
     catch (e) {
-      error(e);
+      error(`Error while sending crash report: ${e}`);
       return false;
     }
   }

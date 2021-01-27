@@ -41,6 +41,8 @@ const options: RaygunClientOptions = {
 
 RaygunClient.init(options);
 
+RaygunClient.setMaxReportsStoredOnDevice(5);
+
 const App = () => {
   return (
     <>
@@ -238,6 +240,23 @@ const App = () => {
                 title="CACHE SOMETHING"
               />
             </View>
+
+              <View
+                  style={{
+                      width: '45%',
+                      marginBottom: 15
+                  }}>
+                  <Button
+                      color="orange"
+                      testID="THING"
+                      accessibilityLabel="THING"
+                      onPress={() => {
+                          RaygunClient.setMaxReportsStoredOnDevice(2);
+                      }
+                      }
+                      title="CACHE SIZE TO 2"
+                  />
+              </View>
 
             <View
               style={{
