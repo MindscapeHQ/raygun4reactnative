@@ -1,6 +1,8 @@
 import {StyleSheet} from "react-native";
+import RaygunClient, {
+} from "raygun4reactnative"
 
-
+export const raygunClient = RaygunClient;
 export const styles = StyleSheet.create({
   scrollView: {
     backgroundColor: "white"
@@ -9,6 +11,7 @@ export const styles = StyleSheet.create({
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+    textAlign: "center",
     marginTop: "10%",
     marginBottom: "10%",
   },
@@ -16,10 +19,12 @@ export const styles = StyleSheet.create({
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+    textAlign: "center",
     width: '100%',
     marginBottom: "5%",
   },
   title: {
+    alignContent:"center",
     fontWeight: "bold",
     fontSize: 30
   },
@@ -31,6 +36,13 @@ export const styles = StyleSheet.create({
     marginHorizontal: "5%"
   },
   text: {
+    marginHorizontal: "5%",
+    textAlign: "center",
     fontSize: 16
+  },
+  image: {
+    width: "80%",
+    alignSelf: "center",
+    resizeMode: "contain",
   }
 });

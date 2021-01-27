@@ -6,11 +6,11 @@ import {
   StatusBar,
   TextInput,
   View,
-  SafeAreaView
+  SafeAreaView, Image
 } from "react-native";
 import React, {useState} from "react";
 import {styles} from "../utils/Utils";
-import {raygunClient} from "../App";
+import {raygunClient} from "../utils/Utils";
 import {Breadcrumb, CustomData, ManualCrashReportDetails} from "raygun4reactnative";
 import CheckBox from "@react-native-community/checkbox";
 
@@ -19,19 +19,15 @@ const {RaygunDemoBridge} = NativeModules
 //#region -- Breadcrumb Objects --------------------------------------------------------------------
 
 const bc1: Breadcrumb = {
-  category: "Test",
-  customData: undefined,
-  level: "info",
   message: "Stage 1",
-  timestamp: Date.now()
 }
 
 const bc2: Breadcrumb = {
   category: "Test",
-  customData: undefined,
+  customData: {"Test": "Custom Data for Breadcrumbs"},
   level: "info",
   message: "Stage 2",
-  timestamp: Date.now()
+  timestamp: new Date('December 17, 1995 03:24:00').valueOf()
 }
 
 //#endregion ---------------------------------------------------------------------------------------
@@ -45,13 +41,14 @@ const products: CustomData = {
   Object_3: 26,
 }
 
-// Deep custom data example
+// Complex custom data example
 const activeEmployees: string[] = ["Ronald", "Ruby", "Raygun"];
 const teamLead: CustomData = {
   name: "Ronald",
   age: 32,
   date: Date.now(),
 }
+// Custom data inside custom data
 const sessionEmployees: CustomData = {
   active: activeEmployees,
   lead: teamLead,
@@ -176,6 +173,11 @@ export default function CrashReporting() {
       <StatusBar barStyle="dark-content"/>
       <SafeAreaView>
         <ScrollView contentInsetAdjustmentBehavior="automatic" style={styles.scrollView}>
+          <View key={"Image"} style={styles.mainView}>
+            <Image
+              style={styles.image}
+              source={require("../utils/Raygun_Logo.png")}/>
+          </View>
 
 
           {/*BREADCRUMB SECTION*/}
