@@ -45,7 +45,7 @@ export default class CrashReporter {
 
   private local_storage_key : string = "raygun4reactnative_local_storage";
   private readonly RAYGUN_RATE_LIMITING_STATUS_CODE : number = 429;
-  private maxLocallyStoredCrashReports : number = 32;
+  private maxLocallyStoredCrashReports : number = 64;
 
   /**
    * Initialise Javascript side error/promise rejection handlers and identify whether the Native or
