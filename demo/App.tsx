@@ -34,7 +34,7 @@ const {RaygunDemoBridge} = NativeModules;
 
 const options: RaygunClientOptions = {
   apiKey:'', // YOUR APIKEY
-  version: '0.0.2', // YOUR APP VERSION
+  version: '', // YOUR APP VERSION
   enableCrashReporting: true,
   enableRealUserMonitoring: true,
 }
@@ -70,22 +70,21 @@ const App = () => {
                 title="Run Native Error"
               />
             </View>
-
-            <View
-              style={{
-                width: '45%',
-                backgroundColor: 'orange',
-                marginBottom: 15
-              }}>
-              <Button
-                testID="triggerUndefinedErrorBtn"
-                accessibilityLabel="triggerUndefinedErrorBtn"
-                onPress={() => {
-                  throw new Error("Test Error: Uncaught error");
-                }}
-                title="Trigger Uncaught Error"
-              />
-            </View>
+              <View
+                  style={{
+                      width: '45%',
+                      backgroundColor: 'orange',
+                      marginBottom: 15
+                  }}>
+                  <Button
+                      testID="triggerUndefinedErrorBtn"
+                      accessibilityLabel="triggerUndefinedErrorBtn"
+                      onPress={() => {
+                          throw new Error("Test Error: Uncaught error");
+                      }}
+                      title="Trigger Uncaught Error"
+                  />
+              </View>
               <View
                   style={{
                       width: '45%',

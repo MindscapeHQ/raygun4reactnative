@@ -15,7 +15,6 @@ export const setCurrentUser = (newUser: User) => {
 
 export const getCurrentUser = (): User => {
   if (!currentUser) currentUser = {...anonUser};
-  
   return { ...currentUser };
 };
 
