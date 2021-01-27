@@ -1,6 +1,11 @@
 import { ErrorUtils } from 'react-native';
 import { getDeviceId } from './Utils';
 
+export const anonUser: User = {
+  identifier: `${getDeviceId()}`,
+  isAnonymous: true
+};
+
 //#region ----RAYGUN CLIENT SESSION TYPES-----------------------------------------------------------
 
 export type RaygunClientOptions = {
@@ -29,11 +34,6 @@ export type User = {
   firstName?: string;
   fullName?: string;
   uuid?: string;
-};
-
-export const anonUser: User = {
-  identifier: `${getDeviceId()}`,
-  isAnonymous: true
 };
 
 //#endregion----------------------------------------------------------------------------------------

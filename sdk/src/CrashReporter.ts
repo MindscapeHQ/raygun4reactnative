@@ -198,7 +198,6 @@ export default class CrashReporter {
     let cache : CrashReportPayload[] = await this.getCachedCrashReports();
     let reCache : CrashReportPayload[] = [];
 
-
     for (let i = 0; i < cache.length; i++) {
       await this.sendCrashReport(cache[i]).then((success) => {
         if (!success) reCache.push(cache[i]);
@@ -252,7 +251,7 @@ export default class CrashReporter {
   }
 
   /**
-   * Processes a manually sent error (using local tags, not global).
+   * Processes a manually sent error (using local tags).
    * @param error - The Error to be processed.
    * @param details
    */
@@ -270,7 +269,7 @@ export default class CrashReporter {
 
     if(details){
       if(details.customData){
-        payloadWithLocalParams.Details.UserCustomData = Object.assign(this.customData ? this.customData : {}, details.customData);
+        payloadWithLocalParams.Details.UserCustomData = Object.assign({...this.customData}, details.customData);
       }
       if(details.tags){
         payloadWithLocalParams.Details.Tags = getCurrentTags().concat(details.tags);

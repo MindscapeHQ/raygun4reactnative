@@ -110,7 +110,10 @@ NSString *onStart = @"ON_START";
 NSString *onPause = @"ON_PAUSE";
 NSString *onResume = @"ON_RESUME";
 NSString *onDestroy = @"ON_DESTROY";
-NSString *DEVICE_ID = @"iOS DEVICE";
+
+//Retrieving and storing the device UUID
+static NSString *DEVICE_UUID = nil;
+static NSString *_Nonnull const nativeIdentifierKey = @"com.raygun.identifier";
 
 // ============================================================================
 #pragma mark - INHERITED NATIVE MODULE STARTUP METHODS -
@@ -120,7 +123,7 @@ NSString *DEVICE_ID = @"iOS DEVICE";
     startedAt = processStartTime(); //Set the time that this bridge was initialised at
 
     //Get the device id and store it
-    DEVICE_ID = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
+    [self init_Device_UUID];
 }
 
 + (BOOL) requiresMainQueueSetup {
@@ -152,7 +155,7 @@ static CFTimeInterval processStartTime() {
 - (NSDictionary<NSString *, id> *) constantsToExport {
     NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
     
-    [dict setValue: DEVICE_ID forKey: @"DEVICE_ID"];
+    [dict setValue: DEVICE_UUID forKey: @"DEVICE_ID"];
     [dict setValue: onStart forKey: onStart];
     [dict setValue: onPause forKey: onPause];
     [dict setValue: onResume forKey: onResume];
@@ -171,6 +174,41 @@ static CFTimeInterval processStartTime() {
     free(version);
     return nsVersion;
 }
+
++ (NSString *)init_Device_UUID {
+    if (DEVICE_UUID == nil) {
+        // Check if we have stored one before
+        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+        DEVICE_UUID = [defaults stringForKey:nativeIdentifierKey];
+        
+        if (!DEVICE_UUID) {
+            
+            //If not then generate a new UUID
+            #if TARGET_OS_IOS || TARGET_OS_TV
+            if ([UIDevice.currentDevice respondsToSelector:@selector(identifierForVendor)]) {
+                DEVICE_UUID = UIDevice.currentDevice.identifierForVendor.UUIDString;
+            }
+            else {
+                CFUUIDRef theUUID = CFUUIDCreate(NULL);
+                DEVICE_UUID = (__bridge NSString *)CFUUIDCreateString(NULL, theUUID);
+                CFRelease(theUUID);
+            }
+            #else
+            CFUUIDRef theUUID = CFUUIDCreate(NULL);
+            DEVICE_UUID = (__bridge NSString *)CFUUIDCreateString(NULL, theUUID);
+            CFRelease(theUUID);
+            #endif
+            
+            // Store the new UUID
+            NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+            [defaults setObject:DEVICE_UUID forKey:nativeIdentifierKey];
+            [defaults synchronize];
+        }
+    }
+    
+    return DEVICE_UUID;
+}
+
 
 // ============================================================================
 #pragma mark - NATIVE BRIDGE INTERFACE -
