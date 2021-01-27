@@ -102,8 +102,6 @@ static uint64_t getMemorySize(void) {
 
 static CFTimeInterval startedAt; //Time that this object was created
 
-BOOL crashReportingInitialized = FALSE;
-
 //RUM events to capture and send to the react layer
 NSString *viewName = @"RCTView";
 NSString *onStart = @"ON_START";
@@ -222,7 +220,10 @@ RCT_EXPORT_MODULE();
 
 RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
 {
-
+    if (realUserMonitoringInitialized) {
+        return;
+    }
+    
 #if TARGET_OS_IOS || TARGET_OS_TV
     //CREATE OBSERVERS FOR STATE CHANGE EVENTS
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillEnterForeground) name:UIApplicationWillEnterForegroundNotification object:nil];
@@ -236,6 +237,7 @@ RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
     //TRIGGER THE ON_START EVENT
     NSNumber *used = @(CACurrentMediaTime() - startedAt);
     [self sendEventWithName: onStart body:@{@"duration": used, @"name": viewName}];
+    realUserMonitoringInitialized = TRUE;
 }
 
 //RUM EVENT HANDLERS
