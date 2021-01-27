@@ -4,7 +4,6 @@ import {
   filterOutReactFrames,
   getCurrentTags,
   getCurrentUser,
-  log,
   noAddressAt,
   setCurrentTags,
   upperFirst,
@@ -193,27 +192,12 @@ export default class CrashReporter {
     await this.setCachedCrashReports(appendedCache);
 
     let newCache = await this.getCachedCrashReports();
-
-    log("Cache is now:")
-    log("^")
-    await newCache.forEach((cr) => {
-      log(`- ${cr.Details.Error.Message}`)
-    })
-    log("V")
-    log(`Cache size: ${newCache.length}`);
   }
 
   async resendCachedReports() {
-    log(`Resending reports`);
     let cache : CrashReportPayload[] = await this.getCachedCrashReports();
     let reCache : CrashReportPayload[] = [];
 
-    log("^")
-    await cache.forEach((cr) => {
-      log(`- ${cr.Details.Error.Message}`)
-    })
-    log("V")
-    log(`Cache size: ${cache.length}`);
 
     await cache.forEach(async (cr) => {
       await this.sendCrashReport(cr).then((success) => {
@@ -223,14 +207,6 @@ export default class CrashReporter {
     });
 
     await this.setCachedCrashReports(reCache);
-
-    log("After resend:");
-    log("^")
-    await reCache.forEach((cr) => {
-      log(`- ${cr.Details.Error.Message}`)
-    })
-    log("V")
-    log(`Cache size: ${reCache.length}`);
   }
 
   /**
@@ -336,11 +312,8 @@ export default class CrashReporter {
       return;
     }
 
-    log('Send crash report via JS');
-
     //Send the crash report, caching it if the transmission is not successful
     this.sendCrashReport(modifiedPayload).then((success) => {
-      log(`Crash report sent, success: ${success}`);
       if (!success) this.cacheCrashReports(modifiedPayload);
       else {this.resendCachedReports()}
     });
@@ -430,7 +403,6 @@ export default class CrashReporter {
         body: JSON.stringify(report)
       })
       .then((response) => {
-        log(`Report sent! status: ${response.status}`)
         if (response.status === this.RAYGUN_RATE_LIMITING_STATUS_CODE) return false
         return true;
       }).catch((error) => {
