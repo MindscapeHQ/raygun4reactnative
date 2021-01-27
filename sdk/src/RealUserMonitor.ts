@@ -69,14 +69,14 @@ export default class RealUserMonitor {
 
     // Create native event listeners on this device
     const eventEmitter = new NativeEventEmitter(RaygunNativeBridge);
-    eventEmitter.addListener(RaygunNativeBridge.ON_START, this.sendViewLoadedEvent.bind(this));
-    eventEmitter.addListener(RaygunNativeBridge.ON_PAUSE, this.markSessionInteraction.bind(this));
-    eventEmitter.addListener(RaygunNativeBridge.ON_RESUME, this.rotateRUMSession.bind(this));
-    eventEmitter.addListener(RaygunNativeBridge.ON_DESTROY, () => {
-      eventEmitter.removeAllListeners(RaygunNativeBridge.ON_START);
-      eventEmitter.removeAllListeners(RaygunNativeBridge.ON_PAUSE);
-      eventEmitter.removeAllListeners(RaygunNativeBridge.ON_RESUME);
-      eventEmitter.removeAllListeners(RaygunNativeBridge.ON_DESTROY);
+    eventEmitter.addListener(RaygunNativeBridge.ON_SESSION_START, this.sendViewLoadedEvent.bind(this));
+    eventEmitter.addListener(RaygunNativeBridge.ON_SESSION_PAUSE, this.markSessionInteraction.bind(this));
+    eventEmitter.addListener(RaygunNativeBridge.ON_SESSION_RESUME, this.rotateRUMSession.bind(this));
+    eventEmitter.addListener(RaygunNativeBridge.ON_SESSION_END, () => {
+      eventEmitter.removeAllListeners(RaygunNativeBridge.ON_SESSION_START);
+      eventEmitter.removeAllListeners(RaygunNativeBridge.ON_SESSION_PAUSE);
+      eventEmitter.removeAllListeners(RaygunNativeBridge.ON_SESSION_RESUME);
+      eventEmitter.removeAllListeners(RaygunNativeBridge.ON_SESSION_END);
     });
   }
 

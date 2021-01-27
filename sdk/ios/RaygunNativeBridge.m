@@ -103,11 +103,11 @@ static uint64_t getMemorySize(void) {
 static CFTimeInterval startedAt; //Time that this object was created
 
 //RUM events to capture and send to the react layer
-NSString *viewName = @"RCTView";
-NSString *onStart = @"ON_START";
-NSString *onPause = @"ON_PAUSE";
-NSString *onResume = @"ON_RESUME";
-NSString *onDestroy = @"ON_DESTROY";
+NSString *onSessionStart = @"ON_SESSION_START";
+NSString *onSessionPause = @"ON_SESSION_PAUSE";
+NSString *onSessionResume = @"ON_SESSION_RESUME";
+NSString *onSessionEnd = @"ON_SESSION_END";
+
 
 //Retrieving and storing the device UUID
 static NSString *DEVICE_UUID = nil;
@@ -154,10 +154,10 @@ static CFTimeInterval processStartTime() {
     NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
     
     [dict setValue: DEVICE_UUID forKey: @"DEVICE_ID"];
-    [dict setValue: onStart forKey: onStart];
-    [dict setValue: onPause forKey: onPause];
-    [dict setValue: onResume forKey: onResume];
-    [dict setValue: onDestroy forKey: onDestroy];
+    [dict setValue: onSessionStart forKey: onSessionStart];
+    [dict setValue: onSessionPause forKey: onSessionPause];
+    [dict setValue: onSessionResume forKey: onSessionResume];
+    [dict setValue: onSessionEnd forKey: onSessionEnd];
     [dict setValue: [self getVersion: "kern.osversion"] forKey:@"osVersion"];
     [dict setValue: [self platform] forKey:@"platform"];
     return dict;
@@ -236,29 +236,32 @@ RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
 #endif
     //TRIGGER THE ON_START EVENT
     NSNumber *used = @(CACurrentMediaTime() - startedAt);
-    [self sendEventWithName: onStart body:@{@"duration": used, @"name": viewName}];
+    [self sendEventWithName: onSessionStart body:@{@"duration": used, @"name": viewName}];
+    
     realUserMonitoringInitialized = TRUE;
 }
 
-//RUM EVENT HANDLERS
+//RUM SESSION EVENTS
 
 - (void)applicationWillEnterForeground {
-    [self sendEventWithName: onResume body:@{@"name": viewName}];
+    [self sendEventWithName: onSessionResume body:@{@"name": viewName}];
 }
 
 - (void)applicationDidEnterBackground {
-    [self sendEventWithName: onPause body:@{@"name": viewName}];
+    [self sendEventWithName: onSessionPause body:@{@"name": viewName}];
 }
 
 - (void)applicationWillTerminate {
-    [self sendEventWithName: onDestroy body:@{@"name": viewName}];
+    [self sendEventWithName: onSessionEnd body:@{@"name": viewName}];
 }
 
 //RUM EVENTS THAT CAN OCCUR
 - (NSArray<NSString *> *)supportedEvents
 {
-  return @[onStart, onPause, onResume, onDestroy];
+  return @[onSessionStart, onSessionPause, onSessionResume, onSessionEnd];
 }
+
+
 
 // ============================================================================
 #pragma mark - CRASH REPORTING INITIALISATION -
