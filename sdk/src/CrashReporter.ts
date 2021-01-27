@@ -199,14 +199,14 @@ export default class CrashReporter {
     let reCache : CrashReportPayload[] = [];
 
 
-    await cache.forEach(async (cr) => {
-      await this.sendCrashReport(cr).then((success) => {
-        log(`Report resent, success: ${success}`);
-        if (!success) reCache.concat(cr);
+    for (let i = 0; i < cache.length; i++) {
+      await this.sendCrashReport(cache[i]).then((success) => {
+        if (!success) reCache.push(cache[i]);
       });
-    });
+    }
 
-    await this.setCachedCrashReports(reCache);
+    this.setCachedCrashReports(reCache);
+
   }
 
   /**
