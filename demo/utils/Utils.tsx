@@ -16,7 +16,7 @@ export const styles = StyleSheet.create({
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    width: '60%',
+    width: '100%',
     marginBottom: "5%",
   },
   title: {
@@ -26,7 +26,9 @@ export const styles = StyleSheet.create({
   subtitle: {
     fontWeight: "bold",
     fontStyle: "italic",
-    fontSize: 20
+    fontSize: 18,
+    alignSelf: "flex-start",
+    marginHorizontal: "5%"
   },
   text: {
     fontSize: 16
