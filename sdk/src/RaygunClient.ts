@@ -126,7 +126,7 @@ const getTags = (): string[] => {
  * the new one.
  * @param user - The new name or user object to assign.
  */
-const setUser = (user: User) => {
+const setUser = (user: User | null) => {
   if (realUserMonitoringAvailable('setUser')) {
     if (!getUser().isAnonymous) realUserMonitor.rotateRUMSession();
     //User is beginning a new session
@@ -134,7 +134,7 @@ const setUser = (user: User) => {
   }
 
   //Update user across the react side
-  setCurrentUser(!user.isAnonymous ? { ...user } : anonUser);
+  setCurrentUser(user ? { ...user } : anonUser);
 
   //Update user on the native side
   if (!options.disableNativeCrashReporting) {
