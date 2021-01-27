@@ -33,8 +33,8 @@ declare const global: { HermesInternal: null | {} };
 const {RaygunDemoBridge} = NativeModules;
 
 const options: RaygunClientOptions = {
-  apiKey:'w8Jy8Ky0kHZJ1ydU561QmA', // YOUR APIKEY
-  version: '0.0.2', // YOUR APP VERSION
+  apiKey:'', // YOUR APIKEY
+  version: '', // YOUR APP VERSION
   enableCrashReporting: true,
   enableRealUserMonitoring: true,
 }
