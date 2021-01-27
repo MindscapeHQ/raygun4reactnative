@@ -10,9 +10,9 @@ import {
   RealUserMonitoringTimings,
   BeforeSendHandler,
   anonUser,
-  Breadcrumb
+  Breadcrumb, ManualCrashReportDetails
 } from './Types';
-import { getCurrentTags, getDeviceBasedId, log, setCurrentTags, setCurrentUser, getCurrentUser, warn } from './Utils';
+import { getCurrentTags, getDeviceId, log, setCurrentTags, setCurrentUser, getCurrentUser, warn } from './Utils';
 import CrashReporter from './CrashReporter';
 import RealUserMonitor from './RealUserMonitor';
 import { Animated, NativeModules } from 'react-native';
@@ -192,22 +192,12 @@ const clearBreadcrumbs = () => {
  * 3)   RaygunClient.sendError(new Error(), "Foo", "Bar");
  *
  * @param error - The error.
- * @param params - Custom data or tags alongside the error.
+ * @param details
  * @see CustomData
  */
-const sendError = async (error: Error, ...params: any) => {
+const sendError = async (error: Error, details?: ManualCrashReportDetails) => {
   if (!crashReportingAvailable('sendError')) return;
-
-  const [customData, tags] = params.length == 1 && Array.isArray(params[0]) ? [null, params[0]] : params;
-
-  if (customData) {
-    setCustomData(customData as CustomData);
-  }
-  if (tags && tags.length) {
-    setTags(tags);
-  }
-
-  await crashReporter.processUnhandledError(error);
+  await crashReporter.processManualCrashReport(error, details);
 };
 
 /**
