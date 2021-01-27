@@ -72,16 +72,12 @@
 }
 
 - (void)recordViewLoadStartTime {
-    if (realUserMonitoringInitialized) {
-        //Record this views loading start time
-    }
+    //Record this views loading start time
 }
 
 - (void)viewDidAppearCapture:(BOOL)animated {
     [self viewDidAppearCapture:animated];
-    if (realUserMonitoringInitialized) {
-       //Send view loaded event adn calculate duration based on start time
-    }
+    //Send view loaded event adn calculate duration based on start time
 }
 
 @end

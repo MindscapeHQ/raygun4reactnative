@@ -162,10 +162,13 @@ export default class RealUserMonitor {
    * @param payload
    */
   async sendViewLoadedEvent(payload: Record<string, any>) {
+
+    log("sending View Loaded!!!!!")
+
     const { name, duration } = payload;
 
     if (!this.RealUserMonitoringSessionId) {
-      this.RealUserMonitoringSessionId = getDeviceId();
+      this.generateNewSessionId();
       await this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
     }
     const data = { name, timing: { type: RealUserMonitoringTimings.ViewLoaded, duration } };
@@ -204,11 +207,16 @@ export default class RealUserMonitor {
    * @param timeAt - The time at which this event occurred, defaults to NOW if undefined/null.
    */
   async transmitRealUserMonitoringEvent(eventName: string, data: Record<string, any>, timeAt?: number) {
+
+    log(`Transmitting ${eventName} event to: ${this.raygunRumEndpoint}?apiKey=${encodeURIComponent(this.apiKey)}`);
+
     //Check whether the session has been idle long enough to rotate it
     if (Date.now() - this.lastSessionInteractionTime > SessionRotateThreshold) await this.rotateRUMSession();
     else this.markSessionInteraction();
 
     const rumMessage = this.generateRealUserMonitorPayload(eventName, data, timeAt);
+
+    log(`RUM MESSAGE: ${JSON.stringify(rumMessage)}`)
 
     return fetch(this.raygunRumEndpoint + '?apiKey=' + encodeURIComponent(this.apiKey),
       {

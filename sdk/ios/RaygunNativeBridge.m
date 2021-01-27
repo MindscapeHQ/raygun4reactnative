@@ -108,6 +108,12 @@ NSString *onSessionPause = @"ON_SESSION_PAUSE";
 NSString *onSessionResume = @"ON_SESSION_RESUME";
 NSString *onSessionEnd = @"ON_SESSION_END";
 
+NSString *onViewLoaded = @"ON_VIEW_LOADED";
+
+NSString *viewName = @"RCTView";
+
+static BOOL crashReportingInitialized = FALSE;
+static BOOL realUserMonitoringInitialized = FALSE;
 
 //Retrieving and storing the device UUID
 static NSString *DEVICE_UUID = nil;
@@ -260,8 +266,6 @@ RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
 {
   return @[onSessionStart, onSessionPause, onSessionResume, onSessionEnd];
 }
-
-
 
 // ============================================================================
 #pragma mark - CRASH REPORTING INITIALISATION -

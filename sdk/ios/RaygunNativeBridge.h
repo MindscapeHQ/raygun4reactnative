@@ -3,7 +3,4 @@
 
 @interface RaygunNativeBridge : RCTEventEmitter <RCTBridgeModule>
 
-static BOOL crashReportingInitialized = FALSE;
-static BOOL realUserMonitoringInitialized = FALSE;
-
 @end
