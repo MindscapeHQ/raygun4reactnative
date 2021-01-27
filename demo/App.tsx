@@ -41,8 +41,6 @@ const options: RaygunClientOptions = {
 
 RaygunClient.init(options);
 
-RaygunClient.setMaxReportsStoredOnDevice(5);
-
 const App = () => {
   return (
     <>
@@ -70,22 +68,6 @@ const App = () => {
                 accessibilityLabel="runNativeError"
                 onPress={() => RaygunDemoBridge.runNativeError()}
                 title="Run Native Error"
-              />
-            </View>
-
-            <View
-              style={{
-                width: '45%',
-                backgroundColor: 'orange',
-                marginBottom: 15
-              }}>
-              <Button
-                testID="triggerUndefinedErrorBtn"
-                accessibilityLabel="triggerUndefinedErrorBtn"
-                onPress={() => {
-                  throw new Error("Test Error: Uncaught error");
-                }}
-                title="Trigger Uncaught Error"
               />
             </View>
               <View
@@ -223,24 +205,6 @@ const App = () => {
                 title="Add Simple Breadcrumbs Data"
               />
             </View>
-
-            <View
-              style={{
-                width: '45%',
-                marginBottom: 15
-              }}>
-              <Button
-                color="orange"
-                testID="THING"
-                accessibilityLabel="THING"
-                onPress={() => {
-                  RaygunClient.cacheAReport();
-                }
-                }
-                title="CACHE SOMETHING"
-              />
-            </View>
-
               <View
                   style={{
                       width: '45%',
