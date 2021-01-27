@@ -22,10 +22,10 @@ const SessionRotateThreshold = 30 * 60 * 1000; //milliseconds (equivalent to 30 
 export default class RealUserMonitor {
   //#region ----INITIALIZATION----------------------------------------------------------------------
 
-  private readonly apiKey: string;
-  private readonly version: string;
-  private readonly disableNetworkMonitoring: boolean;
-  private readonly ignoredURLs: string[];
+  private apiKey: string;
+  private version: string;
+  private disableNetworkMonitoring: boolean;
+  private ignoredURLs: string[];
   private requests = new Map<string, RequestMeta>();
   private raygunRumEndpoint = 'https://api.raygun.com/events';
 
