@@ -110,8 +110,6 @@ NSString *onSessionEnd = @"ON_SESSION_END";
 
 NSString *onViewLoaded = @"ON_VIEW_LOADED";
 
-NSString *viewName = @"RCTView";
-
 static BOOL crashReportingInitialized = FALSE;
 static BOOL realUserMonitoringInitialized = FALSE;
 
@@ -242,7 +240,7 @@ RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
 #endif
     //TRIGGER THE ON_START EVENT
     NSNumber *used = @(CACurrentMediaTime() - startedAt);
-    [self sendEventWithName: onSessionStart body:@{@"duration": used, @"name": viewName}];
+    [self sendEventWithName: onSessionStart body:@{}];
     
     realUserMonitoringInitialized = TRUE;
 }
@@ -250,21 +248,21 @@ RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
 //RUM SESSION EVENTS
 
 - (void)applicationWillEnterForeground {
-    [self sendEventWithName: onSessionResume body:@{@"name": viewName}];
+    [self sendEventWithName: onSessionResume body:@{}];
 }
 
 - (void)applicationDidEnterBackground {
-    [self sendEventWithName: onSessionPause body:@{@"name": viewName}];
+    [self sendEventWithName: onSessionPause body:@{}];
 }
 
 - (void)applicationWillTerminate {
-    [self sendEventWithName: onSessionEnd body:@{@"name": viewName}];
+    [self sendEventWithName: onSessionEnd body:@{}];
 }
 
 //RUM EVENTS THAT CAN OCCUR
 - (NSArray<NSString *> *)supportedEvents
 {
-  return @[onSessionStart, onSessionPause, onSessionResume, onSessionEnd];
+  return @[onSessionStart, onSessionPause, onSessionResume, onViewLoaded, onSessionEnd];
 }
 
 // ============================================================================

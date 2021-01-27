@@ -69,13 +69,15 @@ export default class RealUserMonitor {
 
     // Create native event listeners on this device
     const eventEmitter = new NativeEventEmitter(RaygunNativeBridge);
-    eventEmitter.addListener(RaygunNativeBridge.ON_SESSION_START, this.sendViewLoadedEvent.bind(this));
+    eventEmitter.addListener(RaygunNativeBridge.ON_SESSION_START, this.sessionStarted.bind(this));
     eventEmitter.addListener(RaygunNativeBridge.ON_SESSION_PAUSE, this.markSessionInteraction.bind(this));
     eventEmitter.addListener(RaygunNativeBridge.ON_SESSION_RESUME, this.rotateRUMSession.bind(this));
+    eventEmitter.addListener(RaygunNativeBridge.ON_VIEW_LOADED, this.sendViewLoadedEvent.bind(this));
     eventEmitter.addListener(RaygunNativeBridge.ON_SESSION_END, () => {
       eventEmitter.removeAllListeners(RaygunNativeBridge.ON_SESSION_START);
       eventEmitter.removeAllListeners(RaygunNativeBridge.ON_SESSION_PAUSE);
       eventEmitter.removeAllListeners(RaygunNativeBridge.ON_SESSION_RESUME);
+      eventEmitter.removeAllListeners(RaygunNativeBridge.ON_VIEW_LOADED);
       eventEmitter.removeAllListeners(RaygunNativeBridge.ON_SESSION_END);
     });
   }
@@ -115,6 +117,16 @@ export default class RealUserMonitor {
    */
   markSessionInteraction() {
     this.lastSessionInteractionTime = Date.now();
+  }
+
+  /**
+   * Generate the sessionID and transmit a sessionStarted event
+   */
+  sessionStarted() {
+    if (!this.RealUserMonitoringSessionId) {
+      this.generateNewSessionId();
+    }
+    this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
   }
 
   //#endregion--------------------------------------------------------------------------------------
@@ -167,10 +179,6 @@ export default class RealUserMonitor {
 
     const { name, duration } = payload;
 
-    if (!this.RealUserMonitoringSessionId) {
-      this.generateNewSessionId();
-      await this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
-    }
     const data = { name, timing: { type: RealUserMonitoringTimings.ViewLoaded, duration } };
     return this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.EventTiming, data);
   }
