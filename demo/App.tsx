@@ -73,6 +73,21 @@ const App = () => {
               <View
                   style={{
                       width: '45%',
+                      backgroundColor: 'orange',
+                      marginBottom: 15
+                  }}>
+                  <Button
+                      testID="triggerUndefinedErrorBtn"
+                      accessibilityLabel="triggerUndefinedErrorBtn"
+                      onPress={() => {
+                          throw new Error("Test Error: Uncaught error");
+                      }}
+                      title="Trigger Uncaught Error"
+                  />
+              </View>
+              <View
+                  style={{
+                      width: '45%',
                       backgroundColor: 'yellow',
                       marginBottom: 15
                   }}>
@@ -205,22 +220,6 @@ const App = () => {
                 title="Add Simple Breadcrumbs Data"
               />
             </View>
-              <View
-                  style={{
-                      width: '45%',
-                      marginBottom: 15
-                  }}>
-                  <Button
-                      color="orange"
-                      testID="THING"
-                      accessibilityLabel="THING"
-                      onPress={() => {
-                          RaygunClient.setMaxReportsStoredOnDevice(2);
-                      }
-                      }
-                      title="CACHE SIZE TO 2"
-                  />
-              </View>
 
             <View
               style={{
