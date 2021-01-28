@@ -175,7 +175,7 @@ export default function RealUserMonitoring() {
             {loggedIn && (
               <Image
                 style={styles.image}
-                source={require("../utils/Logged_In.png")}/>
+                source={require("../utils/Random_Image.png")}/>
             )}
 
             {loggedIn && (
