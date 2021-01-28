@@ -143,7 +143,7 @@ export default function RealUserMonitoring() {
 
             <View style={styles.secondView}>
               <Button
-                title={"Send Custom Network Event"}
+                title={"Send Custom View Event"}
                 color={"green"}
                 onPress={() => sendCustomViewEvent()}/>
             </View>
