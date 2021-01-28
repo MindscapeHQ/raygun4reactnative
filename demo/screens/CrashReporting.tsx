@@ -263,7 +263,7 @@ export default function CrashReporting() {
                 onPress={() => {
                   try {
                     // Something that can throw an error occurs in here
-                    throw new Error("Test Error: Caught Error")
+                    throw new Error("Test Error: Captured Error")
                   } catch (e) {
                     // After catching the error, send it to Raygun to log
                     if (!isSelected) {
