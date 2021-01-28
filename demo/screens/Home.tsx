@@ -65,9 +65,6 @@ const options: RaygunClientOptions = {
 const user1: User = {
   identifier: "Test_User_1",
   isAnonymous: false,
-  firstName: "Ronald",
-  fullName: "Ronald Raygun",
-  email: ""
 }
 
 /**
@@ -79,7 +76,6 @@ const user2: User = {
   isAnonymous: false,
   firstName: "Ruby",
   fullName: "Ruby Raygun",
-  email: ""
 }
 
 //#endregion ---------------------------------------------------------------------------------------
@@ -91,17 +87,21 @@ export default function Home() {
   const [tagsBtn, setTagsBtn] = useState("Set Tags #1");
   const [userBtn, setUserBtn] = useState("Set User #1");
 
+  /**
+   * IMPORTANT: Look in the '/utils/Utils.tsx' file to see how we made the RaygunClient object globally accessible.
+   * Look above in the 'Initialization Objects' region for more details.
+   * Usually this initialization would be done when the application is created (Top of App.tsx file). However, for
+   * the purposes of this demo application, we have allowed for this interaction such that the user can see the logged
+   * values if the client is not initialized.
+   */
   const initialize = () => {
-    // IMPORTANT: Look in the '/utils/Utils.tsx' file to see how we made the RaygunClient object
-    // globally accessible.
-    // Look above in the 'Initialization Objects' region for more details.
     raygunClient.init(options);
     setInitBtn("Try Reinitialize")
     setInitBtnColor("red");
   }
 
   /**
-   * Example of: getTags()
+   * Example of: getTags().
    */
   const showTags = () => {
     if (tagsBtn === "Set Tags #1") {
@@ -119,7 +119,7 @@ export default function Home() {
   }
 
   /**
-   * Example of: getUser()
+   * Example of: getUser().
    */
   const showUser = () => {
     // Get the current user
@@ -134,7 +134,7 @@ export default function Home() {
 
 
   /**
-   * Example of: setTags(...)
+   * Example of: setTags().
    */
   const setTags = () => {
     switch (tagsBtn) {
@@ -153,7 +153,7 @@ export default function Home() {
   }
 
   /**
-   * Example of: setUser(...)
+   * Example of: setUser().
    */
   const setUser = () => {
     switch (userBtn) {
