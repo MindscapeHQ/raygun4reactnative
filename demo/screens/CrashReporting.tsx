@@ -18,10 +18,16 @@ const {RaygunDemoBridge} = NativeModules
 
 //#region -- Breadcrumb Objects --------------------------------------------------------------------
 
+/**
+ * This is an example of a simplistic Breadcrumb. Using the bare minimum amount of fields.
+ */
 const bc1: Breadcrumb = {
   message: "Stage 1",
 }
 
+/**
+ * This is an example of a complex Breadcrumb. Using ALL the fields available.
+ */
 const bc2: Breadcrumb = {
   category: "Test",
   customData: {"Test": "Custom Data for Breadcrumbs"},
@@ -34,24 +40,45 @@ const bc2: Breadcrumb = {
 
 //#region -- Custom Data Objects -------------------------------------------------------------------
 
-// Basic custom data example
+/**
+ * This is an example of a basic Custom Data object. Like most Javascript/Typescript objects, these objects are filled
+ * with key: value pairs. This basic Custom Data object uses three different 'BasicType' values. number, string or boolean.
+ */
 const products: CustomData = {
   Object_1: 10,
-  Object_2: 30,
-  Object_3: 26,
+  Object_2: "String",
+  Object_3: true,
 }
 
-// Complex custom data example
-const activeEmployees: string[] = ["Ronald", "Ruby", "Raygun"];
+/**
+ * This is an example of a complex Custom Data object. Like most Javascript/Typescript objects, these objects are filled
+ * with key: value pairs. This complex Custom Data object uses three different types of 'values'. A Custom Data object
+ * can also hold an array of BasicTypes (see above), another Custom Data object, or an array of Custom Data objects.
+ */
+const activeEmployees: any[] = ["Ronald", 10, "Ruby", true, "Raygun"];
 const teamLead: CustomData = {
-  name: "Ronald",
+  name: "Raygun",
   age: 32,
   date: Date.now(),
 }
-// Custom data inside custom data
+const employee1: CustomData = {
+  name: "Ronald",
+  age: 27,
+  date: Date.now(),
+}
+const employee2: CustomData = {
+  name: "Ruby",
+  age: 26,
+  date: Date.now(),
+}
+
+/**
+ * This is the Custom Data object we will be sending to Raygun.
+ */
 const sessionEmployees: CustomData = {
   active: activeEmployees,
   lead: teamLead,
+  team: [employee1, employee2]
 }
 
 //#endregion ---------------------------------------------------------------------------------------
@@ -66,7 +93,7 @@ export default function CrashReporting() {
 
 
   /**
-   * Example of: getBreadcrumbs()
+   * Example of: getBreadcrumbs().
    */
   const showBreadcrumbs = () => {
     // Get the current Breadcrumb
@@ -94,7 +121,7 @@ export default function CrashReporting() {
 
 
   /**
-   * Example of: getCustomData
+   * Example of: getCustomData().
    */
   const showCustomData = () => {
     const clientCustomData: CustomData | null | undefined = raygunClient.getCustomData();
@@ -129,7 +156,7 @@ export default function CrashReporting() {
   }
 
   /**
-   * Example of: addBreadcrumbs
+   * Example of: addBreadcrumbs().
    */
   const recordBreadcrumb = () => {
     switch (breadcrumbsBtn) {
@@ -149,7 +176,7 @@ export default function CrashReporting() {
   }
 
   /**
-   * Example of: setCustomData
+   * Example of: setCustomData().
    */
   const setCustomData = () => {
     switch (customDataBtn) {
@@ -204,7 +231,7 @@ export default function CrashReporting() {
 
   /**
    * Example of: Catching an error and sending it through to Raygun, tagging with "ignore" such that the beforeSendHandler
-   * that is setup (see Home.tsx) can catch the error and ignore it.
+   * that is setup (see Home.tsx) can catch the error and ignore it from being sent to Raygun.
    */
   const runCaughtAndIgnoredError = () => {
     try {
