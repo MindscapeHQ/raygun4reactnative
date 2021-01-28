@@ -168,22 +168,119 @@ export default function CrashReporting() {
     }
   }
 
+  /**
+   * Example of: An error being thrown
+   */
+  const throwError = () => {
+    throw new Error("Test Error: Uncaught Error")
+  }
+
+  /**
+   * Example of: Catching an error and sending it through to Raygun
+   */
+  const runCaughtError = () => {
+    try {
+      // Something that can throw an error occurs in here
+      throw new Error("Test Error: Captured Error")
+    } catch (e) {
+      // After catching the error, send it to Raygun to log
+      if (!isSelected) {
+        // Simply send the error away, only attaching global variables
+        raygunClient.sendError(e)
+      } else {
+        // LOCAL VARIABLES (these parameters will be local to this error only, along with all
+        // currently existing global variables).
+        const customData: CustomData = {"Local": "This is local custom data"};
+        const tags: string[] = ["Local Tag 1", "Local Tag 2"];
+        const mcr: ManualCrashReportDetails = {
+          customData: customData, // Neither of these are mandatory.
+          tags: tags
+        }
+        raygunClient.sendError(e, mcr);
+      }
+    }
+  }
+
+
+  /**
+   * Example of: Catching an error and sending it through to Raygun, tagging with "ignore" such that the beforeSendHandler
+   * that is setup (see Home.tsx) can catch the error and ignore it.
+   */
+  const runCaughtAndIgnoredError = () => {
+    try {
+      // Something that can throw an error occurs in here
+      throw new Error("Test Error: Captured Error")
+    } catch (e) {
+      // After catching the error, send it to Raygun to log
+      if (!isSelected) {
+        // Simply send the error away, only attaching global variables
+        raygunClient.sendError(e)
+      } else {
+        const mcr: ManualCrashReportDetails = {
+          tags: ["ignore"]
+        }
+        raygunClient.sendError(e, mcr);
+      }
+    }
+  }
+
+  /**
+   * Example of: An uncaught promise rejection. These are not caught by the error catcher, however RaygunClient will
+   * catch both error and promise rejections.
+   */
+  const throwPromiseRejection = () => {
+    Promise.reject(new Error("Test Error: Promise Rejection"))
+  }
+
+  /**
+   * Example of: Setting the maximum amount of errors stored on some device.
+   */
+  const updateMaxCachedErrors = () => {
+    const tens = numberOfCacheTens.length === 0 ? 0 : Number(numberOfCacheTens);
+    const ones = numberOfCacheOnes.length === 0 ? 0 : Number(numberOfCacheOnes);
+    raygunClient.setMaxReportsStoredOnDevice((tens * 10) + ones);
+    setUpdateBtn("grey");
+  }
+
+  /**
+   * Updates the ten's value that is stored.
+   * @param text - A digit value
+   */
+  const updateTensValue = (text: string) => {
+    const newText = text.replace(numberOfCacheTens.toString(), "");
+    if (isNaN(Number(newText))) return;
+    setNumberOfCacheTens(newText)
+    setUpdateBtn("green");
+  }
+
+  /**
+   * Updates the one's value that is stored.
+   * @param text - A digit value
+   */
+  const updateOnesValue = (text: string) => {
+    const newText = text.replace(numberOfCacheOnes.toString(), "");
+    if (isNaN(Number(newText))) return;
+    setNumberOfCacheOnes(newText)
+    setUpdateBtn("green");
+  }
+
   return (
     <>
       <StatusBar barStyle="dark-content"/>
       <SafeAreaView>
         <ScrollView contentInsetAdjustmentBehavior="automatic" style={styles.scrollView}>
-          <View key={"Image"} style={styles.mainView}>
+          {/*Raygun Logo*/}
+          <View key={"Raygun Logo"} style={styles.mainView}>
             <Image
               style={styles.image}
               source={require("../utils/Raygun_Logo.png")}/>
           </View>
 
 
-          {/*BREADCRUMB SECTION*/}
-          <View key={"BREADCRUMBS"} style={styles.mainView}>
+          {/*Record Breadcrumbs section*/}
+          <View style={styles.mainView}>
             <View style={styles.secondView}>
-              <Text key={"Breadcrumbs:"} style={styles.title}>Breadcrumbs:</Text>
+              <Text key={"Breadcrumbs Title"} style={styles.title}>Breadcrumbs:</Text>
               {showBreadcrumbs()}
             </View>
             <View style={styles.secondView}>
@@ -195,10 +292,10 @@ export default function CrashReporting() {
             </View>
           </View>
 
-          {/*CUSTOM DATA SECTION*/}
-          <View key={"CUSTOMDATA"} style={styles.mainView}>
+          {/*Update Custom Data section*/}
+          <View style={styles.mainView}>
             <View style={styles.secondView}>
-              <Text key={"Custom Data:"} style={styles.title}>Custom Data:</Text>
+              <Text key={"Custom Data Title"} style={styles.title}>Custom Data:</Text>
               {showCustomData()}
             </View>
 
@@ -211,46 +308,42 @@ export default function CrashReporting() {
             </View>
           </View>
 
-          {/*UNCAUGHT ERROR SECTION*/}
-          <View key={"ERROR"} style={styles.mainView}>
+          {/*Throw Uncaught Error section*/}
+          <View style={styles.mainView}>
             <View style={styles.secondView}>
-              <Text key={"throw error"} style={styles.title}>React Uncaught Error</Text>
+              <Text key={"Uncaught Error Title"} style={styles.title}>React Uncaught Error</Text>
             </View>
             <View style={styles.secondView}>
               <Button
                 title={"Throw Uncaught Error"}
                 color={"red"}
-                onPress={() => {
-                  throw new Error("Test Error: Uncaught Error")
-                }}
+                onPress={() => {throwError()}}
               />
             </View>
           </View>
 
-          {/*NATIVE ERROR SECTION*/}
-          <View key={"NATIVE"} style={styles.mainView}>
+          {/*Throw Native Error Section*/}
+          <View style={styles.mainView}>
             <View style={styles.secondView}>
-              <Text key={"send native error"} style={styles.title}>Native Uncaught Error</Text>
+              <Text key={"Native Error Title"} style={styles.title}>Native Uncaught Error</Text>
             </View>
 
             <View style={styles.secondView}>
               <Button
                 title={"Throw Native Error"}
                 color={"red"}
-                onPress={() => {
-                  RaygunDemoBridge.runNativeError()
-                }}
+                onPress={() => {RaygunDemoBridge.runNativeError()}}
               />
             </View>
           </View>
 
-          {/*SEND ERROR SECTION*/}
-          <View key={"CUTSOMERROR"} style={styles.mainView}>
+          {/*Throw Custom Error section*/}
+          <View style={styles.mainView}>
             <View style={styles.secondView}>
-              <Text key={"send custom error"} style={styles.title}>Caught Error</Text>
+              <Text key={"Custom Error Title"} style={styles.title}>Caught Error</Text>
 
               <View style={{flexDirection: "row"}}>
-                <Text key={"send custom error 2"} style={styles.subtitle}>Use local
+                <Text key={"Custom Error Local Variables Question"} style={styles.subtitle}>Use local
                   variables?</Text>
                 <CheckBox value={isSelected} onValueChange={setSelection}/>
               </View>
@@ -260,73 +353,48 @@ export default function CrashReporting() {
               <Button
                 title={"Send Custom Error"}
                 color={"orange"}
-                onPress={() => {
-                  try {
-                    // Something that can throw an error occurs in here
-                    throw new Error("Test Error: Captured Error")
-                  } catch (e) {
-                    // After catching the error, send it to Raygun to log
-                    if (!isSelected) {
-                      // Simply send the error away, only attaching global variables
-                      raygunClient.sendError(e)
-                    } else {
-                      // LOCAL VARIABLES (these parameters will be local to this error only, along with all
-                      // currently existing global variables).
-                      const customData: CustomData = {"Local": "This is local custom data"};
-                      const tags: string[] = ["Local Tag 1", "Local Tag 2"];
-                      const mcr: ManualCrashReportDetails = {
-                        customData: customData, // Neither of these are mandatory.
-                        tags: tags
-                      }
-                      raygunClient.sendError(e, mcr);
-                    }
-                  }
-                }}
+                onPress={() => {runCaughtError()}}
+              />
+            </View>
+
+            <View style={styles.secondView}>
+              <Button
+                  title={"Send Custom Ignored Error"}
+                  color={"orange"}
+                  onPress={() => {runCaughtAndIgnoredError()}}
               />
             </View>
           </View>
 
-
+          {/*Throw Promise Rejection section*/}
           <View style={styles.mainView}>
             <View style={styles.secondView}>
-              <Text style={styles.title}>Promise Rejection</Text>
+              <Text key={"Promise Rejection Title"} style={styles.title}>Promise Rejection</Text>
               <Button
                 title={"Throw promise rejection"}
                 color={"yellowgreen"}
-                onPress={() => {
-                  Promise.reject(new Error("Test Error: Promise Rejection"))
-                }}/>
+                onPress={() => {throwPromiseRejection()}}/>
             </View>
           </View>
 
-          {/*SET MAX CACHED ERROR SECTION*/}
+          {/*Set Max Cache Size section*/}
           <View style={styles.mainView}>
             <View style={styles.secondView}>
-              <Text key={"set cache size"} style={styles.title}>Set Max Cached Errors</Text>
+              <Text key={"Set Cache Size Title"} style={styles.title}>Set Max Cached Errors</Text>
               <View style={{flexDirection: "row"}}>
-                <Text style={styles.subtitle}>Number of saved Crash Report?</Text>
+                <Text key={"Set Cache Size Question"} style={styles.subtitle}>Number of saved Crash Report?</Text>
                 {/*TENS*/}
                 <TextInput
                   style={styles.smallInput}
                   value={numberOfCacheTens.toString()}
-                  onChangeText={(text) => {
-                    const newText = text.replace(numberOfCacheTens.toString(), "");
-                    if (isNaN(Number(newText))) return;
-                    setNumberOfCacheTens(newText)
-                    setUpdateBtn("green");
-                  }}
+                  onChangeText={(text) => {updateTensValue(text)}}
                   keyboardType={"number-pad"}
                 />
                 {/*ONES*/}
                 <TextInput
                   style={styles.smallInput}
                   value={numberOfCacheOnes.toString()}
-                  onChangeText={(text) => {
-                    const newText = text.replace(numberOfCacheOnes.toString(), "");
-                    if (isNaN(Number(newText))) return;
-                    setNumberOfCacheOnes(newText)
-                    setUpdateBtn("green");
-                  }}
+                  onChangeText={(text) => {updateOnesValue(text)}}
                   keyboardType={"number-pad"}
                 />
               </View>
@@ -334,12 +402,7 @@ export default function CrashReporting() {
               <Button
                 title={"Update"}
                 color={updateBtn}
-                onPress={() => {
-                  const tens = numberOfCacheTens.length === 0 ? 0 : Number(numberOfCacheTens);
-                  const ones = numberOfCacheOnes.length === 0 ? 0 : Number(numberOfCacheOnes);
-                  raygunClient.setMaxReportsStoredOnDevice((tens * 10) + ones);
-                  setUpdateBtn("grey");
-                }}
+                onPress={() => {updateMaxCachedErrors()}}
               />
             </View>
           </View>

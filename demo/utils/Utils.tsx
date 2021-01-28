@@ -26,13 +26,14 @@ export const styles = StyleSheet.create({
   title: {
     alignContent:"center",
     fontWeight: "bold",
+    textAlign: "center",
     fontSize: 30
   },
   subtitle: {
     fontWeight: "bold",
     fontStyle: "italic",
     fontSize: 18,
-    alignSelf: "flex-start",
+    textAlign: "center",
     marginHorizontal: "5%"
   },
   text: {
