@@ -107,7 +107,7 @@ export default function Home() {
    */
   const showTags = () => {
     if (tagsBtn === "Set Tags #1") {
-      return <Text key={"NOTAGS"} style={styles.text}>No Tags currently available</Text>
+      return <Text key={"No Tags Text"} style={styles.text}>No Tags currently available</Text>
     }
 
     // Get the tags the client currently has
@@ -115,7 +115,7 @@ export default function Home() {
 
     if (clientTags.length > 0) {
       return clientTags.map((tag: string) => {
-        return (<Text key={`tag: ${tag}`} style={styles.text}>{tag}</Text>)
+        return (<Text key={`Tag: ${tag}`} style={styles.text}>{tag}</Text>)
       })
     }
   }
@@ -128,8 +128,8 @@ export default function Home() {
     const clientUser = raygunClient.getUser();
 
     return [
-      <Text key={"user_id"} style={styles.text}>Identifier: {clientUser.identifier}</Text>,
-      <Text key={"user_anon"}
+      <Text key={"User ID"} style={styles.text}>Identifier: {clientUser.identifier}</Text>,
+      <Text key={"User Anonymous"}
             style={styles.text}>Anonymous: {clientUser.isAnonymous ? "true" : "false"}</Text>
     ]
   }
@@ -182,16 +182,16 @@ export default function Home() {
       <StatusBar barStyle="dark-content"/>
       <SafeAreaView>
         <ScrollView contentInsetAdjustmentBehavior="automatic" style={styles.scrollView}>
-          <View key={"Image"} style={styles.mainView}>
+          <View key={"Raygun Logo"} style={styles.mainView}>
             <Image
               style={styles.image}
               source={require("../utils/Raygun_Logo.png")}/>
           </View>
 
-          <View key={"INIT"} style={styles.mainView}>
+          <View style={styles.mainView}>
             <View style={styles.secondView}>
-              <Text key={"init:"} style={styles.title}>Initialize:</Text>
-              <Text key={"HelpText"} style={styles.text}>If the RaygunClient is not initialize,
+              <Text key={"Initialize Title"} style={styles.title}>Initialize:</Text>
+              <Text key={"Initialization Explain"} style={styles.text}>If the RaygunClient is not initialize,
                 then nothing will work. Before clicking this button, try clicking other buttons
                 inside the application and watch what is printed to the console.</Text>
             </View>
@@ -205,9 +205,9 @@ export default function Home() {
             </View>
           </View>
 
-          <View key={"TAGS"} style={styles.mainView}>
+          <View style={styles.mainView}>
             <View style={styles.secondView}>
-              <Text key={"Tags:"} style={styles.title}>Tags:</Text>
+              <Text key={"Set Tags Title"} style={styles.title}>Tags:</Text>
               {showTags()}
             </View>
 
@@ -220,9 +220,9 @@ export default function Home() {
             </View>
           </View>
 
-          <View key={"USER"} style={styles.mainView}>
+          <View style={styles.mainView}>
             <View style={styles.secondView}>
-              <Text key={"User:"} style={styles.title}>User:</Text>
+              <Text key={"Set User Title"} style={styles.title}>User:</Text>
               {showUser()}
             </View>
 

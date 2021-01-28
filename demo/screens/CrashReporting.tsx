@@ -115,7 +115,7 @@ export default function CrashReporting() {
         })
       )
     } else {
-      return <Text key={"NOBC"} style={styles.text}>No Breadcrumbs current exist</Text>
+      return <Text key={"No Breadcrumbs"} style={styles.text}>No Breadcrumbs current exist</Text>
     }
   }
 
@@ -127,7 +127,7 @@ export default function CrashReporting() {
     const clientCustomData: CustomData | null | undefined = raygunClient.getCustomData();
 
     if (!clientCustomData) {
-      return <Text key={"NOCD"} style={styles.text}>No CustomData currently available</Text>
+      return <Text key={"No CustomData"} style={styles.text}>No CustomData currently available</Text>
     }
 
 
@@ -151,7 +151,7 @@ export default function CrashReporting() {
         other = second.toString();
       }
 
-      return <Text key={"customdatainfo" + title} style={styles.text}>{title}: {other}</Text>
+      return <Text key={"Custom Data Information " + title} style={styles.text}>{title}: {other}</Text>
     })
   }
 

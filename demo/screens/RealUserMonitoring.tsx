@@ -109,17 +109,17 @@ export default function RealUserMonitoring() {
       <StatusBar barStyle="dark-content"/>
       <SafeAreaView>
         <ScrollView contentInsetAdjustmentBehavior="automatic" style={styles.scrollView}>
-          <View key={"Image"} style={styles.mainView}>
+          <View key={"Raygun Logo"} style={styles.mainView}>
             <Image
               style={styles.image}
               source={require("../utils/Raygun_Logo.png")}/>
           </View>
 
-          <View key={"NETWORK"} style={styles.mainView}>
+          <View style={styles.mainView}>
 
             <View style={styles.secondView}>
-              <Text key={"Network Req"} style={styles.title}>Network Requests:</Text>
-              <Text key={"Network err"} style={styles.text}>{networkError}</Text>
+              <Text key={"Network Request Title"} style={styles.title}>Network Requests:</Text>
+              <Text key={"Network Request Error"} style={styles.text}>{networkError}</Text>
             </View>
 
             <View style={styles.secondView}>
@@ -130,11 +130,10 @@ export default function RealUserMonitoring() {
             </View>
           </View>
 
-          <View key={"CUSTOM NETWORK"} style={styles.mainView}>
-
+          <View style={styles.mainView}>
             <View style={styles.secondView}>
-              <Text key={"Cust Network Req"} style={styles.title}>Send Custom Network Event:</Text>
-              <Text key={"Cust Network Explain"} style={styles.text}>A custom network event is the
+              <Text key={"Custom Network Event"} style={styles.title}>Send Custom Network Event:</Text>
+              <Text key={"Custom Network Event explain"} style={styles.text}>A custom network event is the
                 same as
                 the automated version above. However, you may only want to monitor certain network
                 calls. In this case, you will need to disable network monitoring in the Raygun.init
@@ -150,11 +149,11 @@ export default function RealUserMonitoring() {
             </View>
           </View>
 
-          <View key={"CUSTOM VIEW"} style={styles.mainView}>
+          <View style={styles.mainView}>
 
             <View style={styles.secondView}>
-              <Text key={"Cust View Req"} style={styles.title}>Send Custom View Event:</Text>
-              <Text key={"Cust View Explain"} style={styles.text}>A view event is the time taken for
+              <Text key={"Custom ViewLoaded Event"} style={styles.title}>Send Custom View Event:</Text>
+              <Text key={"Custom ViewLoaded Event explain"} style={styles.text}>A view event is the time taken for
                 some component to load. By default, Raygun will log how long it takes for your
                 application
                 to load. You may want to time some other events that occur in your application, such
@@ -171,10 +170,9 @@ export default function RealUserMonitoring() {
             </View>
           </View>
 
-          <View key={"LOGIN"} style={styles.mainView}>
-
+          <View style={styles.mainView}>
             <View style={styles.secondView}>
-              <Text key={"Login"} style={styles.title}>Login Example:</Text>
+              <Text key={"Login Title"} style={styles.title}>Login Example:</Text>
             </View>
 
             <View style={styles.secondView}>
