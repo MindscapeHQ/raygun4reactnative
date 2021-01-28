@@ -57,6 +57,7 @@
 
 
 - (void)loadViewCapture {
+    [printf(<#const char *restrict, ...#>)]
     [self recordViewLoadStartTime];
     [self loadViewCapture];
 }
@@ -72,12 +73,16 @@
 }
 
 - (void)recordViewLoadStartTime {
-    //Record this views loading start time
+    if (RaygunNativeBridge.realUserMonitoringInitialized) {
+        [[RaygunNativeBridge sharedInstance] viewStartedLoading:self.description atTime:@(CACurrentMediaTime())];
+    }
 }
 
 - (void)viewDidAppearCapture:(BOOL)animated {
     [self viewDidAppearCapture:animated];
-    //Send view loaded event adn calculate duration based on start time
+    if (RaygunNativeBridge.realUserMonitoringInitialized) {
+        [[RaygunNativeBridge sharedInstance] viewFinishedLoading:self.description atTime:@(CACurrentMediaTime())];
+    }
 }
 
 @end

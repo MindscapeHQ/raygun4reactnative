@@ -107,15 +107,18 @@ NSString *onSessionStart = @"ON_SESSION_START";
 NSString *onSessionPause = @"ON_SESSION_PAUSE";
 NSString *onSessionResume = @"ON_SESSION_RESUME";
 NSString *onSessionEnd = @"ON_SESSION_END";
-
 NSString *onViewLoaded = @"ON_VIEW_LOADED";
 
-static BOOL crashReportingInitialized = FALSE;
-static BOOL realUserMonitoringInitialized = FALSE;
+//Storing start times for views in the process of loading
+NSMutableDictionary *viewLoadStartTimes;
 
 //Retrieving and storing the device UUID
 static NSString *DEVICE_UUID = nil;
 static NSString *_Nonnull const nativeIdentifierKey = @"com.raygun.identifier";
+
+static RaygunNativeBridge *sharedInstance = nil;
+static bool crashReportingInitialized = FALSE;
+static bool realUserMonitoringInitialized = FALSE;
 
 // ============================================================================
 #pragma mark - INHERITED NATIVE MODULE STARTUP METHODS -
@@ -126,6 +129,9 @@ static NSString *_Nonnull const nativeIdentifierKey = @"com.raygun.identifier";
 
     //Get the device id and store it
     [self init_Device_UUID];
+    
+    viewLoadStartTimes = [[NSMutableDictionary alloc] init];
+    
 }
 
 + (BOOL) requiresMainQueueSetup {
@@ -161,6 +167,7 @@ static CFTimeInterval processStartTime() {
     [dict setValue: onSessionStart forKey: onSessionStart];
     [dict setValue: onSessionPause forKey: onSessionPause];
     [dict setValue: onSessionResume forKey: onSessionResume];
+    [dict setValue: onViewLoaded forKey: onViewLoaded];
     [dict setValue: onSessionEnd forKey: onSessionEnd];
     [dict setValue: [self getVersion: "kern.osversion"] forKey:@"osVersion"];
     [dict setValue: [self platform] forKey:@"platform"];
@@ -218,6 +225,12 @@ static CFTimeInterval processStartTime() {
 
 RCT_EXPORT_MODULE();
 
++ (instancetype)sharedInstance {
+    
+    return sharedInstance;
+}
+
+
 // ============================================================================
 #pragma mark - REAL USER MONITORING FUNCTIONALITY -
 // ============================================================================
@@ -227,6 +240,9 @@ RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
     if (realUserMonitoringInitialized) {
         return;
     }
+    
+    
+    sharedInstance = self;
     
 #if TARGET_OS_IOS || TARGET_OS_TV
     //CREATE OBSERVERS FOR STATE CHANGE EVENTS
@@ -264,6 +280,39 @@ RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
 {
   return @[onSessionStart, onSessionPause, onSessionResume, onViewLoaded, onSessionEnd];
 }
+
+
+- (void)viewStartedLoading:(NSString*)viewName atTime:(NSNumber*)startTime {
+    
+    RCTLogInfo(@"VIEW STARTED LOADING");
+    //If there is no event with that name already loading
+    if ([viewLoadStartTimes objectForKey:viewName]) {
+        RCTLogInfo(@"View already loading!");
+    }
+    else {
+        [viewLoadStartTimes setValue:startTime forKey:viewName];
+    }
+}
+
+- (void)viewFinishedLoading:(NSString*)viewName atTime:(NSNumber*)endTime {
+    
+    RCTLogInfo(@"VIEW FINISHED LOADING");
+    
+    //If there is no event with that name already loading
+    if ([viewLoadStartTimes objectForKey:viewName]) {
+        
+        int duration = ([endTime doubleValue] - [[viewLoadStartTimes objectForKey:viewName] doubleValue]) * 1000;
+        
+        //Send the event and remove it from the loading events dictionary
+        [self sendEventWithName: onViewLoaded body:@{@"duration": [[NSNumber alloc] initWithInt: duration], @"name": viewName}];
+        [viewLoadStartTimes removeObjectForKey:viewName];
+    }
+    else {
+        RCTLogInfo(@"Cant finish loading a view that never started loading!");
+    }
+}
+
+
 
 // ============================================================================
 #pragma mark - CRASH REPORTING INITIALISATION -
