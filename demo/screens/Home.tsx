@@ -92,7 +92,9 @@ export default function Home() {
    * Look above in the 'Initialization Objects' region for more details.
    * Usually this initialization would be done when the application is created (Top of App.tsx file). However, for
    * the purposes of this demo application, we have allowed for this interaction such that the user can see the logged
-   * values if the client is not initialized.
+   * values if the client is not initialized. If you choose to initialize the client later during the runtime of your
+   * application, you can see what will be printed to the console by clicking buttons in the application
+   * BEFORE clicking the initialize button.
    */
   const initialize = () => {
     raygunClient.init(options);

@@ -14,7 +14,7 @@ import {RealUserMonitoringTimings} from "raygun4reactnative";
 
 export default function RealUserMonitoring() {
   // Send network component variables
-  const [sendNetworkBtnColor, setSendNetworkBtnColor] = useState("green");
+  const [networkBtnColor, setNetworkBtnColor] = useState("green");
   const [networkError, setNetworkError] = useState("");
   const [sendNetworkBtn, setSendNetworkBtn] = useState("Send Valid Request");
   // Login Variables
@@ -23,12 +23,17 @@ export default function RealUserMonitoring() {
   const [startTime, setStartTime] = useState(Date.now());
 
 
+  /**
+   * This is an example of your application sending network requests. There are two examples in this method, the first
+   * is a network call that is not ignored by the RaygunClient (see Home.tsx). The second is a request that is ignored
+   * by the RaygunClient.
+   */
   const sendNetworkRequest = () => {
     switch (sendNetworkBtn) {
       case "Send Valid Request":
         fetch("https://www.google.com/").then(() => {
           setSendNetworkBtn("Send Ignored Request")
-          setSendNetworkBtnColor("red")
+          setNetworkBtnColor("red")
           setNetworkError("")
         }).catch(() => {
           setNetworkError("Unable to reach google.com. Check network connection")
@@ -39,7 +44,7 @@ export default function RealUserMonitoring() {
       case "Send Ignored Request":
         fetch("https://www.youtube.com/").then(() => {
           setSendNetworkBtn("Send Valid Request")
-          setSendNetworkBtnColor("green")
+          setNetworkBtnColor("green")
           setNetworkError("")
         }).catch(() => {
           setNetworkError("Unable to reach youtube.com. Check network connection")
@@ -50,16 +55,28 @@ export default function RealUserMonitoring() {
     }
   }
 
+  /**
+   * This is an example of sending your own network event. The sendNetworkRequest() method above is the automated version
+   * of sending a network request event to Raygun.com. However, if you have disabled network monitoring in your
+   * RaygunClient.init method, then you can still record and send your own network event using this method.
+   */
   const sendCustomNetworkEvent = () => {
     raygunClient.sendRUMTimingEvent(RealUserMonitoringTimings.NetworkCall, "Test Network Event", 100);
   }
 
+  /**
+   * This is an example of sending your own ViewLoaded event. The RaygunClient will automatically record the time it takes
+   * to launch the application, however you may want to record times taken for other such events that occur in your app.
+   * In this case, you can use the example below to do so.
+   */
   const sendCustomViewEvent = () => {
     raygunClient.sendRUMTimingEvent(RealUserMonitoringTimings.ViewLoaded, "Test ViewLoaded Event", 200);
   }
 
   /**
-   * A more complex example of how to utilize RUM.
+   * This is an example of a login service. The demo app replicates the kind of events that may occur when a user is
+   * logging in. NOTE: We have used alternative methods to simulate how certain events would react during this login
+   * stage, the usage of the RaygunClient remains the same.
    */
   const login = () => {
     setLoggedIn(false)
@@ -73,9 +90,14 @@ export default function RealUserMonitoring() {
       const timeElapsed = Date.now() - startTime;
       raygunClient.sendRUMTimingEvent(RealUserMonitoringTimings.NetworkCall, `Test Login: ${username}`, timeElapsed);
       setLoggedIn(true);
-    }, 100)
+    }, 200)
   }
 
+  /**
+   * Adding to the login example, once the user has logged in, some event may occur. In this case we have displayed an
+   * image to the screen (a very basic view event). This method will record the time between logging in to the time
+   * the image is loaded, and then send the view event timing back to Raygun.
+   */
   const completedImageLoad = () => {
     const timeElapsed = Date.now() - startTime;
     raygunClient.sendRUMTimingEvent(RealUserMonitoringTimings.ViewLoaded, "Test Login", timeElapsed);
@@ -103,7 +125,7 @@ export default function RealUserMonitoring() {
             <View style={styles.secondView}>
               <Button
                 title={sendNetworkBtn}
-                color={sendNetworkBtnColor}
+                color={networkBtnColor}
                 onPress={() => sendNetworkRequest()}/>
             </View>
           </View>
