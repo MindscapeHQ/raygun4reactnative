@@ -44,5 +44,20 @@ export const styles = StyleSheet.create({
     width: "80%",
     alignSelf: "center",
     resizeMode: "contain",
+  },
+  smallInput: {
+    fontWeight: "bold",
+    textAlignVertical: "center",
+    textAlign: "center",
+    borderColor: 'gray',
+    borderWidth: 1
+  },
+  largeInput: {
+    width: "80%",
+    fontWeight: "bold",
+    textAlignVertical: "center",
+    textAlign: "left",
+    borderColor: 'gray',
+    borderWidth: 1
   }
 });

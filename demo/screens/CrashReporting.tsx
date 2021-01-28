@@ -307,15 +307,7 @@ export default function CrashReporting() {
                 <Text style={styles.subtitle}>Number of saved Crash Report?</Text>
                 {/*TENS*/}
                 <TextInput
-                  style={{
-                    height: styles.subtitle.fontSize * 2,
-                    fontSize: styles.text.fontSize,
-                    fontWeight: "bold",
-                    textAlignVertical: "center",
-                    textAlign: "center",
-                    borderColor: 'gray',
-                    borderWidth: 1
-                  }}
+                  style={styles.smallInput}
                   value={numberOfCacheTens.toString()}
                   onChangeText={(text) => {
                     const newText = text.replace(numberOfCacheTens.toString(), "");
@@ -327,15 +319,7 @@ export default function CrashReporting() {
                 />
                 {/*ONES*/}
                 <TextInput
-                  style={{
-                    height: styles.subtitle.fontSize * 2,
-                    fontSize: styles.text.fontSize,
-                    fontWeight: "bold",
-                    textAlignVertical: "center",
-                    textAlign: "center",
-                    borderColor: 'gray',
-                    borderWidth: 1
-                  }}
+                  style={styles.smallInput}
                   value={numberOfCacheOnes.toString()}
                   onChangeText={(text) => {
                     const newText = text.replace(numberOfCacheOnes.toString(), "");

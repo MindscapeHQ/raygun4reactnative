@@ -31,7 +31,7 @@ const beforeSendFunc: BeforeSendHandler = (crp: CrashReportPayload) => {
  * this is parsed through the RaygunClientOptions and is used to block network monitoring events
  * from being sent to Raygun.com.
  */
-const ignoredUrls: string[] = ["https://www.google.com/", "https://www.youtube.com/"]
+const ignoredUrls: string[] = ["https://www.youtube.com/"]
 
 /**
  * This is an example of a RaygunClientOptions type. This object defines the non-varying conditions
