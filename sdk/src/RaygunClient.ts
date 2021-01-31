@@ -128,9 +128,10 @@ const getTags = (): string[] => {
  */
 const setUser = (user: User) => {
   if (realUserMonitoringAvailable('setUser')) {
+    //User is transitioning out of a non anonymous known user to begin a new RUM session
     if (!getUser().isAnonymous) realUserMonitor.rotateRUMSession();
-    //User is beginning a new session
-    else realUserMonitor.markSessionInteraction(); //User is logging in from anonymous
+    //User is logging in from anonymous
+    else realUserMonitor.markSessionInteraction();
   }
 
   //Update user across the react side
@@ -204,9 +205,9 @@ const sendError = async (error: Error, details?: ManualCrashReportDetails) => {
  * Appends custom data to the current set of custom data.
  * @param customData - The custom data to append
  */
-const setCustomData = (customData: CustomData | null) => {
+const setCustomData = (customData: CustomData) => {
   if (!crashReportingAvailable('setCustomData')) return;
-  crashReporter.setCustomData(customData ? customData : {});
+  crashReporter.setCustomData(customData);
 };
 
 /**
