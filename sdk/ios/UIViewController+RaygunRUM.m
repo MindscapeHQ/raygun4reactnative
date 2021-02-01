@@ -10,6 +10,9 @@
 // ============================================================================
 
 + (void)load {
+    
+    NSLog(@"SWIZZLEN!");
+    
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         // loadView
@@ -32,6 +35,8 @@
         swizzledSelector = @selector(viewDidAppearCapture:);
         [self swizzleOriginalSelector:originalSelector withNewSelector:swizzledSelector];
     });
+    
+    NSLog(@"SWIZZLED!");
 }
 
 + (void)swizzleOriginalSelector:(SEL)originalSelector withNewSelector:(SEL)swizzledSelector {
@@ -57,31 +62,40 @@
 
 
 - (void)loadViewCapture {
+    NSLog(@"LOAD VIEW CAPTURED!");
     [self recordViewLoadStartTime];
     [self loadViewCapture];
 }
 
 - (void)viewDidLoadCapture {
+    NSLog(@"VIEW DID LOAD CAPTURE!");
     [self recordViewLoadStartTime];
     [self viewDidLoadCapture];
 }
 
 - (void)viewWillAppearCapture:(BOOL)animated {
+    NSLog(@"VIEW WILL APPEAR CAPTURED");
     [self recordViewLoadStartTime];
     [self viewWillAppearCapture:animated];
 }
 
 - (void)recordViewLoadStartTime {
-    if (RaygunNativeBridge.realUserMonitoringInitialized) {
-        [[RaygunNativeBridge sharedInstance] viewStartedLoading:self.description atTime:@(CACurrentMediaTime())];
-    }
+    
+    NSLog(@"IM LOADING");
+    //if (RaygunNativeBridge.realUserMonitoringInitialized) {
+    [[RaygunNativeBridge sharedInstance] viewStartedLoading:self.description atTime:@(CACurrentMediaTime())];
+    //}
 }
 
 - (void)viewDidAppearCapture:(BOOL)animated {
+    
+    NSLog(@"VIEW DID APPEAR CAPTURE");
+    
     [self viewDidAppearCapture:animated];
-    if (RaygunNativeBridge.realUserMonitoringInitialized) {
-        [[RaygunNativeBridge sharedInstance] viewFinishedLoading:self.description atTime:@(CACurrentMediaTime())];
-    }
+    //if (RaygunNativeBridge.realUserMonitoringInitialized) {
+    NSLog(@"IM LOADED");
+    [[RaygunNativeBridge sharedInstance] viewFinishedLoading:self.description atTime:@(CACurrentMediaTime())];
+    //}
 }
 
 @end
