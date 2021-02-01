@@ -1,11 +1,11 @@
-#ifndef UIViewController_RaygunRUM_h
-#define UIViewController_RaygunRUM_h
+#ifndef UIViewController_ReactNativeRaygunRUM_h
+#define UIViewController_ReactNativeRaygunRUM_h
 
 #import <Foundation/Foundation.h>
 
 #import <UIKit/UIKit.h>
 
-@interface UIViewController (RaygunRUM)
+@interface UIViewController (ReactNativeRaygunRUM)
 
 + (void)load;
 
@@ -21,4 +21,4 @@
 
 @end
 
-#endif /* UIViewController_RaygunRUM_h */
+#endif

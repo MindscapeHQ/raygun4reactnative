@@ -1,15 +1,17 @@
-#import "UIViewController+RaygunRUM.h"
+#import "UIViewController+ReactNativeRaygunRUM.h"
 #import "RaygunNativeBridge.h"
 
 #import <objc/runtime.h>
 
-@implementation UIViewController (RaygunRUM)
+@implementation UIViewController (ReactNativeRaygunRUM)
 
 // ============================================================================
 #pragma mark - OVERRIDING UICONTROLLER -
 // ============================================================================
 
 + (void)load {
+    
+    return;
     
     NSLog(@"SWIZZLEN!");
     
@@ -42,6 +44,8 @@
 + (void)swizzleOriginalSelector:(SEL)originalSelector withNewSelector:(SEL)swizzledSelector {
     Class class = [self class];
     
+    NSLog(@"SWIZZLING OCCURING!");
+    
     Method originalMethod = class_getInstanceMethod(class, originalSelector);
     Method swizzledMethod = class_getInstanceMethod(class, swizzledSelector);
     
@@ -49,9 +53,11 @@
     
     if (didAddMethod) {
         class_replaceMethod(class, swizzledSelector, method_getImplementation(originalMethod), method_getTypeEncoding(originalMethod));
+        NSLog(@"SWIZZLIN DID ADD!");
     }
     else {
         method_exchangeImplementations(originalMethod, swizzledMethod);
+        NSLog(@"SWIZZLIN DID NO ADD!");
     }
 }
 
