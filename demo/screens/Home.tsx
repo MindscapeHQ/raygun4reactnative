@@ -1,8 +1,7 @@
 import {Button, Image, SafeAreaView, ScrollView, StatusBar, Text, View} from "react-native";
 import React, {useState} from "react";
-import {raygunClient} from "../utils/Utils";
-import {styles} from "../utils/Utils";
-import {BeforeSendHandler, CrashReportPayload, RaygunClientOptions, User} from "raygun4reactnative";
+import {raygunClient, styles} from "../utils/Utils";
+import {BeforeSendHandler, CrashReportPayload, LogLevel, RaygunClientOptions, User} from "raygun4reactnative";
 
 //#region -- Initialization Object -----------------------------------------------------------------
 
@@ -47,6 +46,7 @@ const options: RaygunClientOptions = {
   enableRealUserMonitoring: true,
   onBeforeSendingCrashReport: beforeSendFunc,
   ignoredURLs: ignoredUrls,
+  logLevel: LogLevel.verbose,
   // Other settings to customize your Raygun usage
   // disableNativeCrashReporting: true,
   // disableNetworkMonitoring: true,

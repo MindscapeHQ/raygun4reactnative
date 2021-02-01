@@ -17,9 +17,26 @@ export type RaygunClientOptions = {
   disableNetworkMonitoring?: boolean;
   customCrashReportingEndpoint?: string;
   customRealUserMonitoringEndpoint?: string;
+  logLevel?: LogLevel;
   onBeforeSendingCrashReport?: BeforeSendHandler;
   ignoredURLs?: string[];
 };
+
+export enum LogLevel {
+  off = 'off',
+  error = 'error',
+  warn = 'warn',
+  info = 'info',
+  debug = 'debug',
+  verbose = 'verbose',
+}
+
+export enum ConsoleLogLevel {
+  error = 'error',
+  warn = 'warn',
+  info = 'info',
+  debug = 'debug',
+}
 
 type BasicType = string | number | boolean;
 

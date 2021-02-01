@@ -120,20 +120,3 @@ export const shouldIgnore = (url: string, ignoredURLs: string[]): boolean => {
 export const filterOutReactFrames = (frame: StackFrame): boolean => !!frame.file && !frame.file.match(internalTrace);
 
 //#endregion----------------------------------------------------------------------------------------
-
-//#region ----LOGGING-------------------------------------------------------------------------------
-
-const getLogger = (output: (...args: any[]) => void) => (...args: any[]) => {
-  if (__DEV__) {
-    output(args);
-  }
-  return;
-};
-
-export const log = getLogger(console.log);
-
-export const warn = getLogger(console.warn);
-
-export const error = getLogger(console.error);
-
-//#endregion----------------------------------------------------------------------------------------

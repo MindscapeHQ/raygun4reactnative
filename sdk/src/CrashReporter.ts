@@ -1,13 +1,10 @@
 import {
   cleanFilePath,
-  error,
   filterOutReactFrames,
   getCurrentTags,
   getCurrentUser,
   noAddressAt,
-  setCurrentTags,
   upperFirst,
-  warn
 } from './Utils';
 import {
   BeforeSendHandler,
@@ -52,8 +49,6 @@ export default class CrashReporter {
    * Javascript side should be responsible for caching Crash Reports.
    *
    * @param apiKey - Access key for Raygun API
-   * @param user - A User object that represents the current user.
-   * @param tags - A set of strings, where each string is a tag.
    * @param disableNativeCrashReporting - Whether or not to enable Native side error reporting
    * @param customCrashReportingEndpoint - Custom endpoint for Crash Report (may be empty or null)
    * @param onBeforeSendingCrashReport - A lambda to execute before each Crash Report transmission
@@ -125,8 +120,7 @@ export default class CrashReporter {
 
   /**
    * Create and store a new Breadcrumb
-   * @param message - A string to describe what this breadcrumb signifies
-   * @param details - Details about the breadcrumb
+   * @param breadcrumb
    */
   recordBreadcrumb(breadcrumb: Breadcrumb) {
     this.breadcrumbs.push({...breadcrumb});
@@ -168,11 +162,9 @@ export default class CrashReporter {
           return jsonCache;
         }
         catch(e) {
-          error("Error parsing local Crash Report cache as JSON")
         }
       }
     } catch(e) {
-      error("Error reading local Crash Report cache")
     }
     return [];
   }
@@ -185,7 +177,6 @@ export default class CrashReporter {
     try {
       await AsyncStorage.setItem(this.local_storage_key, JSON.stringify(newCache));
     } catch(e) {
-      error("Error writing to local Crash Report cache")
     }
   }
 
@@ -247,7 +238,6 @@ export default class CrashReporter {
    */
   async processUnhandledError(error: Error, isFatal?: boolean) {
     if (!error || !error.stack) {
-      warn('Unrecognized error occurred');
       return;
     }
 
@@ -270,7 +260,6 @@ export default class CrashReporter {
    */
   async processManualCrashReport(error: Error, details?: ManualCrashReportDetails) {
     if (!error || !error.stack) {
-      warn('Unrecognized error occurred');
       return;
     }
 
@@ -410,12 +399,10 @@ export default class CrashReporter {
         if (response.status === this.RAYGUN_RATE_LIMITING_STATUS_CODE) return false
         return true;
       }).catch((error) => {
-        error(error);
         return false;
       })
     }
     catch (e) {
-      error(`Error while sending Crash Report: ${e}`);
       return false;
     }
   }

@@ -4,19 +4,21 @@
  */
 
 import {
-  CustomData,
-  RaygunClientOptions,
-  User,
-  RealUserMonitoringTimings,
-  BeforeSendHandler,
   anonUser,
-  Breadcrumb, ManualCrashReportDetails
+  BeforeSendHandler,
+  Breadcrumb,
+  CustomData,
+  LogLevel,
+  ManualCrashReportDetails,
+  RaygunClientOptions,
+  RealUserMonitoringTimings,
+  User
 } from './Types';
-import { getCurrentTags, getDeviceId, log, setCurrentTags, setCurrentUser, getCurrentUser, warn } from './Utils';
+import {getCurrentTags, getCurrentUser, setCurrentTags, setCurrentUser} from './Utils';
 import CrashReporter from './CrashReporter';
 import RealUserMonitor from './RealUserMonitor';
-import { Animated, NativeModules } from 'react-native';
-import event = Animated.event;
+import {NativeModules} from 'react-native';
+import RaygunLogger from "./RaygunLogger";
 
 const { RaygunNativeBridge } = NativeModules;
 
@@ -45,7 +47,6 @@ let initialized: boolean = false;
 const init = (raygunClientOptions: RaygunClientOptions) => {
   //Do not reinitialize
   if (initialized) {
-    log('Already initialized');
     return false;
   }
 
@@ -61,9 +62,12 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
     disableNetworkMonitoring = false,
     customCrashReportingEndpoint = '',
     customRealUserMonitoringEndpoint = '',
+    logLevel = LogLevel.warn,
     onBeforeSendingCrashReport = null,
     ignoredURLs = []
   } = options;
+
+  RaygunLogger.init(logLevel);
 
   //Enable Crash Reporting
   if (enableCrashReporting) {
@@ -75,7 +79,6 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
       version
     );
     if (!disableNativeCrashReporting) {
-      log('Native Bridge Initialized');
       RaygunNativeBridge.initCrashReportingNativeSupport(apiKey, version, customCrashReportingEndpoint);
     }
   }
@@ -100,9 +103,6 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
 
 const isInitialized = (calledFrom: string): boolean => {
   if (!initialized) {
-    warn(
-      `Failed: "${calledFrom}" cannot be called before initialising RaygunClient. Please call RaygunClient.init(...) before trying to call RaygunClient.${calledFrom}(...)`
-    );
     return false;
   }
   return true;
@@ -283,9 +283,6 @@ const crashReportingAvailable = (calledFrom: string) => {
   }
 
   if (!(crashReporter && options.enableCrashReporting)) {
-    warn(
-      `Failed: "${calledFrom}" cannot be called unless Crash Reporting has been enabled, please ensure that you set "enableCrashReporting" to true during RaygunClient.init(...)`
-    );
     return false;
   }
   return true;
@@ -316,9 +313,6 @@ const realUserMonitoringAvailable = (calledFrom: string) => {
   }
 
   if (!(realUserMonitor && options.enableRealUserMonitoring)) {
-    warn(
-      `Failed: "${calledFrom}" cannot be called unless Real User Monitoring has been enabled, please ensure that you set "enableRealUserMonitoring" to true during RaygunClient.init(...)`
-    );
     return false;
   }
   return true;
