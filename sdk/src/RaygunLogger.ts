@@ -30,7 +30,7 @@ export default class RaygunLogger {
             this.unable();
             return;
         }
-        this.emitLog(ConsoleLogLevel.debug, additionInfo)
+        this.emitLog(ConsoleLogLevel.debug, msg, additionInfo)
     }
 
     /**
@@ -43,7 +43,7 @@ export default class RaygunLogger {
             this.unable();
             return;
         }
-        this.emitLog(ConsoleLogLevel.debug, additionInfo)
+        this.emitLog(ConsoleLogLevel.debug, msg, additionInfo)
     }
 
     /**
@@ -56,7 +56,7 @@ export default class RaygunLogger {
             this.unable();
             return;
         }
-        this.emitLog(ConsoleLogLevel.info, additionInfo)
+        this.emitLog(ConsoleLogLevel.info, msg, additionInfo)
     }
 
     /**
@@ -69,7 +69,7 @@ export default class RaygunLogger {
             this.unable();
             return;
         }
-        this.emitLog(ConsoleLogLevel.warn, additionInfo)
+        this.emitLog(ConsoleLogLevel.warn, msg, additionInfo)
     }
 
     /**
@@ -82,7 +82,7 @@ export default class RaygunLogger {
             this.unable();
             return;
         }
-        this.emitLog(ConsoleLogLevel.error, additionInfo)
+        this.emitLog(ConsoleLogLevel.error, msg, additionInfo)
     }
 
     //#endregion ------------------------------------------------------------------------------------------------------
@@ -122,7 +122,7 @@ export default class RaygunLogger {
      */
     private static emitLog(level: ConsoleLogLevel, msg: string, additionInfo?: any) {
         if (additionInfo)
-            console[level](msg, additionInfo);
+            console[level](msg, JSON.stringify(additionInfo, null, 4));
         else
             console[level](msg);
     }
