@@ -57,7 +57,6 @@
 
 
 - (void)loadViewCapture {
-    [printf(<#const char *restrict, ...#>)]
     [self recordViewLoadStartTime];
     [self loadViewCapture];
 }

@@ -12,7 +12,7 @@
   "scripts": {
     "eslint": "eslint src/**",
     "builder": "npm run build_pack_1 && npm run build_demo_2",
-    "clean": "npx rimraf node_modules dist package-lock.json raygun4reactnative-0.0.3-alpha.tgz ../demo/node_modules ../demo/dist ../demo/raygun4reactnative-0.0.3-alpha.tgz ../demo/android/app/build ../demo/ios/Pods ../demo/ios/Podfile.lock ../demo/package-lock.json",
+    "clean": "npx rimraf node_modules dist package-lock.json ../demo/raygun4reactnative-0.0.3-alpha.tgz ../demo/node_modules ../demo/dist ../demo/raygun4reactnative-0.0.3-alpha.tgz ../demo/android/app/build ../demo/ios/Pods ../demo/ios/Podfile.lock ../demo/package-lock.json",
     "build_run": "npm run builder && npm run run_demo_3",
     "prepublish": "tsc -p ./",
     "prebuild": "npx rimraf release",
@@ -57,7 +57,7 @@
     "@typescript-eslint/eslint-plugin": "^4.14.0",
     "@typescript-eslint/parser": "^4.14.0",
     "copyfiles": "^2.4.1",
-    "eslint": "^7.18.0",
+    "eslint": "^7.19.0",
     "eslint-config-google": "^0.14.0",
     "eslint-config-prettier": "^6.11.0",
     "eslint-import-resolver-typescript": "^2.0.0",
@@ -73,10 +73,10 @@
     "react-native": "^0.61.5",
     "rimraf": "^3.0.2",
     "run-script-os": "^1.1.5",
-    "ts-jest": "^26.4.0",
+    "ts-jest": "^26.5.0",
     "typescript": "^3.9.7"
   },
   "dependencies": {
-    "@react-native-async-storage/async-storage": "^1.13.3"
+    "@react-native-async-storage/async-storage": "^1.13.4"
   }
 }

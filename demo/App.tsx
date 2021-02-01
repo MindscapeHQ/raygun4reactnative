@@ -115,7 +115,7 @@ const App = () => {
                   const customData: CustomData = {"Key": "Value"};
                   const tags: string[] = ["Error", "Caught", "Test"];
 
-                  const details: ManualCrashReportDetails = {customData, tags};
+                  const details: ManualCrashReportDetails = {customData: customData, tags: tags};
 
                   // Send the error away with custom data
                   RaygunClient.sendError(new Error("Test Error: Custom Error"), details);

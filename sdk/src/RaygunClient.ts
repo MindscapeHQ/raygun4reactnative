@@ -126,7 +126,7 @@ const getTags = (): string[] => {
  * the new one.
  * @param user - The new name or user object to assign.
  */
-const setUser = (user: User) => {
+const setUser = (user: User | null) => {
   if (realUserMonitoringAvailable('setUser')) {
     //User is transitioning out of a non anonymous known user to begin a new RUM session
     if (!getUser().isAnonymous) realUserMonitor.rotateRUMSession();

@@ -240,8 +240,7 @@ RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
     if (realUserMonitoringInitialized) {
         return;
     }
-    
-    
+
     sharedInstance = self;
     
 #if TARGET_OS_IOS || TARGET_OS_TV
