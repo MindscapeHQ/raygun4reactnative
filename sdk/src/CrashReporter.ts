@@ -149,7 +149,7 @@ export default class CrashReporter {
    * Returns the current breadcrumbs.
    */
   getBreadcrumbs(): Breadcrumb[] {
-    return {...this.breadcrumbs};
+    return [...this.breadcrumbs];
   }
 
   //#endregion--------------------------------------------------------------------------------------

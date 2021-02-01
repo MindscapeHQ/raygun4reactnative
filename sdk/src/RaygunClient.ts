@@ -98,6 +98,16 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
   return true;
 };
 
+const isInitialized = (calledFrom: string): boolean => {
+  if (!initialized) {
+    warn(
+      `Failed: "${calledFrom}" cannot be called before initialising RaygunClient. Please call RaygunClient.init(...) before trying to call RaygunClient.${calledFrom}(...)`
+    );
+    return false;
+  }
+  return true;
+}
+
 //#endregion----------------------------------------------------------------------------------------
 
 //#region ----RAYGUN CLIENT SESSION LOGIC-----------------------------------------------------------
@@ -108,6 +118,11 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
  * @param tags - The tag(s) to append to the session.
  */
 const setTags = (...tags: string[]) => {
+
+  if (!isInitialized('setTags')) {
+    return;
+  }
+
   let newTags = tags ? [...tags] : [];
   setCurrentTags(newTags);
   if (!options.disableNativeCrashReporting) {
@@ -118,6 +133,7 @@ const setTags = (...tags: string[]) => {
 };
 
 const getTags = (): string[] => {
+  if (!isInitialized('getTags')) return [];
   return getCurrentTags();
 };
 
@@ -126,15 +142,32 @@ const getTags = (): string[] => {
  * the new one.
  * @param user - The new name or user object to assign.
  */
-const setUser = (user: User) => {
+const setUser = (user: User | null) => {
+
+  if (!isInitialized('setUser')) {
+    return;
+  }
+
   if (realUserMonitoringAvailable('setUser')) {
     if (!getUser().isAnonymous) realUserMonitor.rotateRUMSession();
     //User is beginning a new session
     else realUserMonitor.markSessionInteraction(); //User is logging in from anonymous
   }
 
+
+  // Ensure no values are "NULL"
+  const newUser = {
+    email: "",
+    firstName: "",
+    fullName: "",
+    identifier: "",
+    isAnonymous: false,
+    uuid: ""
+  };
+  Object.assign(newUser, user ? {...user} : anonUser);
+
   //Update user across the react side
-  setCurrentUser(user ? { ...user } : anonUser);
+  setCurrentUser(newUser);
 
   //Update user on the native side
   if (!options.disableNativeCrashReporting) {
@@ -142,7 +175,11 @@ const setUser = (user: User) => {
   }
 };
 
+/**
+ * Get the current user object
+ */
 const getUser = (): User => {
+  if (!isInitialized('getUser')) return anonUser;
   return getCurrentUser();
 };
 
@@ -152,12 +189,21 @@ const getUser = (): User => {
 
 /**
  * Create and store a new Breadcrumb.
- * @param message - A string to describe what this breadcrumb signifies.
- * @param details - Details about the breadcrumb.
+ * @param breadcrumb
  */
 const recordBreadcrumb = (breadcrumb: Breadcrumb) => {
   if (!crashReportingAvailable('recordBreadcrumb')) return;
-  crashReporter.recordBreadcrumb(breadcrumb);
+
+  const newBreadcrumb: Breadcrumb = {
+    category: "",
+    customData: {},
+    level: "debug",
+    message: "",
+    timestamp: Date.now()
+  }
+  Object.assign(newBreadcrumb, {...breadcrumb})
+
+  crashReporter.recordBreadcrumb(newBreadcrumb);
 };
 
 /**
@@ -213,8 +259,8 @@ const setCustomData = (customData: CustomData | null) => {
  * Appends custom data to the current set of custom data.
  * @param customData - The custom data to append
  */
-const getCustomData = () => {
-  if (!crashReportingAvailable('setCustomData')) return;
+const getCustomData = (): CustomData | null => {
+  if (!crashReportingAvailable('setCustomData')) return null;
   return crashReporter.getCustomData();
 };
 
@@ -232,12 +278,11 @@ const setMaxReportsStoredOnDevice = (size: number) => {
  * the CrashReporter during the init.
  */
 const crashReportingAvailable = (calledFrom: string) => {
-  if (!initialized) {
-    warn(
-      `Failed: "${calledFrom}" cannot be called before initialising RaygunClient. Please call RaygunClient.init(...) before trying to call RaygunClient.${calledFrom}(...)`
-    );
+  if (!isInitialized(calledFrom)) {
     return false;
-  } else if (!(crashReporter && options.enableCrashReporting)) {
+  }
+
+  if (!(crashReporter && options.enableCrashReporting)) {
     warn(
       `Failed: "${calledFrom}" cannot be called unless Crash Reporting has been enabled, please ensure that you set "enableCrashReporting" to true during RaygunClient.init(...)`
     );
@@ -266,12 +311,10 @@ const sendRUMTimingEvent = (eventType: RealUserMonitoringTimings, name: string, 
  * the RealUserMonitor during the init.
  */
 const realUserMonitoringAvailable = (calledFrom: string) => {
-  if (!initialized) {
-    warn(
-      `Failed: "${calledFrom}" cannot be called before initialising RaygunClient. Please call RaygunClient.init(...) before trying to call RaygunClient.${calledFrom}(...)`
-    );
+  if (!isInitialized(calledFrom)) {
     return false;
   }
+
   if (!(realUserMonitor && options.enableRealUserMonitoring)) {
     warn(
       `Failed: "${calledFrom}" cannot be called unless Real User Monitoring has been enabled, please ensure that you set "enableRealUserMonitoring" to true during RaygunClient.init(...)`
