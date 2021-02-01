@@ -331,6 +331,7 @@ RCT_EXPORT_METHOD(initCrashReportingNativeSupport:(NSString*)apiKey
     //ENABLE NATIVE SIDE CRASH REPORTING
     [[RaygunClient sharedInstanceWithApiKey:apiKey] setCrashReportingApiEndpoint: customCREndpoint];
     [RaygunClient.sharedInstance enableCrashReporting];
+    RaygunClient.sharedInstance.applicationVersion = version;
     
     crashReportingInitialized = TRUE;
 }
