@@ -25,13 +25,6 @@ export enum LogLevel {
   verbose = 'verbose',
 }
 
-export enum ConsoleLogLevel {
-  error = 'error',
-  warn = 'warn',
-  info = 'info',
-  debug = 'debug',
-}
-
 type BasicType = string | number | boolean;
 
 export type CustomData = {

@@ -1,6 +1,7 @@
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
 import { NativeModules } from 'react-native';
 import { User } from './Types';
+import RaygunLogger from "./RaygunLogger";
 
 const { RaygunNativeBridge } = NativeModules;
 

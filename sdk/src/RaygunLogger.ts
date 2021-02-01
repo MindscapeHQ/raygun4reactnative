@@ -1,17 +1,17 @@
-import {ConsoleLogLevel, LogLevel} from "./Types";
+import {LogLevel} from "./Types";
 
 export default class RaygunLogger {
 
     //#region -- Init --------------------------------------------------------------------------------------------------
-    private static initialized: boolean = false;
     private static logLevelArr: any[] = [];
-    private static logLevel: number = -1;
-    private static unablePrints: number = 0;
+    private static logLevel: number = -2;
+
+    private static consoles: any[] = [console.error, console.warn, console.info, console.debug];
 
     public static init(level: LogLevel) {
         this.logLevelArr = Object.values(LogLevel);
         this.logLevel = this.logLevelArr.indexOf(level);
-        this.initialized = true;
+        if (level === LogLevel.off) this.logLevel = -1;
     }
 
     //#endregion--------------------------------------------------------------------------------------------------------
@@ -26,11 +26,7 @@ export default class RaygunLogger {
      * @param additionInfo - Some object related to the log.
      */
     public static v(msg: string, additionInfo: any) {
-        if (!this.validLogLevel(LogLevel.verbose)) {
-            this.unable();
-            return;
-        }
-        this.emitLog(ConsoleLogLevel.debug, msg, additionInfo)
+        this.emitLog(LogLevel.verbose, msg, additionInfo)
     }
 
     /**
@@ -39,11 +35,7 @@ export default class RaygunLogger {
      * @param additionInfo - Some object related to the log.
      */
     public static d(msg: string, additionInfo?: any) {
-        if (!this.validLogLevel(LogLevel.debug)) {
-            this.unable();
-            return;
-        }
-        this.emitLog(ConsoleLogLevel.debug, msg, additionInfo)
+        this.emitLog(LogLevel.debug, msg, additionInfo)
     }
 
     /**
@@ -52,11 +44,7 @@ export default class RaygunLogger {
      * @param additionInfo - Some object related to the log.
      */
     public static i(msg: string, additionInfo?: any) {
-        if (!this.validLogLevel(LogLevel.info)) {
-            this.unable();
-            return;
-        }
-        this.emitLog(ConsoleLogLevel.info, msg, additionInfo)
+        this.emitLog(LogLevel.info, msg, additionInfo)
     }
 
     /**
@@ -65,11 +53,7 @@ export default class RaygunLogger {
      * @param additionInfo - Some object related to the log.
      */
     public static w(msg: string, additionInfo?: any) {
-        if (!this.validLogLevel(LogLevel.warn)) {
-            this.unable();
-            return;
-        }
-        this.emitLog(ConsoleLogLevel.warn, msg, additionInfo)
+        this.emitLog(LogLevel.warn, msg, additionInfo)
     }
 
     /**
@@ -78,40 +62,12 @@ export default class RaygunLogger {
      * @param additionInfo - Some object related to the log.
      */
     public static e(msg: string, additionInfo?: any) {
-        if (!this.validLogLevel(LogLevel.error)) {
-            this.unable();
-            return;
-        }
-        this.emitLog(ConsoleLogLevel.error, msg, additionInfo)
+        this.emitLog(LogLevel.error, msg, additionInfo)
     }
 
     //#endregion ------------------------------------------------------------------------------------------------------
 
     //#region -- Helper Methods ----------------------------------------------------------------------------------------
-    /**
-     * This warning will print only if the RaygunClient has not been initialize (as that is where the RaygunLogger is
-     * also initialized).
-     * @param action - The action attempted before initializing the RaygunClient.
-     */
-    private static unable() {
-        if (!this.initialized && this.logLevel > 0 && this.unablePrints === 0) {
-            console.warn("Unable to commit some action as the RaygunClient has not been initialized");
-            console.info("To initialize the RaygunClient, see documentation for the 'init(...)' method");
-            console.info("Try running the client with log level 'verbose' or 'debug' to aid in solving this issue");
-
-            this.unablePrints = 1;
-        }
-    }
-
-    /**
-     * Check if the log level is valid with the current configurations. If the RaygunClient hasn't been initialized,
-     * then the logger hasn't been initialized either.
-     * @param level
-     * @private
-     */
-    private static validLogLevel(level: LogLevel): boolean {
-        return this.initialized ? this.logLevelArr.indexOf(level) <= this.logLevel : false;
-    }
 
     /**
      * Print the log.
@@ -120,11 +76,41 @@ export default class RaygunLogger {
      * @param additionInfo - Any additional objects to be printed.
      * @private
      */
-    private static emitLog(level: ConsoleLogLevel, msg: string, additionInfo?: any) {
+    private static emitLog(level: LogLevel, msg: string, additionInfo?: any) {
+        // If some action is attempted before the client has been initialized, inform the user of the first case.
+        if (this.logLevel === -2){
+            this.consoles[1](`Action attempted on the RaygunClient before initialization: ${msg}`)
+            this.logLevel = -1;
+        }
+
+        const levelIndex = this.logLevelArr.indexOf(level);
+        /*
+        If the current level is not less than or equal to the level set at the start, ignore.
+        e.g. start = warn (2), level = debug (3). 2 - 3 = -1
+        e.g. start = warn (2), level = warn (2). 2 - 2 = 0
+
+        'off' will always be -1, so subtracting any index from off will return a negative (as indexs are
+        */
+        if (levelIndex === -1 || (this.logLevel - levelIndex) < 0) return;
+
+        /*
+        If this is a valid log level, then match it with the console command array.
+        The consoles array doesn't have 'off' so it's indexing has a negative one difference compared to the
+        logLevelArr length (levelIndex - 1).
+
+        The consoles array doesn't have a 'verbose' and will use debug instead. If the level index is verbose (5)
+        or debug (4) then they will be set to the length - 1 (3).
+        */
+        const consoleIndex = levelIndex >= this.consoles.length ? this.consoles.length - 1 : levelIndex - 1;
+
+        /*
+        This method of extracting the console loggers removes the stack trace that is printed by default, and allows
+        the loggers to simply log exactly what is parsed through
+         */
         if (additionInfo)
-            console[level](msg, JSON.stringify(additionInfo, null, 4));
+            this.consoles[consoleIndex](msg + "\n", JSON.stringify(additionInfo));
         else
-            console[level](msg);
+            this.consoles[consoleIndex](msg);
     }
 
     //#endregion -------------------------------------------------------------------------------------------------------
