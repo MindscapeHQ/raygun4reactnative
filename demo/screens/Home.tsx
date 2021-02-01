@@ -41,7 +41,7 @@ const ignoredUrls: string[] = ["www.youtube.com"]
  * Raygun.com will be ignored.
  */
 const options: RaygunClientOptions = {
-  apiKey: 'XyNxA6gLQrBOYYcsZc0A',// Your API key
+  apiKey: '',// Your API key
   version: '', // Your application version
   enableCrashReporting: true,
   enableRealUserMonitoring: true,
