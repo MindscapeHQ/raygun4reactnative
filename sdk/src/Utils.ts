@@ -1,8 +1,39 @@
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
 import { NativeModules } from 'react-native';
-import { anonUser, User } from './Types';
+import { User } from './Types';
 
 const { RaygunNativeBridge } = NativeModules;
+
+
+//#region ----GENERAL-------------------------------------------------------------------------------
+
+/**
+ * Constructs an ID specific for the current device being used.
+ */
+export const getDeviceId = () => `${RaygunNativeBridge.DEVICE_ID}`;
+
+/**
+ * The Anonymous user object
+ */
+export const anonUser: User = {
+  identifier: `${getDeviceId()}`,
+  isAnonymous: true
+};
+
+/**
+ * Produce a random identifier of a certain length.
+ * @param length
+ */
+export const getRandomGUID = (length: number) => {
+  //1.) n = 36^(l+1) - ([0.0, 1.0] * 36^l)
+  //2.) n = convertToBase36(n.roundToWholeNumber())
+  //3.) n = n.removeFirstCharacter
+  return Math.round(Math.pow(36, length + 1) - Math.random() * Math.pow(36, length))
+      .toString(36)
+      .slice(1);
+};
+
+//#endregion----------------------------------------------------------------------------------------
 
 //#region ----SHARED RESOURCES----------------------------------------------------------------------
 
@@ -24,28 +55,6 @@ export const setCurrentTags = (newTags: string[]) => {
 
 export const getCurrentTags = (): string[] => {
   return [...currentTags];
-};
-
-//#endregion----------------------------------------------------------------------------------------
-
-//#region ----GENERAL-------------------------------------------------------------------------------
-
-/**
- * Constructs an ID specific for the current device being used.
- */
-export const getDeviceId = () => `${RaygunNativeBridge.DEVICE_ID}`;
-
-/**
- * Produce a random identifier of a certain length.
- * @param length
- */
-export const getRandomGUID = (length: number) => {
-  //1.) n = 36^(l+1) - ([0.0, 1.0] * 36^l)
-  //2.) n = convertToBase36(n.roundToWholeNumber())
-  //3.) n = n.removeFirstCharacter
-  return Math.round(Math.pow(36, length + 1) - Math.random() * Math.pow(36, length))
-    .toString(36)
-    .slice(1);
 };
 
 //#endregion----------------------------------------------------------------------------------------

@@ -1,10 +1,4 @@
 import { ErrorUtils } from 'react-native';
-import { getDeviceId } from './Utils';
-
-export const anonUser: User = {
-  identifier: `${getDeviceId()}`,
-  isAnonymous: true
-};
 
 //#region ----RAYGUN CLIENT SESSION TYPES-----------------------------------------------------------
 
