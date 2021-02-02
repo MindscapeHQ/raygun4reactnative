@@ -105,6 +105,8 @@ NSString *onSessionStart = @"ON_SESSION_START";
 NSString *onSessionPause = @"ON_SESSION_PAUSE";
 NSString *onSessionResume = @"ON_SESSION_RESUME";
 NSString *onSessionEnd = @"ON_SESSION_END";
+
+NSString *onViewLoading = @"ON_VIEW_LOADING";
 NSString *onViewLoaded = @"ON_VIEW_LOADED";
 
 //Storing start times for views in the process of loading
@@ -164,6 +166,7 @@ static CFTimeInterval processStartTime() {
     [dict setValue: onSessionPause forKey: onSessionPause];
     [dict setValue: onSessionResume forKey: onSessionResume];
     [dict setValue: onViewLoaded forKey: onViewLoaded];
+    [dict setValue: onViewLoading forKey:onViewLoading];
     [dict setValue: onSessionEnd forKey: onSessionEnd];
     [dict setValue: [self getVersion: "kern.osversion"] forKey:@"osVersion"];
     [dict setValue: [self platform] forKey:@"platform"];
@@ -265,19 +268,21 @@ RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
 //RUM EVENTS THAT CAN OCCUR
 - (NSArray<NSString *> *)supportedEvents
 {
-  return @[onSessionStart, onSessionPause, onSessionResume, onViewLoaded, onSessionEnd];
+  return @[onSessionStart, onSessionPause, onSessionResume, onViewLoading, onViewLoaded, onSessionEnd];
 }
 
 
 - (void)viewStartedLoading:(NSNotification *) note{
     NSLog(@"3) VIEW LOADING");
     NSLog(@"3) VIEW NAME-%@",[note.userInfo objectForKey:@"name"]);
+    //[self sendEventWithName: onViewLoading body:{@"time": [note.userInfo objectForKey:@"name"], @"viewname": [note.userInfo objectForKey:@"time"]}];
 }
 
 - (void)viewFinishedLoading:(NSNotification *) note{
     
     NSLog(@"3) VIEW LOADED");
     NSLog(@"3) VIEW NAME-%@",[note.userInfo objectForKey:@"name"]);
+    [self sendEventWithName: onViewLoaded body:@{@"time": [note.userInfo objectForKey:@"time"], @"viewname": [note.userInfo objectForKey:@"name"]}];
 }
 
 

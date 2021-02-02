@@ -174,13 +174,12 @@ export default class RealUserMonitor {
    * @param payload
    */
   async sendViewLoadedEvent(payload: Record<string, any>) {
+    const { viewname, time } = payload;
 
-    log("sending View Loaded!!!!!")
+    log(`sending View Loaded!!!!!  ${viewname} & ${time}`);
 
-    const { name, duration } = payload;
-
-    const data = { name, timing: { type: RealUserMonitoringTimings.ViewLoaded, duration } };
-    return this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.EventTiming, data);
+    // const data = { viewname, timing: { type: RealUserMonitoringTimings.ViewLoaded, time } };
+    // return this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.EventTiming, data);
   }
 
   //#endregion--------------------------------------------------------------------------------------
