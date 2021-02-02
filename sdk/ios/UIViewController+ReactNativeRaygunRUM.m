@@ -11,38 +11,36 @@
 
 + (void)load {
     
-    NSLog(@"KILLROY: SWIZZLEN!");
-    
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         // loadView
         SEL originalSelector = @selector(loadView);
-        SEL swizzledSelector = @selector(loadViewCapture);
+        SEL swizzledSelector = @selector(loadViewCaptureReactNative);
         [self swizzleOriginalSelector:originalSelector withNewSelector:swizzledSelector];
         
         // viewDidLoad
         originalSelector = @selector(viewDidLoad);
-        swizzledSelector = @selector(viewDidLoadCapture);
+        swizzledSelector = @selector(viewDidLoadCaptureReactNative);
         [self swizzleOriginalSelector:originalSelector withNewSelector:swizzledSelector];
         
         // viewWillAppear
         originalSelector = @selector(viewWillAppear:);
-        swizzledSelector = @selector(viewWillAppearCapture:);
+        swizzledSelector = @selector(viewWillAppearCaptureReactNative:);
         [self swizzleOriginalSelector:originalSelector withNewSelector:swizzledSelector];
         
         // viewDidAppear
         originalSelector = @selector(viewDidAppear:);
-        swizzledSelector = @selector(viewDidAppearCapture:);
+        swizzledSelector = @selector(viewDidAppearCaptureReactNative:);
         [self swizzleOriginalSelector:originalSelector withNewSelector:swizzledSelector];
     });
     
     NSLog(@"KILLROY: SWIZZLED!");
+    
+    return;
 }
 
 + (void)swizzleOriginalSelector:(SEL)originalSelector withNewSelector:(SEL)swizzledSelector {
     Class class = [self class];
-    
-    NSLog(@"KILLROY: SWIZZLING OCCURING!");
     
     Method originalMethod = class_getInstanceMethod(class, originalSelector);
     Method swizzledMethod = class_getInstanceMethod(class, swizzledSelector);
@@ -51,11 +49,9 @@
     
     if (didAddMethod) {
         class_replaceMethod(class, swizzledSelector, method_getImplementation(originalMethod), method_getTypeEncoding(originalMethod));
-        NSLog(@"KILLROY: SWIZZLIN DID ADD!");
     }
     else {
         method_exchangeImplementations(originalMethod, swizzledMethod);
-        NSLog(@"KILLROY: SWIZZLIN DID NO ADD!");
     }
 }
 
@@ -65,34 +61,34 @@
 // ============================================================================
 
 
-- (void)loadViewCapture {
-    NSLog(@"KILLROY: LOAD VIEW CAPTURED!");
-    [self recordViewLoadStartTime];
+- (void)loadViewCaptureReactNative {
+    NSLog(@"1: LOAD VIEW CAPTURED!");
+    [self recordReactNativeViewLoadStartTime];
     [self loadViewCapture];
 }
 
-- (void)viewDidLoadCapture {
-    NSLog(@"KILLROY: VIEW DID LOAD CAPTURE!");
-    [self recordViewLoadStartTime];
+- (void)viewDidLoadCaptureReactNative {
+    NSLog(@"1: VIEW DID LOAD CAPTURE!");
+    [self recordReactNativeViewLoadStartTime];
     [self viewDidLoadCapture];
 }
 
-- (void)viewWillAppearCapture:(BOOL)animated {
-    NSLog(@"KILLROY: VIEW WILL APPEAR CAPTURED");
-    [self recordViewLoadStartTime];
+- (void)viewWillAppearCaptureReactNative:(BOOL)animated {
+    NSLog(@"1: VIEW WILL APPEAR CAPTURED");
+    [self recordReactNativeViewLoadStartTime];
     [self viewWillAppearCapture:animated];
 }
 
-- (void)recordViewLoadStartTime {
-    NSLog(@"KILLROY: IM LOADING");
+- (void)recordReactNativeViewLoadStartTime {
+    NSLog(@"1: IM LOADING");
     [[NSNotificationCenter defaultCenter] postNotificationName:@"RAYGUN_VIEW_LOADING" object:nil];
 }
 
-- (void)viewDidAppearCapture:(BOOL)animated {
+- (void)viewDidAppearCaptureReactNative:(BOOL)animated {
     
     [self viewDidAppearCapture:animated];
-    NSLog(@"KILLROY: IM LOADED");
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"RAYGUN_VIEW_LOADIED" object:nil];
+    NSLog(@"1: IM LOADED");
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"RAYGUN_VIEW_LOADED" object:nil];
 
 }
 

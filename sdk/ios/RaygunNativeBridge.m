@@ -270,13 +270,13 @@ RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
 
 
 - (void)viewStartedLoading{
-    NSLog(@"KILLROY: VIEW LOADING");
+    NSLog(@"2) VIEW LOADING");
     //NSLog(@"KILLROY: NAME-%@",note.name);
 }
 
-- (void)viewFinishedLoading {
+- (void)viewFinishedLoading{
     
-    NSLog(@"KILLROY: VIEW LOADED");
+    NSLog(@"2) VIEW LOADED");
     //NSLog(@"KILLROY: NAME-%@",note.name);
 }
 
