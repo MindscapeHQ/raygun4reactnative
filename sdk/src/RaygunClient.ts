@@ -68,6 +68,8 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
 
     RaygunLogger.init(logLevel);
 
+    RaygunLogger.v("RaygunClientOptions:", options);
+
     //Enable Crash Reporting
     if (enableCrashReporting) {
         crashReporter = new CrashReporter(
