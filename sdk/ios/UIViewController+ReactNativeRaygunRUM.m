@@ -80,15 +80,27 @@
 }
 
 - (void)recordReactNativeViewLoadStartTime {
-    NSLog(@"1: IM LOADING");
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"RAYGUN_VIEW_LOADING" object:nil];
+    NSLog(@"3) IM LOADING");
+    
+    NSDictionary* viewInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+                              @(CACurrentMediaTime()), @"time",
+                              self.description, @"name",
+                              nil];
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"RAYGUN_VIEW_LOADING" object:nil userInfo:viewInfo];
 }
 
 - (void)viewDidAppearCaptureReactNative:(BOOL)animated {
     
     [self viewDidAppearCapture:animated];
-    NSLog(@"1: IM LOADED");
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"RAYGUN_VIEW_LOADED" object:nil];
+    NSLog(@"3) IM LOADED");
+    
+    NSDictionary* viewInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+                              @(CACurrentMediaTime()), @"time",
+                              self.description, @"name",
+                              nil];
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"RAYGUN_VIEW_LOADED" object:nil userInfo:viewInfo];
 
 }
 

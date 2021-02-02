@@ -238,8 +238,8 @@ RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate) name:UIApplicationWillTerminateNotification object:nil];
     
     //CREATE OBSERVERS FOR VIEW LOADED EVENTS
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(viewStartedLoading) name:@"RAYGUN_VIEW_LOADING" object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(viewFinishedLoading) name:@"RAYGUN_VIEW_LOADED" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(viewStartedLoading:) name:@"RAYGUN_VIEW_LOADING" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(viewFinishedLoading:) name:@"RAYGUN_VIEW_LOADED" object:nil];
     
 #endif
     //TRIGGER THE ON_START EVENT
@@ -269,15 +269,15 @@ RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
 }
 
 
-- (void)viewStartedLoading{
-    NSLog(@"2) VIEW LOADING");
-    //NSLog(@"KILLROY: NAME-%@",note.name);
+- (void)viewStartedLoading:(NSNotification *) note{
+    NSLog(@"3) VIEW LOADING");
+    NSLog(@"3) VIEW NAME-%@",[note.userInfo objectForKey:@"name"]);
 }
 
-- (void)viewFinishedLoading{
+- (void)viewFinishedLoading:(NSNotification *) note{
     
-    NSLog(@"2) VIEW LOADED");
-    //NSLog(@"KILLROY: NAME-%@",note.name);
+    NSLog(@"3) VIEW LOADED");
+    NSLog(@"3) VIEW NAME-%@",[note.userInfo objectForKey:@"name"]);
 }
 
 
