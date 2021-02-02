@@ -82,9 +82,11 @@
 - (void)recordReactNativeViewLoadStartTime {
     NSLog(@"3) IM LOADING");
     
+    NSString* cleanedViewName = [[self.description stringByReplacingOccurrencesOfString:@"<" withString:@""] stringByReplacingOccurrencesOfString:@">" withString:@""];
+    
     NSDictionary* viewInfo = [NSDictionary dictionaryWithObjectsAndKeys:
                               @(CACurrentMediaTime()), @"time",
-                              self.description, @"name",
+                              cleanedViewName, @"name",
                               nil];
     
     [[NSNotificationCenter defaultCenter] postNotificationName:@"RAYGUN_VIEW_LOADING" object:nil userInfo:viewInfo];
@@ -95,9 +97,11 @@
     [self viewDidAppearCapture:animated];
     NSLog(@"3) IM LOADED");
     
+    NSString* cleanedViewName = [[self.description stringByReplacingOccurrencesOfString:@"<" withString:@""] stringByReplacingOccurrencesOfString:@">" withString:@""];
+    
     NSDictionary* viewInfo = [NSDictionary dictionaryWithObjectsAndKeys:
                               @(CACurrentMediaTime()), @"time",
-                              self.description, @"name",
+                              cleanedViewName, @"name",
                               nil];
     
     [[NSNotificationCenter defaultCenter] postNotificationName:@"RAYGUN_VIEW_LOADED" object:nil userInfo:viewInfo];
