@@ -204,7 +204,8 @@ export default class RealUserMonitor {
 
       this.loadingViews.delete(viewname);
 
-      this.sendViewLoadedEvent(viewname, duration);
+      let cleanedViewName = this.cleanViewName(viewname);
+      this.sendViewLoadedEvent(cleanedViewName, duration);
     }
     else error(`${viewname} never started loading!`);
   }
@@ -221,6 +222,18 @@ export default class RealUserMonitor {
 
     const data = { name: name, timing: { type: RealUserMonitoringTimings.ViewLoaded, duration } };
     return this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.EventTiming, data);
+  }
+
+  cleanViewName(viewName: string) : string{
+    let cleanedViewName = viewName;
+    if (cleanedViewName.startsWith("iOS_View: ")) {
+      cleanedViewName = cleanedViewName.replace("iOS_View: ", "");
+      cleanedViewName = cleanedViewName.replace("<", "");
+      cleanedViewName = cleanedViewName.replace(">", "");
+      cleanedViewName = cleanedViewName.split(':')[0];
+    }
+
+    return cleanedViewName;
   }
 
   //#endregion--------------------------------------------------------------------------------------
