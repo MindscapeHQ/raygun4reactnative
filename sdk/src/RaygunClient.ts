@@ -63,7 +63,8 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
         customRealUserMonitoringEndpoint = '',
         logLevel = LogLevel.warn,
         onBeforeSendingCrashReport = null,
-        ignoredURLs = []
+        ignoredURLs = [],
+        ignoredViews = []
     } = options;
 
     RaygunLogger.init(logLevel);
@@ -91,6 +92,7 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
             apiKey,
             disableNetworkMonitoring,
             ignoredURLs,
+            ignoredViews,
             customRealUserMonitoringEndpoint,
             version
         );
@@ -151,7 +153,6 @@ const setUser = (user: User | null) => {
         RaygunLogger.w("'setUser' was called before initializing the client");
         return
     }
-    ;
 
     if (realUserMonitoringAvailable()) {
         if (!getUser().isAnonymous) realUserMonitor.rotateRUMSession();
@@ -187,7 +188,6 @@ const getUser = (): User => {
         RaygunLogger.w("'getUser' was called before initializing the client");
         return anonUser
     }
-    ;
     return getCurrentUser();
 };
 
@@ -204,16 +204,19 @@ const recordBreadcrumb = (breadcrumb: Breadcrumb) => {
         RaygunLogger.w("'recordBreadcrumb' was called before initializing the client");
         return
     }
-    ;
 
     const newBreadcrumb: Breadcrumb = {
         category: "",
         customData: {},
         level: "debug",
         message: "",
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        type: "manual"
     }
     Object.assign(newBreadcrumb, {...breadcrumb})
+
+    // Ensure that no alternative data can be parsed through and overwrite this only option.
+    newBreadcrumb.type = 'manual';
 
     crashReporter.recordBreadcrumb(newBreadcrumb);
 };
@@ -226,7 +229,6 @@ const getBreadcrumbs = (): Breadcrumb[] => {
         RaygunLogger.w("'getBreadcrumbs' was called before initializing the client");
         return []
     }
-    ;
     return crashReporter.getBreadcrumbs();
 };
 
@@ -237,7 +239,7 @@ const clearBreadcrumbs = () => {
     if (!crashReportingAvailable()) {
         RaygunLogger.w("'clearBreadcrumbs' was called before initializing the client");
         return
-    };
+    }
     crashReporter.clearBreadcrumbs();
 };
 
@@ -264,7 +266,7 @@ const sendError = async (error: Error, details?: ManualCrashReportDetails) => {
     if (!crashReportingAvailable()) {
         RaygunLogger.w("'sendError' was called before initializing the client");
         return
-    };
+    }
     await crashReporter.processManualCrashReport(error, details);
 };
 
@@ -276,19 +278,18 @@ const setCustomData = (customData: CustomData | null) => {
     if (!crashReportingAvailable()) {
         RaygunLogger.w("'setCustomData' was called before initializing the client");
         return
-    };
+    }
     crashReporter.setCustomData(customData ? customData : {});
 };
 
 /**
  * Appends custom data to the current set of custom data.
- * @param customData - The custom data to append
  */
 const getCustomData = (): CustomData | null => {
     if (!crashReportingAvailable()) {
         RaygunLogger.w("'getCustomData' was called before initializing the client");
         return null
-    };
+    }
     return crashReporter.getCustomData();
 };
 
@@ -300,7 +301,7 @@ const setMaxReportsStoredOnDevice = (size: number) => {
     if (!crashReportingAvailable()) {
         RaygunLogger.w("'setMaxReportsStoredOnDevice' was called before initializing the client");
         return
-    };
+    }
     crashReporter.setMaxReportsStoredOnDevice(size);
 };
 
@@ -327,7 +328,7 @@ const sendRUMTimingEvent = (eventType: RealUserMonitoringTimings, name: string, 
     if (!realUserMonitoringAvailable()) {
         RaygunLogger.w("'sendRUMTimingEvent' was called before initializing the client");
         return
-    };
+    }
     realUserMonitor.sendCustomRUMEvent(eventType, name, durationMs);
 };
 
