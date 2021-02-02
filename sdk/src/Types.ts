@@ -1,10 +1,4 @@
 import { ErrorUtils } from 'react-native';
-import { getDeviceId } from './Utils';
-
-export const anonUser: User = {
-  identifier: `${getDeviceId()}`,
-  isAnonymous: true
-};
 
 //#region ----RAYGUN CLIENT SESSION TYPES-----------------------------------------------------------
 
@@ -17,9 +11,19 @@ export type RaygunClientOptions = {
   disableNetworkMonitoring?: boolean;
   customCrashReportingEndpoint?: string;
   customRealUserMonitoringEndpoint?: string;
+  logLevel?: LogLevel;
   onBeforeSendingCrashReport?: BeforeSendHandler;
   ignoredURLs?: string[];
 };
+
+export enum LogLevel {
+  off = 'off',
+  error = 'error',
+  warn = 'warn',
+  info = 'info',
+  debug = 'debug',
+  verbose = 'verbose',
+}
 
 type BasicType = string | number | boolean;
 

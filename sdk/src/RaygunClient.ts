@@ -4,21 +4,21 @@
  */
 
 import {
-  CustomData,
-  RaygunClientOptions,
-  User,
-  RealUserMonitoringTimings,
-  BeforeSendHandler,
-  anonUser,
-  Breadcrumb, ManualCrashReportDetails
+    BeforeSendHandler,
+    Breadcrumb,
+    CustomData,
+    LogLevel,
+    ManualCrashReportDetails,
+    RaygunClientOptions,
+    RealUserMonitoringTimings,
+    User
 } from './Types';
-import { getCurrentTags, getDeviceId, log, setCurrentTags, setCurrentUser, getCurrentUser, warn } from './Utils';
+import {anonUser, getCurrentTags, getCurrentUser, setCurrentTags, setCurrentUser} from './Utils';
 import CrashReporter from './CrashReporter';
 import RealUserMonitor from './RealUserMonitor';
-import { Animated, NativeModules } from 'react-native';
-import event = Animated.event;
-
-const { RaygunNativeBridge } = NativeModules;
+import {NativeModules} from 'react-native';
+import RaygunLogger from "./RaygunLogger";
+const {RaygunNativeBridge} = NativeModules;
 
 /**
  * The RaygunClient is the interface in which this provider publicly shows. The bottom of this page
@@ -29,10 +29,10 @@ const { RaygunNativeBridge } = NativeModules;
 
 //#region ----INITIALIZATION------------------------------------------------------------------------
 
+// Raygun Client Global Variables
 let crashReporter: CrashReporter;
 let realUserMonitor: RealUserMonitor;
 let options: RaygunClientOptions;
-// Raygun Client Global Variables
 let initialized: boolean = false;
 
 /**
@@ -43,70 +43,66 @@ let initialized: boolean = false;
  * @param raygunClientOptions
  */
 const init = (raygunClientOptions: RaygunClientOptions) => {
-  //Do not reinitialize
-  if (initialized) {
-    log('Already initialized');
-    return false;
-  }
-
-  options = { ...raygunClientOptions };
-
-  //Cleans options with defaults
-  const {
-    apiKey = '',
-    version = '',
-    enableCrashReporting = false,
-    disableNativeCrashReporting = false,
-    enableRealUserMonitoring = false,
-    disableNetworkMonitoring = false,
-    customCrashReportingEndpoint = '',
-    customRealUserMonitoringEndpoint = '',
-    onBeforeSendingCrashReport = null,
-    ignoredURLs = []
-  } = options;
-
-  //Enable Crash Reporting
-  if (enableCrashReporting) {
-    crashReporter = new CrashReporter(
-      apiKey,
-      disableNativeCrashReporting,
-      customCrashReportingEndpoint || '',
-      onBeforeSendingCrashReport as BeforeSendHandler,
-      version
-    );
-    if (!disableNativeCrashReporting) {
-      log('Native Bridge Initialized');
-      RaygunNativeBridge.initCrashReportingNativeSupport(apiKey, version, customCrashReportingEndpoint);
+    //Do not reinitialize
+    if (initialized) {
+        RaygunLogger.w("RaygunClient version already initialized");
+        return false;
     }
-  }
 
-  //Enable Real User Monitoring
-  if (enableRealUserMonitoring) {
-    realUserMonitor = new RealUserMonitor(
-      apiKey,
-      disableNetworkMonitoring,
-      ignoredURLs,
-      customRealUserMonitoringEndpoint,
-      version
-    );
-    // Add the lifecycle event listeners to the bridge.
-    RaygunNativeBridge.initRealUserMonitoringNativeSupport();
-  }
+    options = {...raygunClientOptions};
 
-  initialized = true;
+    //Cleans options with defaults
+    const {
+        apiKey = '',
+        version = '',
+        enableCrashReporting = false,
+        disableNativeCrashReporting = false,
+        enableRealUserMonitoring = false,
+        disableNetworkMonitoring = false,
+        customCrashReportingEndpoint = '',
+        customRealUserMonitoringEndpoint = '',
+        logLevel = LogLevel.warn,
+        onBeforeSendingCrashReport = null,
+        ignoredURLs = []
+    } = options;
 
-  return true;
+    RaygunLogger.init(logLevel);
+
+    RaygunLogger.v("RaygunClientOptions:", options);
+
+    //Enable Crash Reporting
+    if (enableCrashReporting) {
+        crashReporter = new CrashReporter(
+            apiKey,
+            disableNativeCrashReporting,
+            customCrashReportingEndpoint || '',
+            onBeforeSendingCrashReport as BeforeSendHandler,
+            version
+        );
+
+        if (!disableNativeCrashReporting) {
+            RaygunNativeBridge.initCrashReportingNativeSupport(apiKey, version, customCrashReportingEndpoint);
+        }
+    }
+
+    //Enable Real User Monitoring
+    if (enableRealUserMonitoring) {
+        realUserMonitor = new RealUserMonitor(
+            apiKey,
+            disableNetworkMonitoring,
+            ignoredURLs,
+            customRealUserMonitoringEndpoint,
+            version
+        );
+
+        // Add the lifecycle event listeners to the bridge.
+        RaygunNativeBridge.initRealUserMonitoringNativeSupport();
+    }
+
+    initialized = true;
+    RaygunLogger.i(`RaygunClient version initialized`)
+    return true;
 };
-
-const isInitialized = (calledFrom: string): boolean => {
-  if (!initialized) {
-    warn(
-      `Failed: "${calledFrom}" cannot be called before initialising RaygunClient. Please call RaygunClient.init(...) before trying to call RaygunClient.${calledFrom}(...)`
-    );
-    return false;
-  }
-  return true;
-}
 
 //#endregion----------------------------------------------------------------------------------------
 
@@ -118,23 +114,31 @@ const isInitialized = (calledFrom: string): boolean => {
  * @param tags - The tag(s) to append to the session.
  */
 const setTags = (...tags: string[]) => {
+    if (!initialized) {
+        RaygunLogger.w("'setTags' was called before initializing the client");
+        return
+    }
 
-  if (!isInitialized('setTags')) {
-    return;
-  }
+    let newTags = tags ? [...tags] : [];
+    setCurrentTags(newTags);
 
-  let newTags = tags ? [...tags] : [];
-  setCurrentTags(newTags);
-  if (!options.disableNativeCrashReporting) {
-    RaygunNativeBridge.setTags(getCurrentTags());
-  }
-  //Mark a user interaction with the Real User Monitor session
-  if (realUserMonitoringAvailable('setTags')) realUserMonitor.markSessionInteraction();
+    if (!options.disableNativeCrashReporting) {
+        RaygunNativeBridge.setTags(getCurrentTags());
+    }
+
+    //Mark a user interaction with the Real User Monitor session
+    if (realUserMonitoringAvailable()) realUserMonitor.markSessionInteraction();
 };
 
+/**
+ * Returns the currently existing session tags.
+ */
 const getTags = (): string[] => {
-  if (!isInitialized('getTags')) return [];
-  return getCurrentTags();
+    if (!initialized) {
+        RaygunLogger.w("'getTags' was called before initializing the client");
+        return []
+    }
+    return getCurrentTags();
 };
 
 /**
@@ -143,44 +147,48 @@ const getTags = (): string[] => {
  * @param user - The new name or user object to assign.
  */
 const setUser = (user: User | null) => {
+    if (!initialized) {
+        RaygunLogger.w("'setUser' was called before initializing the client");
+        return
+    }
+    ;
 
-  if (!isInitialized('setUser')) {
-    return;
-  }
+    if (realUserMonitoringAvailable()) {
+        if (!getUser().isAnonymous) realUserMonitor.rotateRUMSession();
+        //User is beginning a new session
+        else realUserMonitor.markSessionInteraction(); //User is logging in from anonymous
+    }
 
-  if (realUserMonitoringAvailable('setUser')) {
-    if (!getUser().isAnonymous) realUserMonitor.rotateRUMSession();
-    //User is beginning a new session
-    else realUserMonitor.markSessionInteraction(); //User is logging in from anonymous
-  }
+    // Ensure no values are "NULL"
+    const newUser = {
+        email: "",
+        firstName: "",
+        fullName: "",
+        identifier: "",
+        isAnonymous: false,
+        uuid: ""
+    };
+    Object.assign(newUser, user ? {...user} : anonUser);
 
+    //Update user across the react side
+    setCurrentUser(newUser);
 
-  // Ensure no values are "NULL"
-  const newUser = {
-    email: "",
-    firstName: "",
-    fullName: "",
-    identifier: "",
-    isAnonymous: false,
-    uuid: ""
-  };
-  Object.assign(newUser, user ? {...user} : anonUser);
-
-  //Update user across the react side
-  setCurrentUser(newUser);
-
-  //Update user on the native side
-  if (!options.disableNativeCrashReporting) {
-    RaygunNativeBridge.setUser(getCurrentUser());
-  }
+    //Update user on the native side
+    if (!options.disableNativeCrashReporting) {
+        RaygunNativeBridge.setUser(getCurrentUser());
+    }
 };
 
 /**
  * Get the current user object
  */
 const getUser = (): User => {
-  if (!isInitialized('getUser')) return anonUser;
-  return getCurrentUser();
+    if (!initialized) {
+        RaygunLogger.w("'getUser' was called before initializing the client");
+        return anonUser
+    }
+    ;
+    return getCurrentUser();
 };
 
 //#endregion----------------------------------------------------------------------------------------
@@ -192,34 +200,45 @@ const getUser = (): User => {
  * @param breadcrumb
  */
 const recordBreadcrumb = (breadcrumb: Breadcrumb) => {
-  if (!crashReportingAvailable('recordBreadcrumb')) return;
+    if (!crashReportingAvailable()) {
+        RaygunLogger.w("'recordBreadcrumb' was called before initializing the client");
+        return
+    }
+    ;
 
-  const newBreadcrumb: Breadcrumb = {
-    category: "",
-    customData: {},
-    level: "debug",
-    message: "",
-    timestamp: Date.now()
-  }
-  Object.assign(newBreadcrumb, {...breadcrumb})
+    const newBreadcrumb: Breadcrumb = {
+        category: "",
+        customData: {},
+        level: "debug",
+        message: "",
+        timestamp: Date.now()
+    }
+    Object.assign(newBreadcrumb, {...breadcrumb})
 
-  crashReporter.recordBreadcrumb(newBreadcrumb);
+    crashReporter.recordBreadcrumb(newBreadcrumb);
 };
 
 /**
  * Returns the current breadcrumbs.
  */
 const getBreadcrumbs = (): Breadcrumb[] => {
-  if (!crashReportingAvailable('getBreadcrumbs')) return [];
-  return crashReporter.getBreadcrumbs();
+    if (!crashReportingAvailable()) {
+        RaygunLogger.w("'getBreadcrumbs' was called before initializing the client");
+        return []
+    }
+    ;
+    return crashReporter.getBreadcrumbs();
 };
 
 /**
  * Removes all breadcrumbs.
  */
 const clearBreadcrumbs = () => {
-  if (!crashReportingAvailable('clearBreadcrumbs')) return;
-  crashReporter.clearBreadcrumbs();
+    if (!crashReportingAvailable()) {
+        RaygunLogger.w("'clearBreadcrumbs' was called before initializing the client");
+        return
+    };
+    crashReporter.clearBreadcrumbs();
 };
 
 /**
@@ -242,8 +261,11 @@ const clearBreadcrumbs = () => {
  * @see CustomData
  */
 const sendError = async (error: Error, details?: ManualCrashReportDetails) => {
-  if (!crashReportingAvailable('sendError')) return;
-  await crashReporter.processManualCrashReport(error, details);
+    if (!crashReportingAvailable()) {
+        RaygunLogger.w("'sendError' was called before initializing the client");
+        return
+    };
+    await crashReporter.processManualCrashReport(error, details);
 };
 
 /**
@@ -251,8 +273,11 @@ const sendError = async (error: Error, details?: ManualCrashReportDetails) => {
  * @param customData - The custom data to append
  */
 const setCustomData = (customData: CustomData | null) => {
-  if (!crashReportingAvailable('setCustomData')) return;
-  crashReporter.setCustomData(customData ? customData : {});
+    if (!crashReportingAvailable()) {
+        RaygunLogger.w("'setCustomData' was called before initializing the client");
+        return
+    };
+    crashReporter.setCustomData(customData ? customData : {});
 };
 
 /**
@@ -260,8 +285,11 @@ const setCustomData = (customData: CustomData | null) => {
  * @param customData - The custom data to append
  */
 const getCustomData = (): CustomData | null => {
-  if (!crashReportingAvailable('setCustomData')) return null;
-  return crashReporter.getCustomData();
+    if (!crashReportingAvailable()) {
+        RaygunLogger.w("'getCustomData' was called before initializing the client");
+        return null
+    };
+    return crashReporter.getCustomData();
 };
 
 /**
@@ -269,26 +297,20 @@ const getCustomData = (): CustomData | null => {
  * @param size
  */
 const setMaxReportsStoredOnDevice = (size: number) => {
-  if (!crashReportingAvailable('setCrashReportCacheSize')) return;
-  crashReporter.setMaxReportsStoredOnDevice(size);
+    if (!crashReportingAvailable()) {
+        RaygunLogger.w("'setMaxReportsStoredOnDevice' was called before initializing the client");
+        return
+    };
+    crashReporter.setMaxReportsStoredOnDevice(size);
 };
 
 /**
  * Checks if the CrashReporter has been created (during RaygunClient.init) and if the user enabled
  * the CrashReporter during the init.
  */
-const crashReportingAvailable = (calledFrom: string) => {
-  if (!isInitialized(calledFrom)) {
-    return false;
-  }
-
-  if (!(crashReporter && options.enableCrashReporting)) {
-    warn(
-      `Failed: "${calledFrom}" cannot be called unless Crash Reporting has been enabled, please ensure that you set "enableCrashReporting" to true during RaygunClient.init(...)`
-    );
-    return false;
-  }
-  return true;
+const crashReportingAvailable = (): boolean => {
+    if (!initialized) return false;
+    return !!(crashReporter && options.enableCrashReporting);
 };
 
 //#endregion----------------------------------------------------------------------------------------
@@ -299,45 +321,39 @@ const crashReportingAvailable = (calledFrom: string) => {
  * Construct a Real User Monitoring Timing Event and send it to the Real User Monitor to be transmitted.
  * @param eventType - Type of Real User Monitoring event.
  * @param name - Name of this event.
- * @param timeUsedInMs - Length this event took to execute.
+ * @param durationMs - Length this event took to execute.
  */
 const sendRUMTimingEvent = (eventType: RealUserMonitoringTimings, name: string, durationMs: number) => {
-  if (!realUserMonitoringAvailable('sendRUMTimingEvent')) return;
-  realUserMonitor.sendCustomRUMEvent(eventType, name, durationMs);
+    if (!realUserMonitoringAvailable()) {
+        RaygunLogger.w("'sendRUMTimingEvent' was called before initializing the client");
+        return
+    };
+    realUserMonitor.sendCustomRUMEvent(eventType, name, durationMs);
 };
 
 /**
  * Checks if the RealUserMonitor has been created (during RaygunClient.init) and if the user enabled
  * the RealUserMonitor during the init.
  */
-const realUserMonitoringAvailable = (calledFrom: string) => {
-  if (!isInitialized(calledFrom)) {
-    return false;
-  }
-
-  if (!(realUserMonitor && options.enableRealUserMonitoring)) {
-    warn(
-      `Failed: "${calledFrom}" cannot be called unless Real User Monitoring has been enabled, please ensure that you set "enableRealUserMonitoring" to true during RaygunClient.init(...)`
-    );
-    return false;
-  }
-  return true;
+const realUserMonitoringAvailable = (): boolean => {
+    if (!initialized) return false;
+    return !!(realUserMonitor && options.enableRealUserMonitoring);
 };
 
 //#endregion----------------------------------------------------------------------------------------
 
 export {
-  init,
-  setTags,
-  getTags,
-  setUser,
-  getUser,
-  recordBreadcrumb,
-  getBreadcrumbs,
-  clearBreadcrumbs,
-  setCustomData,
-  getCustomData,
-  sendError,
-  setMaxReportsStoredOnDevice,
-  sendRUMTimingEvent
+    init,
+    setTags,
+    getTags,
+    setUser,
+    getUser,
+    recordBreadcrumb,
+    getBreadcrumbs,
+    clearBreadcrumbs,
+    setCustomData,
+    getCustomData,
+    sendError,
+    setMaxReportsStoredOnDevice,
+    sendRUMTimingEvent
 };

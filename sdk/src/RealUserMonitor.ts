@@ -2,13 +2,13 @@ import {
   RealUserMonitoringEvents,
   RealUserMonitoringTimings,
   RealUserMonitorPayload,
-  RequestMeta,
-  User
+  RequestMeta
 } from './Types';
-import { getDeviceId, log, warn, shouldIgnore, getCurrentUser, getCurrentTags, getRandomGUID } from './Utils';
+import { getDeviceId, shouldIgnore, getCurrentUser, getCurrentTags, getRandomGUID } from './Utils';
 // @ts-ignore
 import XHRInterceptor from 'react-native/Libraries/Network/XHRInterceptor';
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
+import RaygunLogger from "./RaygunLogger";
 
 const { RaygunNativeBridge } = NativeModules;
 const { osVersion, platform } = RaygunNativeBridge;
@@ -92,7 +92,6 @@ export default class RealUserMonitor {
    *  user -> anon_user = YES (logout)
    */
   async rotateRUMSession() {
-    log('ROTATE RUM SESSION');
 
     //Terminate the current session
     await this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionEnd, {});
@@ -138,7 +137,6 @@ export default class RealUserMonitor {
       this.sendNetworkTimingEvent(name, Date.now() - duration, duration);
       return;
     }
-    warn('Unknown RUM event type:', eventType);
   }
 
   /**
@@ -219,7 +217,7 @@ export default class RealUserMonitor {
         body: JSON.stringify({ eventData: [rumMessage] })
       }
     ).catch(err => {
-      log(err);
+      RaygunLogger.e("Unable to send Real User Monitor payload", err);
     });
   }
 
