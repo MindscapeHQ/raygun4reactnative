@@ -5,6 +5,8 @@
 
 @implementation UIViewController (ReactNativeRaygunRUM)
 
+static NSString* iOSViewTag = @"iOS_View: ";
+
 // ============================================================================
 #pragma mark - OVERRIDING UICONTROLLER -
 // ============================================================================
@@ -80,13 +82,12 @@
 }
 
 - (void)recordReactNativeViewLoadStartTime {
-    NSLog(@"3) IM LOADING");
-    
-    NSString* cleanedViewName = [[self.description stringByReplacingOccurrencesOfString:@"<" withString:@""] stringByReplacingOccurrencesOfString:@">" withString:@""];
+    NSNumber* timeInSeconds = [NSNumber numberWithDouble:[@(CACurrentMediaTime()) doubleValue] * 1000.0];
+    NSLog(@"3) IM LOADING - time is: %@", timeInSeconds);
     
     NSDictionary* viewInfo = [NSDictionary dictionaryWithObjectsAndKeys:
-                              @(CACurrentMediaTime()), @"time",
-                              cleanedViewName, @"name",
+                              timeInSeconds, @"time",
+                              [iOSViewTag stringByAppendingString:self.description], @"name",
                               nil];
     
     [[NSNotificationCenter defaultCenter] postNotificationName:@"RAYGUN_VIEW_LOADING" object:nil userInfo:viewInfo];
@@ -95,13 +96,13 @@
 - (void)viewDidAppearCaptureReactNative:(BOOL)animated {
     
     [self viewDidAppearCapture:animated];
-    NSLog(@"3) IM LOADED");
     
-    NSString* cleanedViewName = [[self.description stringByReplacingOccurrencesOfString:@"<" withString:@""] stringByReplacingOccurrencesOfString:@">" withString:@""];
+    NSNumber* timeInSeconds = [NSNumber numberWithDouble:[@(CACurrentMediaTime()) doubleValue] * 1000.0];
+    NSLog(@"3) IM LOADED - time is: %@", timeInSeconds);
     
     NSDictionary* viewInfo = [NSDictionary dictionaryWithObjectsAndKeys:
-                              @(CACurrentMediaTime()), @"time",
-                              cleanedViewName, @"name",
+                              timeInSeconds, @"time",
+                              [iOSViewTag stringByAppendingString:self.description], @"name",
                               nil];
     
     [[NSNotificationCenter defaultCenter] postNotificationName:@"RAYGUN_VIEW_LOADED" object:nil userInfo:viewInfo];
