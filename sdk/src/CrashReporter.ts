@@ -1,18 +1,5 @@
-import {
-  cleanFilePath,
-  filterOutReactFrames,
-  getCurrentTags,
-  getCurrentUser,
-  noAddressAt,
-  upperFirst,
-} from './Utils';
-import {
-  BeforeSendHandler,
-  Breadcrumb,
-  CrashReportPayload,
-  CustomData,
-  ManualCrashReportDetails
-} from './Types';
+import {cleanFilePath, filterOutReactFrames, getCurrentTags, getCurrentUser, noAddressAt, upperFirst,} from './Utils';
+import {BeforeSendHandler, Breadcrumb, CrashReportPayload, CustomData, ManualCrashReportDetails} from './Types';
 import {StackFrame} from 'react-native/Libraries/Core/Devtools/parseErrorStack';
 import {NativeModules, Platform} from 'react-native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -159,13 +146,14 @@ export default class CrashReporter {
       const rawCache = await AsyncStorage.getItem(this.local_storage_key)
       if(rawCache !== null) {
         try {
-          let jsonCache : CrashReportPayload[] = JSON.parse(rawCache);
-          return jsonCache;
+          return JSON.parse(rawCache);
         }
         catch(e) {
+          RaygunLogger.d("Unable to extract payload from cache:", {error: e.message, cache: rawCache});
         }
       }
     } catch(e) {
+      RaygunLogger.d("Unable to get access local storage:", e.message);
     }
     return [];
   }
@@ -178,6 +166,7 @@ export default class CrashReporter {
     try {
       await AsyncStorage.setItem(this.local_storage_key, JSON.stringify(newCache));
     } catch(e) {
+      RaygunLogger.d("Unable to access local storage");
     }
   }
 
