@@ -1,5 +1,7 @@
 import {LogLevel} from "./Types";
 
+const pj = require('../package.json')
+
 export default class RaygunLogger {
 
     //#region -- Init --------------------------------------------------------------------------------------------------
@@ -79,7 +81,7 @@ export default class RaygunLogger {
     private static emitLog(level: LogLevel, msg: string, additionInfo?: any) {
         // If some action is attempted before the client has been initialized, inform the user of the first case.
         if (this.logLevel === -2){
-            this.consoles[1](`Action attempted on the RaygunClient before initialization: ${msg}`)
+            this.consoles[1](`Unsupported action on RaygunClient (v${pj.version}): ${msg}`)
             this.logLevel = -1;
         }
 
@@ -107,10 +109,13 @@ export default class RaygunLogger {
         This method of extracting the console loggers removes the stack trace that is printed by default, and allows
         the loggers to simply log exactly what is parsed through
          */
+
+        const message = msg.replace("version", `(v${pj.version})`)
+
         if (additionInfo)
-            this.consoles[consoleIndex](msg + "\n", JSON.stringify(additionInfo));
+            this.consoles[consoleIndex](message + "\n", JSON.stringify(additionInfo, null, 4));
         else
-            this.consoles[consoleIndex](msg);
+            this.consoles[consoleIndex](message);
     }
 
     //#endregion -------------------------------------------------------------------------------------------------------

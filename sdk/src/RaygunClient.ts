@@ -18,8 +18,6 @@ import CrashReporter from './CrashReporter';
 import RealUserMonitor from './RealUserMonitor';
 import {NativeModules} from 'react-native';
 import RaygunLogger from "./RaygunLogger";
-
-const pj = require('../package.json')
 const {RaygunNativeBridge} = NativeModules;
 
 /**
@@ -47,7 +45,7 @@ let initialized: boolean = false;
 const init = (raygunClientOptions: RaygunClientOptions) => {
     //Do not reinitialize
     if (initialized) {
-        RaygunLogger.w("RaygunClient already initialized");
+        RaygunLogger.w("RaygunClient version already initialized");
         return false;
     }
 
@@ -100,7 +98,7 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
     }
 
     initialized = true;
-    RaygunLogger.i(`Raygun client initialized (V${pj.version})`)
+    RaygunLogger.i(`RaygunClient version initialized`)
     return true;
 };
 
@@ -118,13 +116,12 @@ const setTags = (...tags: string[]) => {
         RaygunLogger.w("'setTags' was called before initializing the client");
         return
     }
-    ;
 
     let newTags = tags ? [...tags] : [];
     setCurrentTags(newTags);
 
     if (!options.disableNativeCrashReporting) {
-        RaygunNativeBridge.setTags(...getCurrentTags());
+        RaygunNativeBridge.setTags(getCurrentTags());
     }
 
     //Mark a user interaction with the Real User Monitor session
@@ -235,7 +232,10 @@ const getBreadcrumbs = (): Breadcrumb[] => {
  * Removes all breadcrumbs.
  */
 const clearBreadcrumbs = () => {
-    if (!crashReportingAvailable()) return;
+    if (!crashReportingAvailable()) {
+        RaygunLogger.w("'clearBreadcrumbs' was called before initializing the client");
+        return
+    };
     crashReporter.clearBreadcrumbs();
 };
 
@@ -259,7 +259,10 @@ const clearBreadcrumbs = () => {
  * @see CustomData
  */
 const sendError = async (error: Error, details?: ManualCrashReportDetails) => {
-    if (!crashReportingAvailable()) return;
+    if (!crashReportingAvailable()) {
+        RaygunLogger.w("'sendError' was called before initializing the client");
+        return
+    };
     await crashReporter.processManualCrashReport(error, details);
 };
 
@@ -268,7 +271,10 @@ const sendError = async (error: Error, details?: ManualCrashReportDetails) => {
  * @param customData - The custom data to append
  */
 const setCustomData = (customData: CustomData | null) => {
-    if (!crashReportingAvailable()) return;
+    if (!crashReportingAvailable()) {
+        RaygunLogger.w("'setCustomData' was called before initializing the client");
+        return
+    };
     crashReporter.setCustomData(customData ? customData : {});
 };
 
@@ -277,7 +283,10 @@ const setCustomData = (customData: CustomData | null) => {
  * @param customData - The custom data to append
  */
 const getCustomData = (): CustomData | null => {
-    if (!crashReportingAvailable()) return null;
+    if (!crashReportingAvailable()) {
+        RaygunLogger.w("'getCustomData' was called before initializing the client");
+        return null
+    };
     return crashReporter.getCustomData();
 };
 
@@ -286,7 +295,10 @@ const getCustomData = (): CustomData | null => {
  * @param size
  */
 const setMaxReportsStoredOnDevice = (size: number) => {
-    if (!crashReportingAvailable()) return;
+    if (!crashReportingAvailable()) {
+        RaygunLogger.w("'setMaxReportsStoredOnDevice' was called before initializing the client");
+        return
+    };
     crashReporter.setMaxReportsStoredOnDevice(size);
 };
 
@@ -310,7 +322,10 @@ const crashReportingAvailable = (): boolean => {
  * @param durationMs - Length this event took to execute.
  */
 const sendRUMTimingEvent = (eventType: RealUserMonitoringTimings, name: string, durationMs: number) => {
-    if (!realUserMonitoringAvailable()) return;
+    if (!realUserMonitoringAvailable()) {
+        RaygunLogger.w("'sendRUMTimingEvent' was called before initializing the client");
+        return
+    };
     realUserMonitor.sendCustomRUMEvent(eventType, name, durationMs);
 };
 

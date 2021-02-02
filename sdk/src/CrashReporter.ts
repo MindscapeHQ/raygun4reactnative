@@ -16,6 +16,7 @@ import {
 import {StackFrame} from 'react-native/Libraries/Core/Devtools/parseErrorStack';
 import {NativeModules, Platform} from 'react-native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import RaygunLogger from "./RaygunLogger";
 
 const {RaygunNativeBridge} = NativeModules;
 const {version: clientVersion} = require('../package.json');
@@ -291,10 +292,7 @@ export default class CrashReporter {
     const stackFrames = parseErrorStack(error);
 
     //Clean the stack trace and check for empty stack trace
-    const symbolicateStackTrace = require('react-native/Libraries/Core/Devtools/symbolicateStackTrace');
-    const cleanedStackFrames: StackFrame[] = __DEV__
-      ? await symbolicateStackTrace(stackFrames)
-      : {stack: cleanFilePath(stackFrames)};
+    const cleanedStackFrames: StackFrame[] = cleanFilePath(stackFrames);
 
     return cleanedStackFrames || [].filter(filterOutReactFrames).map(noAddressAt);
   }
@@ -310,8 +308,12 @@ export default class CrashReporter {
         : payload;
 
     if (!modifiedPayload) {
+      RaygunLogger.i("Payload ignore from beforeSendHandler");
+      RaygunLogger.v("Ignored Payload:", payload);
       return;
     }
+
+    RaygunLogger.v("Crash Report Payload:", modifiedPayload);
 
     //Send the Crash Report, caching it if the transmission is not successful
     this.sendCrashReport(modifiedPayload).then((success) => {
@@ -396,9 +398,13 @@ export default class CrashReporter {
         body: JSON.stringify(payload)
       })
       .then((response) => {
-        if (response.status === this.RAYGUN_RATE_LIMITING_STATUS_CODE) return false
+        if (response.status === this.RAYGUN_RATE_LIMITING_STATUS_CODE) {
+          RaygunLogger.w("Unable to send Crash Report payload:", "Raygun rate limiting");
+          return false
+        }
         return true;
       }).catch((error) => {
+        RaygunLogger.e("Unable to send Crash Report payload:", error.message);
         return false;
       })
     }

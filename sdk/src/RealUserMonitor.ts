@@ -8,6 +8,7 @@ import { getDeviceId, shouldIgnore, getCurrentUser, getCurrentTags, getRandomGUI
 // @ts-ignore
 import XHRInterceptor from 'react-native/Libraries/Network/XHRInterceptor';
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
+import RaygunLogger from "./RaygunLogger";
 
 const { RaygunNativeBridge } = NativeModules;
 const { osVersion, platform } = RaygunNativeBridge;
@@ -216,7 +217,7 @@ export default class RealUserMonitor {
         body: JSON.stringify({ eventData: [rumMessage] })
       }
     ).catch(err => {
-
+      RaygunLogger.e("Unable to send Real User Monitor payload", err);
     });
   }
 
