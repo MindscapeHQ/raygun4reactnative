@@ -198,7 +198,7 @@ export default class RealUserMonitor {
 
     if (this.loadingViews.has(viewname) && !!this.loadingViews.get(viewname)) {
       // @ts-ignore
-      let duration : number = time - this.loadingViews.get(viewname);
+      let duration : number = Math.round(time - this.loadingViews.get(viewname));
 
       log(`View successfully read. duration: ${duration}`);
 
@@ -215,11 +215,11 @@ export default class RealUserMonitor {
    * before sending away any data.
    * @param payload
    */
-  async sendViewLoadedEvent(viewName : string, duration : number) {
+  async sendViewLoadedEvent(name : string, duration : number) {
 
-    log(`sending View Timing!!!!!  ${viewName} & ${duration}`);
+    log(`sending View Timing!!!!!  ${name} & ${duration}`);
 
-    const data = { viewName, timing: { type: RealUserMonitoringTimings.ViewLoaded, duration } };
+    const data = { name: name, timing: { type: RealUserMonitoringTimings.ViewLoaded, duration } };
     return this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.EventTiming, data);
   }
 
