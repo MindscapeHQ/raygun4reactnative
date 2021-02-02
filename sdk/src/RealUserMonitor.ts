@@ -75,7 +75,7 @@ export default class RealUserMonitor {
     eventEmitter.addListener(RaygunNativeBridge.ON_SESSION_PAUSE, this.markSessionInteraction.bind(this));
     eventEmitter.addListener(RaygunNativeBridge.ON_SESSION_RESUME, this.rotateRUMSession.bind(this));
     eventEmitter.addListener(RaygunNativeBridge.ON_VIEW_LOADING, this.viewBeginsLoading.bind(this));
-    eventEmitter.addListener(RaygunNativeBridge.ON_VIEW_LOADED, this.sendViewLoadedEvent.bind(this));
+    eventEmitter.addListener(RaygunNativeBridge.ON_VIEW_LOADED, this.viewFinishesLoading.bind(this));
     eventEmitter.addListener(RaygunNativeBridge.ON_SESSION_END, () => {
       eventEmitter.removeAllListeners(RaygunNativeBridge.ON_SESSION_START);
       eventEmitter.removeAllListeners(RaygunNativeBridge.ON_SESSION_PAUSE);
@@ -145,7 +145,7 @@ export default class RealUserMonitor {
    */
   sendCustomRUMEvent(eventType: RealUserMonitoringTimings, name: string, duration: number) {
     if (eventType === RealUserMonitoringTimings.ViewLoaded) {
-      this.sendViewLoadedEvent({ name, duration });
+      this.sendViewLoadedEvent(name, duration);
       return;
     }
     if (eventType === RealUserMonitoringTimings.NetworkCall) {
@@ -169,6 +169,11 @@ export default class RealUserMonitor {
     this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.EventTiming, data, sendTime).catch();
   }
 
+  /**
+   * When a View begins loading this event will store the time that it started so that the duration
+   * can be calculated later.
+   * @param payload
+   */
   viewBeginsLoading(payload: Record<string, any>) {
     const { viewname, time } = payload;
 
@@ -181,17 +186,15 @@ export default class RealUserMonitor {
     }
   }
 
-
   /**
-   * This method sends a mobile event timing message to the raygun server. If the current session
-   * has not been setup, this method will also ensure that the session has been allocated an ID
-   * before sending away any data.
+   * When a View begins loading this event will store the time that it started so that the duration
+   * can be calculated later.
    * @param payload
    */
-  async sendViewLoadedEvent(payload: Record<string, any>) {
+  viewFinishesLoading(payload: Record<string, any>) {
     const { viewname, time } = payload;
 
-    log(`sending View Loaded!!!!!  ${viewname} & ${time}`);
+    log(`View Loaded!!!!!  ${viewname} & ${time}`);
 
     if (this.loadingViews.has(viewname) && !!this.loadingViews.get(viewname)) {
       // @ts-ignore
@@ -201,10 +204,23 @@ export default class RealUserMonitor {
 
       this.loadingViews.delete(viewname);
 
-      const data = { viewname, timing: { type: RealUserMonitoringTimings.ViewLoaded, duration } };
-      return this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.EventTiming, data);
+      this.sendViewLoadedEvent(viewname, duration);
     }
     else error(`${viewname} never started loading!`);
+  }
+
+  /**
+   * This method sends a mobile event timing message to the raygun server. If the current session
+   * has not been setup, this method will also ensure that the session has been allocated an ID
+   * before sending away any data.
+   * @param payload
+   */
+  async sendViewLoadedEvent(viewName : string, duration : number) {
+
+    log(`sending View Timing!!!!!  ${viewName} & ${duration}`);
+
+    const data = { viewName, timing: { type: RealUserMonitoringTimings.ViewLoaded, duration } };
+    return this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.EventTiming, data);
   }
 
   //#endregion--------------------------------------------------------------------------------------
