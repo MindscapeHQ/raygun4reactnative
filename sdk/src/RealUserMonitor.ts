@@ -29,6 +29,8 @@ export default class RealUserMonitor {
   private requests = new Map<string, RequestMeta>();
   private raygunRumEndpoint = 'https://api.raygun.com/events';
 
+  private loadingViews = new Map<string, number>();
+
   lastSessionInteractionTime = Date.now();
   RealUserMonitoringSessionId: string = ''; //The id for generated RUM Timing events to be grouped under
 
@@ -191,8 +193,18 @@ export default class RealUserMonitor {
 
     log(`sending View Loaded!!!!!  ${viewname} & ${time}`);
 
-    // const data = { viewname, timing: { type: RealUserMonitoringTimings.ViewLoaded, time } };
-    // return this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.EventTiming, data);
+    if (this.loadingViews.has(viewname) && !!this.loadingViews.get(viewname)) {
+      // @ts-ignore
+      let duration : number = time - this.loadingViews.get(viewname);
+
+      log(`View successfully read. duration: ${duration}`);
+
+      this.loadingViews.delete(viewname);
+
+      const data = { viewname, timing: { type: RealUserMonitoringTimings.ViewLoaded, duration } };
+      return this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.EventTiming, data);
+    }
+    else error(`${viewname} never started loading!`);
   }
 
   //#endregion--------------------------------------------------------------------------------------
