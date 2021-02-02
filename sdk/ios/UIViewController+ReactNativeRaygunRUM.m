@@ -11,9 +11,7 @@
 
 + (void)load {
     
-    return;
-    
-    NSLog(@"SWIZZLEN!");
+    NSLog(@"KILLROY: SWIZZLEN!");
     
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
@@ -38,13 +36,13 @@
         [self swizzleOriginalSelector:originalSelector withNewSelector:swizzledSelector];
     });
     
-    NSLog(@"SWIZZLED!");
+    NSLog(@"KILLROY: SWIZZLED!");
 }
 
 + (void)swizzleOriginalSelector:(SEL)originalSelector withNewSelector:(SEL)swizzledSelector {
     Class class = [self class];
     
-    NSLog(@"SWIZZLING OCCURING!");
+    NSLog(@"KILLROY: SWIZZLING OCCURING!");
     
     Method originalMethod = class_getInstanceMethod(class, originalSelector);
     Method swizzledMethod = class_getInstanceMethod(class, swizzledSelector);
@@ -53,11 +51,11 @@
     
     if (didAddMethod) {
         class_replaceMethod(class, swizzledSelector, method_getImplementation(originalMethod), method_getTypeEncoding(originalMethod));
-        NSLog(@"SWIZZLIN DID ADD!");
+        NSLog(@"KILLROY: SWIZZLIN DID ADD!");
     }
     else {
         method_exchangeImplementations(originalMethod, swizzledMethod);
-        NSLog(@"SWIZZLIN DID NO ADD!");
+        NSLog(@"KILLROY: SWIZZLIN DID NO ADD!");
     }
 }
 
@@ -68,40 +66,34 @@
 
 
 - (void)loadViewCapture {
-    NSLog(@"LOAD VIEW CAPTURED!");
+    NSLog(@"KILLROY: LOAD VIEW CAPTURED!");
     [self recordViewLoadStartTime];
     [self loadViewCapture];
 }
 
 - (void)viewDidLoadCapture {
-    NSLog(@"VIEW DID LOAD CAPTURE!");
+    NSLog(@"KILLROY: VIEW DID LOAD CAPTURE!");
     [self recordViewLoadStartTime];
     [self viewDidLoadCapture];
 }
 
 - (void)viewWillAppearCapture:(BOOL)animated {
-    NSLog(@"VIEW WILL APPEAR CAPTURED");
+    NSLog(@"KILLROY: VIEW WILL APPEAR CAPTURED");
     [self recordViewLoadStartTime];
     [self viewWillAppearCapture:animated];
 }
 
 - (void)recordViewLoadStartTime {
-    
-    NSLog(@"IM LOADING");
-    //if (RaygunNativeBridge.realUserMonitoringInitialized) {
-    [[RaygunNativeBridge sharedInstance] viewStartedLoading:self.description atTime:@(CACurrentMediaTime())];
-    //}
+    NSLog(@"KILLROY: IM LOADING");
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"RAYGUN_VIEW_LOADING" object:nil];
 }
 
 - (void)viewDidAppearCapture:(BOOL)animated {
     
-    NSLog(@"VIEW DID APPEAR CAPTURE");
-    
     [self viewDidAppearCapture:animated];
-    //if (RaygunNativeBridge.realUserMonitoringInitialized) {
-    NSLog(@"IM LOADED");
-    [[RaygunNativeBridge sharedInstance] viewFinishedLoading:self.description atTime:@(CACurrentMediaTime())];
-    //}
+    NSLog(@"KILLROY: IM LOADED");
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"RAYGUN_VIEW_LOADIED" object:nil];
+
 }
 
 @end

@@ -34,7 +34,7 @@ const {RaygunDemoBridge} = NativeModules;
 
 const options: RaygunClientOptions = {
   apiKey:'XyNxA6gLQrBOYYcsZc0A', // YOUR APIKEY
-  version: '', // YOUR APP VERSION
+  version: '0.0.2', // YOUR APP VERSION
   enableCrashReporting: true,
   enableRealUserMonitoring: true,
 }

@@ -18,8 +18,6 @@
 
 #if TARGET_OS_IOS || TARGET_OS_TV
 #import <UIKit/UIKit.h>
-#else
-#import <AppKit/AppKit.h>
 #endif
 
 
@@ -116,7 +114,6 @@ NSMutableDictionary *viewLoadStartTimes;
 static NSString *DEVICE_UUID = nil;
 static NSString *_Nonnull const nativeIdentifierKey = @"com.raygun.identifier";
 
-static RaygunNativeBridge *sharedInstance = nil;
 static bool crashReportingInitialized = FALSE;
 static bool realUserMonitoringInitialized = FALSE;
 
@@ -131,7 +128,6 @@ static bool realUserMonitoringInitialized = FALSE;
     [self init_Device_UUID];
     
     viewLoadStartTimes = [[NSMutableDictionary alloc] init];
-    
 }
 
 + (BOOL) requiresMainQueueSetup {
@@ -225,12 +221,6 @@ static CFTimeInterval processStartTime() {
 
 RCT_EXPORT_MODULE();
 
-+ (instancetype)sharedInstance {
-    
-    return sharedInstance;
-}
-
-
 // ============================================================================
 #pragma mark - REAL USER MONITORING FUNCTIONALITY -
 // ============================================================================
@@ -241,19 +231,16 @@ RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
         return;
     }
     
-    NSLog(@"TESTING PRINT");
-    
-    sharedInstance = self;
-    
 #if TARGET_OS_IOS || TARGET_OS_TV
     //CREATE OBSERVERS FOR STATE CHANGE EVENTS
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillEnterForeground) name:UIApplicationWillEnterForegroundNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidEnterBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate) name:UIApplicationWillTerminateNotification object:nil];
-#else
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillEnterForeground) name:NSApplicationWillBecomeActiveNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidEnterBackground) name:NSApplicationDidResignActiveNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate) name:NSApplicationWillTerminateNotification object:nil];
+    
+    //CREATE OBSERVERS FOR VIEW LOADED EVENTS
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(viewStartedLoading) name:@"RAYGUN_VIEW_LOADING" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(viewFinishedLoading) name:@"RAYGUN_VIEW_LOADED" object:nil];
+    
 #endif
     //TRIGGER THE ON_START EVENT
     NSNumber *used = @(CACurrentMediaTime() - startedAt);
@@ -263,7 +250,6 @@ RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
 }
 
 //RUM SESSION EVENTS
-
 - (void)applicationWillEnterForeground {
     [self sendEventWithName: onSessionResume body:@{}];
 }
@@ -283,34 +269,15 @@ RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
 }
 
 
-- (void)viewStartedLoading:(NSString*)viewName atTime:(NSNumber*)startTime {
-    
-    RCTLogInfo(@"VIEW STARTED LOADING");
-    //If there is no event with that name already loading
-    if ([viewLoadStartTimes objectForKey:viewName]) {
-        RCTLogInfo(@"View already loading!");
-    }
-    else {
-        [viewLoadStartTimes setValue:startTime forKey:viewName];
-    }
+- (void)viewStartedLoading{
+    NSLog(@"KILLROY: VIEW LOADING");
+    //NSLog(@"KILLROY: NAME-%@",note.name);
 }
 
-- (void)viewFinishedLoading:(NSString*)viewName atTime:(NSNumber*)endTime {
+- (void)viewFinishedLoading {
     
-    RCTLogInfo(@"VIEW FINISHED LOADING");
-    
-    //If there is no event with that name already loading
-    if ([viewLoadStartTimes objectForKey:viewName]) {
-        
-        int duration = ([endTime doubleValue] - [[viewLoadStartTimes objectForKey:viewName] doubleValue]) * 1000;
-        
-        //Send the event and remove it from the loading events dictionary
-        [self sendEventWithName: onViewLoaded body:@{@"duration": [[NSNumber alloc] initWithInt: duration], @"name": viewName}];
-        [viewLoadStartTimes removeObjectForKey:viewName];
-    }
-    else {
-        RCTLogInfo(@"Cant finish loading a view that never started loading!");
-    }
+    NSLog(@"KILLROY: VIEW LOADED");
+    //NSLog(@"KILLROY: NAME-%@",note.name);
 }
 
 
