@@ -5,7 +5,7 @@ import {
   RequestMeta,
   User
 } from './Types';
-import { getDeviceId, log, warn, shouldIgnore, getCurrentUser, getCurrentTags, getRandomGUID } from './Utils';
+import {getDeviceId, log, warn, shouldIgnore, getCurrentUser, getCurrentTags, getRandomGUID, error} from './Utils';
 // @ts-ignore
 import XHRInterceptor from 'react-native/Libraries/Network/XHRInterceptor';
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
@@ -72,11 +72,13 @@ export default class RealUserMonitor {
     eventEmitter.addListener(RaygunNativeBridge.ON_SESSION_START, this.sessionStarted.bind(this));
     eventEmitter.addListener(RaygunNativeBridge.ON_SESSION_PAUSE, this.markSessionInteraction.bind(this));
     eventEmitter.addListener(RaygunNativeBridge.ON_SESSION_RESUME, this.rotateRUMSession.bind(this));
+    eventEmitter.addListener(RaygunNativeBridge.ON_VIEW_LOADING, this.viewBeginsLoading.bind(this));
     eventEmitter.addListener(RaygunNativeBridge.ON_VIEW_LOADED, this.sendViewLoadedEvent.bind(this));
     eventEmitter.addListener(RaygunNativeBridge.ON_SESSION_END, () => {
       eventEmitter.removeAllListeners(RaygunNativeBridge.ON_SESSION_START);
       eventEmitter.removeAllListeners(RaygunNativeBridge.ON_SESSION_PAUSE);
       eventEmitter.removeAllListeners(RaygunNativeBridge.ON_SESSION_RESUME);
+      eventEmitter.removeAllListeners(RaygunNativeBridge.ON_VIEW_LOADING);
       eventEmitter.removeAllListeners(RaygunNativeBridge.ON_VIEW_LOADED);
       eventEmitter.removeAllListeners(RaygunNativeBridge.ON_SESSION_END);
     });
@@ -123,9 +125,7 @@ export default class RealUserMonitor {
    * Generate the sessionID and transmit a sessionStarted event
    */
   sessionStarted() {
-    if (!this.RealUserMonitoringSessionId) {
-      this.generateNewSessionId();
-    }
+    this.generateNewSessionId();
     this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
   }
 
@@ -166,6 +166,19 @@ export default class RealUserMonitor {
     const data = { name, timing: { type: RealUserMonitoringTimings.NetworkCall, duration } };
     this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.EventTiming, data, sendTime).catch();
   }
+
+  viewBeginsLoading(payload: Record<string, any>) {
+    const { viewname, time } = payload;
+
+    log(`Storing view loading!!!!!  ${viewname} & ${time}`);
+
+    if (this.loadingViews.has(viewname)) error(`${viewname} is already loading`);
+    else {
+      this.loadingViews.set(viewname, time);
+      log(`Storing ${viewname} as loading!`)
+    }
+  }
+
 
   /**
    * This method sends a mobile event timing message to the raygun server. If the current session

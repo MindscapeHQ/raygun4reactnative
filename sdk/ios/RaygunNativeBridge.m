@@ -273,9 +273,7 @@ RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
 
 
 - (void)viewStartedLoading:(NSNotification *) note{
-    NSLog(@"3) VIEW LOADING");
-    NSLog(@"3) VIEW NAME-%@",[note.userInfo objectForKey:@"name"]);
-    //[self sendEventWithName: onViewLoading body:{@"time": [note.userInfo objectForKey:@"name"], @"viewname": [note.userInfo objectForKey:@"time"]}];
+    [self sendEventWithName: onViewLoading body:@{@"time": [note.userInfo objectForKey:@"time"], @"viewname": [note.userInfo objectForKey:@"name"]}];
 }
 
 - (void)viewFinishedLoading:(NSNotification *) note{
