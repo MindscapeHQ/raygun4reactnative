@@ -149,11 +149,11 @@ export default class CrashReporter {
           return JSON.parse(rawCache);
         }
         catch(e) {
-          RaygunLogger.d("Unable to extract payload from cache:", {error: e.message, cache: rawCache});
+          RaygunLogger.e("Unable to extract payload from cache:", {error: e.message, cache: rawCache});
         }
       }
     } catch(e) {
-      RaygunLogger.d("Unable to get access local storage:", e.message);
+      RaygunLogger.e("Unable to get access local storage:", e.message);
     }
     return [];
   }
@@ -166,7 +166,7 @@ export default class CrashReporter {
     try {
       await AsyncStorage.setItem(this.local_storage_key, JSON.stringify(newCache));
     } catch(e) {
-      RaygunLogger.d("Unable to access local storage");
+      RaygunLogger.e("Unable to access local storage");
     }
   }
 
@@ -297,8 +297,6 @@ export default class CrashReporter {
         : payload;
 
     if (!modifiedPayload) {
-      RaygunLogger.i("Payload ignore from beforeSendHandler");
-      RaygunLogger.v("Ignored Payload:", payload);
       return;
     }
 
