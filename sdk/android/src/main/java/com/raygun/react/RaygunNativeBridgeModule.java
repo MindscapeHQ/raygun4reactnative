@@ -271,7 +271,6 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
   @Override
   public void onHostResume() {
     WritableMap payload = Arguments.createMap();
-    payload.putString("name", getActivityName());
     this.sendJSEvent(ON_SESSION_RESUME, payload);
   }
 
@@ -283,7 +282,6 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
   @Override
   public void onHostPause() {
     WritableMap payload = Arguments.createMap();
-    payload.putString("name", getActivityName());
     this.sendJSEvent(ON_SESSION_PAUSE, payload);
   }
 
@@ -293,7 +291,6 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
   @Override
   public void onHostDestroy() {
     WritableMap payload = Arguments.createMap();
-    payload.putString("name", getActivityName());
     this.sendJSEvent(ON_SESSION_END, payload);
   }
   //#endregion--------------------------------------------------------------------------------------
