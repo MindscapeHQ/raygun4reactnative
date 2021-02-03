@@ -49,11 +49,13 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
   private boolean lifecycleInitialized = false;
   // Maintains a value of when the ReactNativeBridgePackage was initiated (start of the project).
   private final long startedTime;
-  // Constants that indicate the current state of the Activity.
-  private static final String ON_RESUME = "ON_RESUME";
-  private static final String ON_PAUSE = "ON_PAUSE";
-  private static final String ON_DESTROY = "ON_DESTROY";
   private static final String ON_START = "ON_START";
+
+  // Session state change events
+  private static final String ON_SESSION_RESUME = "ON_SESSION_RESUME";
+  private static final String ON_SESSION_PAUSE = "ON_SESSION_PAUSE";
+  private static final String ON_SESSION_END = "ON_SESSION_END";
+
   private static final String DEVICE_ID = "DEVICE_ID";
   //#endregion--------------------------------------------------------------------------------------
 
@@ -210,10 +212,11 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
   @Override
   public Map<String, Object> getConstants() {
     final Map<String, Object> constants = new HashMap<>();
-    constants.put(ON_DESTROY, ON_DESTROY);
-    constants.put(ON_PAUSE, ON_PAUSE);
-    constants.put(ON_RESUME, ON_RESUME);
-    constants.put(ON_START, ON_START);
+    constants.put(ON_SESSION_END, ON_SESSION_END);
+    constants.put(ON_SESSION_PAUSE, ON_SESSION_PAUSE);
+    constants.put(ON_SESSION_RESUME, ON_SESSION_RESUME);
+    constants.put(ON_VIEW_LOADING, ON_VIEW_LOADING);
+    constants.put(ON_VIEW_LOADED, ON_VIEW_LOADED);
     constants.put(DEVICE_ID, getUniqueIdSync());
     constants.put("osVersion", Build.VERSION.RELEASE);
     constants.put("platform", Build.MODEL);
@@ -267,7 +270,7 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
   public void onHostResume() {
     WritableMap payload = Arguments.createMap();
     payload.putString("name", getActivityName());
-    this.sendJSEvent(ON_RESUME, payload);
+    this.sendJSEvent(ON_SESSION_RESUME, payload);
   }
 
   /**
@@ -279,7 +282,7 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
   public void onHostPause() {
     WritableMap payload = Arguments.createMap();
     payload.putString("name", getActivityName());
-    this.sendJSEvent(ON_PAUSE, payload);
+    this.sendJSEvent(ON_SESSION_PAUSE, payload);
   }
 
   /**
@@ -289,7 +292,7 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
   public void onHostDestroy() {
     WritableMap payload = Arguments.createMap();
     payload.putString("name", getActivityName());
-    this.sendJSEvent(ON_DESTROY, payload);
+    this.sendJSEvent(ON_SESSION_END, payload);
   }
   //#endregion--------------------------------------------------------------------------------------
 
