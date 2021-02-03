@@ -101,7 +101,6 @@ static uint64_t getMemorySize(void) {
 static CFTimeInterval startedAt; //Time that this object was created
 
 //RUM events to capture and send to the react layer
-NSString *onSessionStart = @"ON_SESSION_START";
 NSString *onSessionPause = @"ON_SESSION_PAUSE";
 NSString *onSessionResume = @"ON_SESSION_RESUME";
 NSString *onSessionEnd = @"ON_SESSION_END";
@@ -162,7 +161,6 @@ static CFTimeInterval processStartTime() {
     NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
     
     [dict setValue: DEVICE_UUID forKey: @"DEVICE_ID"];
-    [dict setValue: onSessionStart forKey: onSessionStart];
     [dict setValue: onSessionPause forKey: onSessionPause];
     [dict setValue: onSessionResume forKey: onSessionResume];
     [dict setValue: onViewLoaded forKey: onViewLoaded];
@@ -245,10 +243,6 @@ RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(viewFinishedLoading:) name:@"RAYGUN_VIEW_LOADED" object:nil];
     
 #endif
-    //TRIGGER THE ON_START EVENT
-    NSNumber *used = @(CACurrentMediaTime() - startedAt);
-    [self sendEventWithName: onSessionStart body:@{}];
-    
     realUserMonitoringInitialized = TRUE;
 }
 
@@ -268,7 +262,7 @@ RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
 //RUM EVENTS THAT CAN OCCUR
 - (NSArray<NSString *> *)supportedEvents
 {
-  return @[onSessionStart, onSessionPause, onSessionResume, onViewLoading, onViewLoaded, onSessionEnd];
+  return @[onSessionPause, onSessionResume, onViewLoading, onViewLoaded, onSessionEnd];
 }
 
 

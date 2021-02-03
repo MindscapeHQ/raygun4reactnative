@@ -71,19 +71,19 @@ export default class RealUserMonitor {
 
     // Create native event listeners on this device
     const eventEmitter = new NativeEventEmitter(RaygunNativeBridge);
-    eventEmitter.addListener(RaygunNativeBridge.ON_SESSION_START, this.sessionStarted.bind(this));
     eventEmitter.addListener(RaygunNativeBridge.ON_SESSION_PAUSE, this.markSessionInteraction.bind(this));
     eventEmitter.addListener(RaygunNativeBridge.ON_SESSION_RESUME, this.rotateRUMSession.bind(this));
     eventEmitter.addListener(RaygunNativeBridge.ON_VIEW_LOADING, this.viewBeginsLoading.bind(this));
     eventEmitter.addListener(RaygunNativeBridge.ON_VIEW_LOADED, this.viewFinishesLoading.bind(this));
     eventEmitter.addListener(RaygunNativeBridge.ON_SESSION_END, () => {
-      eventEmitter.removeAllListeners(RaygunNativeBridge.ON_SESSION_START);
       eventEmitter.removeAllListeners(RaygunNativeBridge.ON_SESSION_PAUSE);
       eventEmitter.removeAllListeners(RaygunNativeBridge.ON_SESSION_RESUME);
       eventEmitter.removeAllListeners(RaygunNativeBridge.ON_VIEW_LOADING);
       eventEmitter.removeAllListeners(RaygunNativeBridge.ON_VIEW_LOADED);
       eventEmitter.removeAllListeners(RaygunNativeBridge.ON_SESSION_END);
     });
+
+    this.sessionStarted();
   }
 
   //#endregion--------------------------------------------------------------------------------------
