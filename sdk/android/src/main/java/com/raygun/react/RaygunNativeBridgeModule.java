@@ -170,7 +170,7 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
 
     //#endregion--------------------------------------------------------------------------------------
 
-    //#region---INFORMATION GATHERING METHODS---------------------------------------------------------
+    //#region---Life Cycle Methods -----------------------------------------------------------------
 
     /**
      * Attaches the mainActivity to the RaygunActivityLifeCycleCall
@@ -220,6 +220,11 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
         long time = System.currentTimeMillis() - startedTime;
         payload.putString("viewname", getActivityName());
         payload.putString("time", time + "");
+
+        if (loaded){
+            this.sendJSEvent(ON_VIEW_LOADED, payload);
+        }
+
         loaded = false;
         this.sendJSEvent(ON_SESSION_RESUME, payload);
     }
