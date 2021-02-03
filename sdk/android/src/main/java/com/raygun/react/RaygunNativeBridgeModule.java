@@ -129,6 +129,10 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     payload.putString("name", getActivityName());
     payload.putInt("duration", (int) ms);
     lifecycleInitialized = true;
+
+    //Attatch the Activity listener to the main event
+    RaygunActivityLifecycleCallbacks.attach(reactContext.getCurrentActivity());
+    //RaygunActivityLifecycleCallbacks.attach(reactContext.getCurrentActivity().getClass()); //POTENTIALLY THIS INSTEAD
   }
 
   /**
