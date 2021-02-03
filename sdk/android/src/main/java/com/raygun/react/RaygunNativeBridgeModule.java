@@ -211,9 +211,6 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
 
     @Override
     public void onActivityResumed(Activity activity) {
-        if (!loaded) {
-            onActivityCreated(activity, null);
-        }
         currentActivity = new WeakReference<>(activity);
 
         WritableMap payload = Arguments.createMap();
@@ -222,12 +219,12 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
         payload.putString("time", time + "");
 
         if (loaded){
-            
             this.sendJSEvent(ON_VIEW_LOADED, payload);
+        } else {
+            this.sendJSEvent(ON_SESSION_RESUME, payload);
         }
 
         loaded = false;
-        this.sendJSEvent(ON_SESSION_RESUME, payload);
     }
 
     @Override
