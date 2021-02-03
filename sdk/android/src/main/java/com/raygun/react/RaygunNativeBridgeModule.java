@@ -49,7 +49,6 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
   private boolean lifecycleInitialized = false;
   // Maintains a value of when the ReactNativeBridgePackage was initiated (start of the project).
   private final long startedTime;
-  private static final String ON_START = "ON_START";
 
   // Session state change events
   private static final String ON_SESSION_RESUME = "ON_SESSION_RESUME";
@@ -125,7 +124,6 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     WritableMap payload = Arguments.createMap();
     payload.putString("name", getActivityName());
     payload.putInt("duration", (int) ms);
-    sendJSEvent(ON_START, payload);
     lifecycleInitialized = true;
   }
 
