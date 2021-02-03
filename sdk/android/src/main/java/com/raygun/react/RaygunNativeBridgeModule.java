@@ -54,7 +54,7 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     private boolean initialized = false;
     private boolean lifecycleInitialized = false;
     // Maintains a value of when the ReactNativeBridgePackage was initiated (start of the project).
-    private final long startedTime;
+    private long startedTime;
 
     private static boolean loaded = false;
 
@@ -182,54 +182,50 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
             baseActivity = new WeakReference<>(reactContext.getCurrentActivity());
             currentActivity = new WeakReference<>(reactContext.getCurrentActivity());
             reactContext.getCurrentActivity().getApplication().registerActivityLifecycleCallbacks(this);
+            onActivityCreated(currentActivity.get(), null);
         }
     }
 
     @Override
     public void onActivityCreated(Activity activity, Bundle bundle) {
-        Log.d("TAG", "Create");
         if (!loaded) {
             loaded = true;
             if (currentActivity == null || currentActivity.get() != activity) {
                 currentActivity = new WeakReference<>(activity);
             }
+            startedTime = System.currentTimeMillis();
 
             WritableMap payload = Arguments.createMap();
-            payload.putString("name", getActivityName());
+            payload.putString("viewname", getActivityName());
+            payload.putString("time", startedTime + "");
             this.sendJSEvent(ON_VIEW_LOADING, payload);
         }
     }
 
     @Override
     public void onActivityStarted(Activity activity) {
-        Log.d("TAG", "Start");
         if (!loaded) {
-            loaded = true;
-            if (currentActivity == null || currentActivity.get() != activity) {
-                currentActivity = new WeakReference<>(activity);
-            }
-            WritableMap payload = Arguments.createMap();
-            payload.putString("name", getActivityName());
-            this.sendJSEvent(ON_VIEW_LOADING, payload);
+            onActivityCreated(activity, null);
         }
     }
 
     @Override
     public void onActivityResumed(Activity activity) {
-        Log.d("TAG", "Resume");
-        currentActivity = new WeakReference<>(activity);
-        WritableMap payload = Arguments.createMap();
-        payload.putString("name", getActivityName());
-        loaded = false;
-        if (loaded) {
-            this.sendJSEvent(ON_VIEW_LOADED, payload);
+        if (!loaded) {
+            onActivityCreated(activity, null);
         }
+        currentActivity = new WeakReference<>(activity);
+
+        WritableMap payload = Arguments.createMap();
+        long time = System.currentTimeMillis() - startedTime;
+        payload.putString("viewname", getActivityName());
+        payload.putString("time", time + "");
+        loaded = false;
         this.sendJSEvent(ON_SESSION_RESUME, payload);
     }
 
     @Override
     public void onActivityPaused(Activity activity) {
-        Log.d("TAG", "Pause");
         this.sendJSEvent(ON_SESSION_PAUSE, null);
     }
 
@@ -243,7 +239,6 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
 
     @Override
     public void onActivityDestroyed(Activity activity) {
-        Log.d("TAG", "Destroy");
         this.sendJSEvent(ON_SESSION_END, null);
     }
 
