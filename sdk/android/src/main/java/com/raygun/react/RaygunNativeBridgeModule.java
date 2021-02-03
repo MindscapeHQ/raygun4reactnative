@@ -55,6 +55,10 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
   private static final String ON_SESSION_PAUSE = "ON_SESSION_PAUSE";
   private static final String ON_SESSION_END = "ON_SESSION_END";
 
+  //Activity state change events
+  private static final ON_VIEW_LOADING = "ON_VIEW_LOADING";
+  private static final ON_VIEW_LOADED = "ON_VIEW_LOADED";
+
   private static final String DEVICE_ID = "DEVICE_ID";
   //#endregion--------------------------------------------------------------------------------------
 
