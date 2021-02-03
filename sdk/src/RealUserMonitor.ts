@@ -83,7 +83,9 @@ export default class RealUserMonitor {
       eventEmitter.removeAllListeners(RaygunNativeBridge.ON_SESSION_END);
     });
 
-    this.sessionStarted();
+    //Begin a Real User Monitoring session
+    this.generateNewSessionId();
+    this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
   }
 
   //#endregion--------------------------------------------------------------------------------------
@@ -120,14 +122,6 @@ export default class RealUserMonitor {
    */
   markSessionInteraction() {
     this.lastSessionInteractionTime = Date.now();
-  }
-
-  /**
-   * Generate the sessionID and transmit a sessionStarted event
-   */
-  sessionStarted() {
-    this.generateNewSessionId();
-    this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
   }
 
   //#endregion--------------------------------------------------------------------------------------
@@ -182,20 +176,25 @@ export default class RealUserMonitor {
   }
 
   /**
-   * When a View begins loading this event will store the time that it started so that the duration
-   * can be calculated later.
+   * When a View completes loading its load duration will be calculated using the load start time before
+   * being cleaned and transmitted to raygun.
    * @param payload
    */
   viewFinishesLoading(payload: Record<string, any>) {
     const { viewname, time } = payload;
 
-    if (this.loadingViews.has(viewname) && !!this.loadingViews.get(viewname)) {
-      // @ts-ignore
-      let duration : number = Math.round(time - this.loadingViews.get(viewname));
+    if (this.loadingViews.has(viewname)) {
+      let viewLoadStartTime = this.loadingViews.get(viewname);
+      if (!!viewLoadStartTime) {
+        let duration : number = Math.round(time - viewLoadStartTime);
 
-      this.loadingViews.delete(viewname);
+        this.loadingViews.delete(viewname);
 
-      this.sendViewLoadedEvent(this.cleanViewName(viewname), duration);
+        this.sendViewLoadedEvent(this.cleanViewName(viewname), duration);
+      }
+      else {
+        RaygunLogger.e(`Loading views cannot have an undefined start time: ${viewname}`);
+      }
     }
     else RaygunLogger.e(`${viewname} has finished loading but never started`);
   }
