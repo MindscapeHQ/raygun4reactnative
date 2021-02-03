@@ -175,12 +175,12 @@ export default class RealUserMonitor {
   viewBeginsLoading(payload: Record<string, any>) {
     const { viewname, time } = payload;
 
-    log(`Storing view loading!!!!!  ${viewname} & ${time}`);
+    RaygunLogger.i(`Storing view loading!!!!!  ${viewname} & ${time}`);
 
-    if (this.loadingViews.has(viewname)) error(`${viewname} is already loading`);
+    if (this.loadingViews.has(viewname)) RaygunLogger.e(`${viewname} is already loading`);
     else {
       this.loadingViews.set(viewname, time);
-      log(`Storing ${viewname} as loading!`)
+      RaygunLogger.i(`Storing ${viewname} as loading!`)
     }
   }
 
@@ -192,20 +192,19 @@ export default class RealUserMonitor {
   viewFinishesLoading(payload: Record<string, any>) {
     const { viewname, time } = payload;
 
-    log(`View Loaded!!!!!  ${viewname} & ${time}`);
+    RaygunLogger.i(`View Loaded!!!!!  ${viewname} & ${time}`);
 
     if (this.loadingViews.has(viewname) && !!this.loadingViews.get(viewname)) {
       // @ts-ignore
       let duration : number = Math.round(time - this.loadingViews.get(viewname));
 
-      log(`View successfully read. duration: ${duration}`);
+      RaygunLogger.i(`View successfully read. duration: ${duration}`);
 
       this.loadingViews.delete(viewname);
 
-      let cleanedViewName = this.cleanViewName(viewname);
-      this.sendViewLoadedEvent(cleanedViewName, duration);
+      this.sendViewLoadedEvent(this.cleanViewName(viewname), duration);
     }
-    else error(`${viewname} never started loading!`);
+    else RaygunLogger.e(`${viewname} never started loading!`);
   }
 
   /**
@@ -216,7 +215,7 @@ export default class RealUserMonitor {
    */
   async sendViewLoadedEvent(name : string, duration : number) {
 
-    log(`sending View Timing!!!!!  ${name} & ${duration}`);
+    RaygunLogger.i(`sending View Timing!!!!!  ${name} & ${duration}`);
 
     const data = { name: name, timing: { type: RealUserMonitoringTimings.ViewLoaded, duration } };
     return this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.EventTiming, data);
@@ -267,7 +266,7 @@ export default class RealUserMonitor {
    */
   async transmitRealUserMonitoringEvent(eventName: string, data: Record<string, any>, timeAt?: number) {
 
-    log(`Transmitting ${eventName} event to: ${this.raygunRumEndpoint}?apiKey=${encodeURIComponent(this.apiKey)}`);
+    RaygunLogger.i(`Transmitting ${eventName} event to: ${this.raygunRumEndpoint}?apiKey=${encodeURIComponent(this.apiKey)}`);
 
     //Check whether the session has been idle long enough to rotate it
     if (Date.now() - this.lastSessionInteractionTime > SessionRotateThreshold) await this.rotateRUMSession();
@@ -275,7 +274,7 @@ export default class RealUserMonitor {
 
     const rumMessage = this.generateRealUserMonitorPayload(eventName, data, timeAt);
 
-    log(`RUM MESSAGE: ${JSON.stringify(rumMessage)}`)
+    RaygunLogger.i(`RUM MESSAGE: ${JSON.stringify(rumMessage)}`)
 
     return fetch(this.raygunRumEndpoint + '?apiKey=' + encodeURIComponent(this.apiKey),
       {
