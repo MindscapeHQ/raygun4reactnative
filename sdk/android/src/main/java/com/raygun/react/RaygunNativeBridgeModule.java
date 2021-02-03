@@ -15,6 +15,7 @@ import android.view.WindowManager;
 
 import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -58,7 +59,6 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
 
     private static boolean loaded = false;
 
-    private static WeakReference<Activity> baseActivity;
     private static WeakReference<Activity> currentActivity;
 
     // Session state change events
@@ -134,18 +134,16 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
             Timber.i("Lifecycle Event listener already initialized");
             return;
         }
+        if (reactContext.getCurrentActivity() != null) {
+            currentActivity = new WeakReference<>(reactContext.getCurrentActivity());
+            reactContext.getCurrentActivity().getApplication().registerActivityLifecycleCallbacks(this);
 
-        attach(reactContext);
-
-        long ms = SystemClock.uptimeMillis() - startedTime;
-        WritableMap payload = Arguments.createMap();
-        payload.putString("name", getActivityName());
-        payload.putInt("duration", (int) ms);
+            WritableMap payload = Arguments.createMap();
+            payload.putString("viewname", getActivityName());
+            payload.putString("time", System.currentTimeMillis() + "");
+            this.sendJSEvent(ON_VIEW_LOADING, payload);
+        }
         lifecycleInitialized = true;
-
-        //Attatch the Activity listener to the main event
-//    RaygunActivityLifecycleCallbacks.attach(reactContext.getCurrentActivity());
-        //RaygunActivityLifecycleCallbacks.attach(reactContext.getCurrentActivity().getClass()); //POTENTIALLY THIS INSTEAD
     }
 
     /**
@@ -172,22 +170,10 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
 
     //#region---Life Cycle Methods -----------------------------------------------------------------
 
-    /**
-     * Attaches the mainActivity to the RaygunActivityLifeCycleCall
-     */
-    public void attach(ReactApplicationContext context) {
-        reactContext = context;
-
-        if (reactContext.getCurrentActivity() != null) {
-            baseActivity = new WeakReference<>(reactContext.getCurrentActivity());
-            currentActivity = new WeakReference<>(reactContext.getCurrentActivity());
-            reactContext.getCurrentActivity().getApplication().registerActivityLifecycleCallbacks(this);
-            onActivityCreated(currentActivity.get(), null);
-        }
-    }
-
     @Override
     public void onActivityCreated(Activity activity, Bundle bundle) {
+        Log.i("TAG", "CREATED");
+        activity.getApplication().onCreate();
         if (!loaded) {
             loaded = true;
             if (currentActivity == null || currentActivity.get() != activity) {
@@ -204,31 +190,25 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
 
     @Override
     public void onActivityStarted(Activity activity) {
-        if (!loaded) {
-            onActivityCreated(activity, null);
-        }
+        Log.i("TAG", "STARTED");
+        WritableMap payload = Arguments.createMap();
+        long time = System.currentTimeMillis();
+        payload.putString("viewname", getActivityName());
+        payload.putString("time", time + "");
+        this.sendJSEvent(ON_VIEW_LOADED, payload);
     }
 
     @Override
     public void onActivityResumed(Activity activity) {
+        Log.i("TAG", "RESUMED");
         currentActivity = new WeakReference<>(activity);
-
-        WritableMap payload = Arguments.createMap();
-        long time = System.currentTimeMillis() - startedTime;
-        payload.putString("viewname", getActivityName());
-        payload.putString("time", time + "");
-
-        if (loaded){
-            this.sendJSEvent(ON_VIEW_LOADED, payload);
-        } else {
-            this.sendJSEvent(ON_SESSION_RESUME, payload);
-        }
-
+        this.sendJSEvent(ON_SESSION_RESUME, null);
         loaded = false;
     }
 
     @Override
     public void onActivityPaused(Activity activity) {
+        Log.i("TAG", "PAUSE: ACTIVITY");
         this.sendJSEvent(ON_SESSION_PAUSE, null);
     }
 
@@ -244,6 +224,8 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     public void onActivityDestroyed(Activity activity) {
         this.sendJSEvent(ON_SESSION_END, null);
     }
+
+
 
     /**
      * Emits an event to the ReactContext.
