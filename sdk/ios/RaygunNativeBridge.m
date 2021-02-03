@@ -303,7 +303,6 @@ RCT_EXPORT_METHOD(initCrashReportingNativeSupport:(NSString*)apiKey
 
 RCT_EXPORT_METHOD(setTags:(NSArray *) tags) {
     if (!crashReportingInitialized) {
-        RCTLogInfo(@"Cannot set native tags until native Crash Reporting is initialised");
         return;
     }
     [RaygunClient.sharedInstance setTags:tags];
@@ -311,7 +310,6 @@ RCT_EXPORT_METHOD(setTags:(NSArray *) tags) {
 
 RCT_EXPORT_METHOD(setCustomData:(NSDictionary *) customData) {
     if (!crashReportingInitialized) {
-        RCTLogInfo(@"Cannot set custom data until native Crash Reporting is initialised");
         return;
     }
     [RaygunClient.sharedInstance setCustomData:customData];
@@ -319,7 +317,6 @@ RCT_EXPORT_METHOD(setCustomData:(NSDictionary *) customData) {
 
 RCT_EXPORT_METHOD(recordBreadcrumb:(NSDictionary *) breadcrumb) {
     if (!crashReportingInitialized) {
-        RCTLogInfo(@"Cannot record native breadcrumbs until native Crash Reporting is initialised");
         return;
     }
     [RaygunClient.sharedInstance recordBreadcrumb:[RaygunBreadcrumb breadcrumbWithInformation:breadcrumb]];
@@ -327,7 +324,6 @@ RCT_EXPORT_METHOD(recordBreadcrumb:(NSDictionary *) breadcrumb) {
 
 RCT_EXPORT_METHOD(clearBreadcrumbs) {
     if (!crashReportingInitialized) {
-        RCTLogInfo(@"Cannot clear native breadcrumbs until native Crash Reporting is initialised");
         return;
     }
     [RaygunClient.sharedInstance clearBreadcrumbs];
@@ -335,7 +331,6 @@ RCT_EXPORT_METHOD(clearBreadcrumbs) {
 
 RCT_EXPORT_METHOD(setUser:(NSDictionary *) user) {
     if (!crashReportingInitialized) {
-        RCTLogInfo(@"Cannot set native user until native Crash Reporting is initialised");
         return;
     }
     

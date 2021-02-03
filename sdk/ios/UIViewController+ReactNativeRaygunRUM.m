@@ -36,8 +36,6 @@ static NSString* iOSViewTag = @"iOS_View: ";
         [self swizzleOriginalSelector:originalSelector withNewSelector:swizzledSelector];
     });
     
-    NSLog(@"KILLROY: SWIZZLED!");
-    
     return;
 }
 
@@ -64,26 +62,22 @@ static NSString* iOSViewTag = @"iOS_View: ";
 
 
 - (void)loadViewCaptureReactNative {
-    NSLog(@"1: LOAD VIEW CAPTURED!");
     [self recordReactNativeViewLoadStartTime];
     [self loadViewCapture];
 }
 
 - (void)viewDidLoadCaptureReactNative {
-    NSLog(@"1: VIEW DID LOAD CAPTURE!");
     [self recordReactNativeViewLoadStartTime];
     [self viewDidLoadCapture];
 }
 
 - (void)viewWillAppearCaptureReactNative:(BOOL)animated {
-    NSLog(@"1: VIEW WILL APPEAR CAPTURED");
     [self recordReactNativeViewLoadStartTime];
     [self viewWillAppearCapture:animated];
 }
 
 - (void)recordReactNativeViewLoadStartTime {
     NSNumber* timeInSeconds = [NSNumber numberWithDouble:[@(CACurrentMediaTime()) doubleValue] * 1000.0];
-    NSLog(@"3) IM LOADING - time is: %@", timeInSeconds);
     
     NSDictionary* viewInfo = [NSDictionary dictionaryWithObjectsAndKeys:
                               timeInSeconds, @"time",
@@ -98,7 +92,6 @@ static NSString* iOSViewTag = @"iOS_View: ";
     [self viewDidAppearCapture:animated];
     
     NSNumber* timeInSeconds = [NSNumber numberWithDouble:[@(CACurrentMediaTime()) doubleValue] * 1000.0];
-    NSLog(@"3) IM LOADED - time is: %@", timeInSeconds);
     
     NSDictionary* viewInfo = [NSDictionary dictionaryWithObjectsAndKeys:
                               timeInSeconds, @"time",

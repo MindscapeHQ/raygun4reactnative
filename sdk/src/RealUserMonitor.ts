@@ -175,12 +175,9 @@ export default class RealUserMonitor {
   viewBeginsLoading(payload: Record<string, any>) {
     const { viewname, time } = payload;
 
-    RaygunLogger.i(`Storing view loading!!!!!  ${viewname} & ${time}`);
-
-    if (this.loadingViews.has(viewname)) RaygunLogger.e(`${viewname} is already loading`);
+    if (this.loadingViews.has(viewname)) return;
     else {
       this.loadingViews.set(viewname, time);
-      RaygunLogger.i(`Storing ${viewname} as loading!`)
     }
   }
 
@@ -192,19 +189,15 @@ export default class RealUserMonitor {
   viewFinishesLoading(payload: Record<string, any>) {
     const { viewname, time } = payload;
 
-    RaygunLogger.i(`View Loaded!!!!!  ${viewname} & ${time}`);
-
     if (this.loadingViews.has(viewname) && !!this.loadingViews.get(viewname)) {
       // @ts-ignore
       let duration : number = Math.round(time - this.loadingViews.get(viewname));
-
-      RaygunLogger.i(`View successfully read. duration: ${duration}`);
 
       this.loadingViews.delete(viewname);
 
       this.sendViewLoadedEvent(this.cleanViewName(viewname), duration);
     }
-    else RaygunLogger.e(`${viewname} never started loading!`);
+    else RaygunLogger.e(`${viewname} has finished loading but never started`);
   }
 
   /**
@@ -214,8 +207,6 @@ export default class RealUserMonitor {
    * @param payload
    */
   async sendViewLoadedEvent(name : string, duration : number) {
-
-    RaygunLogger.i(`sending View Timing!!!!!  ${name} & ${duration}`);
 
     const data = { name: name, timing: { type: RealUserMonitoringTimings.ViewLoaded, duration } };
     return this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.EventTiming, data);
@@ -266,15 +257,13 @@ export default class RealUserMonitor {
    */
   async transmitRealUserMonitoringEvent(eventName: string, data: Record<string, any>, timeAt?: number) {
 
-    RaygunLogger.i(`Transmitting ${eventName} event to: ${this.raygunRumEndpoint}?apiKey=${encodeURIComponent(this.apiKey)}`);
-
     //Check whether the session has been idle long enough to rotate it
     if (Date.now() - this.lastSessionInteractionTime > SessionRotateThreshold) await this.rotateRUMSession();
     else this.markSessionInteraction();
 
     const rumMessage = this.generateRealUserMonitorPayload(eventName, data, timeAt);
 
-    RaygunLogger.i(`RUM MESSAGE: ${JSON.stringify(rumMessage)}`)
+    RaygunLogger.d(`Transmitting ${eventName} event to ${this.raygunRumEndpoint}?apiKey=${encodeURIComponent(this.apiKey)}: \n${JSON.stringify(rumMessage)}`);
 
     return fetch(this.raygunRumEndpoint + '?apiKey=' + encodeURIComponent(this.apiKey),
       {
