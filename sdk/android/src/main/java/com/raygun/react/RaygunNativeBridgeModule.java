@@ -222,6 +222,7 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
         payload.putString("time", time + "");
 
         if (loaded){
+            
             this.sendJSEvent(ON_VIEW_LOADED, payload);
         }
 
