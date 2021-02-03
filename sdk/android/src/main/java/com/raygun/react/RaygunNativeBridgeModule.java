@@ -1,19 +1,16 @@
 package com.raygun.react;
 
-import static android.provider.Settings.Secure.getString;
-
 import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.SystemClock;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.view.WindowManager;
-import androidx.annotation.RequiresApi;
+
+import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -29,21 +26,26 @@ import com.raygun.raygun4android.messages.crashreporting.RaygunBreadcrumbMessage
 import com.raygun.raygun4android.messages.crashreporting.RaygunErrorMessage;
 import com.raygun.raygun4android.messages.crashreporting.RaygunMessage;
 import com.raygun.raygun4android.messages.shared.RaygunUserInfo;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import javax.annotation.Nullable;
+
 import org.jetbrains.annotations.NotNull;
-import org.json.JSONArray;
-import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Objects;
+
+import javax.annotation.Nullable;
+
 import timber.log.Timber;
 
-public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule implements
-  LifecycleEventListener {
+import static android.provider.Settings.Secure.getString;
+
+public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule {
 
   //#region---GLOBAL CONSTANTS----------------------------------------------------------------------
   // ReactNative Context, a connection the the React Code.
   private static ReactApplicationContext reactContext;
+  RaygunActivityLifecycleCallbacks ralc;
   // Is the NativeBridge/RUMEventHandler initialized
   private boolean initialized = false;
   private boolean lifecycleInitialized = false;
@@ -51,15 +53,16 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
   private final long startedTime;
 
   // Session state change events
-  private static final String ON_SESSION_RESUME = "ON_SESSION_RESUME";
-  private static final String ON_SESSION_PAUSE = "ON_SESSION_PAUSE";
-  private static final String ON_SESSION_END = "ON_SESSION_END";
+  public static final String ON_SESSION_RESUME = "ON_SESSION_RESUME";
+  public static final String ON_SESSION_PAUSE = "ON_SESSION_PAUSE";
+  public static final String ON_SESSION_END = "ON_SESSION_END";
 
   //Activity state change events
-  private static final ON_VIEW_LOADING = "ON_VIEW_LOADING";
-  private static final ON_VIEW_LOADED = "ON_VIEW_LOADED";
+  public static final String ON_VIEW_LOADING = "ON_VIEW_LOADING";
+  public static final String ON_VIEW_LOADED = "ON_VIEW_LOADED";
 
   private static final String DEVICE_ID = "DEVICE_ID";
+
   //#endregion--------------------------------------------------------------------------------------
 
   //#region---CONSTRUCTION METHODS------------------------------------------------------------------
@@ -78,6 +81,7 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     super(context);
     reactContext = context;
     startedTime = startedAt;
+    ralc = new RaygunActivityLifecycleCallbacks();
   }
 
   /**
@@ -123,7 +127,8 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
       return;
     }
 
-    reactContext.addLifecycleEventListener(this);
+    ralc.attach(reactContext);
+
     long ms = SystemClock.uptimeMillis() - startedTime;
     WritableMap payload = Arguments.createMap();
     payload.putString("name", getActivityName());
@@ -131,7 +136,7 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     lifecycleInitialized = true;
 
     //Attatch the Activity listener to the main event
-    RaygunActivityLifecycleCallbacks.attach(reactContext.getCurrentActivity());
+//    RaygunActivityLifecycleCallbacks.attach(reactContext.getCurrentActivity());
     //RaygunActivityLifecycleCallbacks.attach(reactContext.getCurrentActivity().getClass()); //POTENTIALLY THIS INSTEAD
   }
 
@@ -253,51 +258,6 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
   }
   //#endregion--------------------------------------------------------------------------------------
 
-  //#region---REAL USER MONITORING EVENT EMITTING METHODS-------------------------------------------
-
-  /**
-   * Emits an event to the ReactContext.
-   *
-   * @param eventType - Should be one of the KEY values, START, RESUME, PAUSE, DESTROY.
-   * @param payload   - A WritableMap of information to be parsed with this event's occurence.
-   */
-  private void sendJSEvent(String eventType, @Nullable WritableMap payload) {
-    reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-      .emit(eventType, payload);
-  }
-
-  /**
-   * When the HOST clicks back into the Application, see following actions.
-   * <p>
-   * Host OPENS application. Host goes to ANOTHER application. Host SWAPS back to THIS application
-   * (resume is run).
-   */
-  @Override
-  public void onHostResume() {
-    WritableMap payload = Arguments.createMap();
-    this.sendJSEvent(ON_SESSION_RESUME, payload);
-  }
-
-  /**
-   * When the HOST clicks out of the Application without closing it, see following actions.
-   * <p>
-   * Host OPENS application. Host goes to ANOTHER application (pause is run).
-   */
-  @Override
-  public void onHostPause() {
-    WritableMap payload = Arguments.createMap();
-    this.sendJSEvent(ON_SESSION_PAUSE, payload);
-  }
-
-  /**
-   * When the HOST closes the app (no longer running in the background).
-   */
-  @Override
-  public void onHostDestroy() {
-    WritableMap payload = Arguments.createMap();
-    this.sendJSEvent(ON_SESSION_END, payload);
-  }
-  //#endregion--------------------------------------------------------------------------------------
 
   //#region---UPDATE NATIVE TO MATCH REACT METHODS--------------------------------------------------
 
