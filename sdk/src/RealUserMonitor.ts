@@ -274,7 +274,7 @@ export default class RealUserMonitor {
 
     const rumMessage = this.generateRealUserMonitorPayload(eventName, data, timeAt);
 
-    RaygunLogger.d(`Transmitting ${eventName} event to ${this.raygunRumEndpoint}?apiKey=${encodeURIComponent(this.apiKey)}: \n${JSON.stringify(rumMessage)}`);
+    RaygunLogger.v("Real User Monitoring Payload: ", `Transmitting ${eventName} event to ${this.raygunRumEndpoint}?apiKey=${encodeURIComponent(this.apiKey)}: \n${JSON.stringify(rumMessage)}`);
 
     return fetch(this.raygunRumEndpoint + '?apiKey=' + encodeURIComponent(this.apiKey),
       {
