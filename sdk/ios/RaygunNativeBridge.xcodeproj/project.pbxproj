@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		3B3F0A8125AE7C68004A71CA /* RaygunNativeBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 3B3F0A8025AE7C68004A71CA /* RaygunNativeBridge.m */; };
+		3B60FC3525C7ADE000A217A2 /* UIViewController+ReactNativeRaygunRUM.m in Sources */ = {isa = PBXBuildFile; fileRef = 3B60FC3325C7ADE000A217A2 /* UIViewController+ReactNativeRaygunRUM.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -26,6 +27,8 @@
 		134814201AA4EA6300B7C361 /* libRaygunNativeBridge.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRaygunNativeBridge.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B3F0A7F25AE7C67004A71CA /* RaygunNativeBridge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RaygunNativeBridge.h; sourceTree = "<group>"; };
 		3B3F0A8025AE7C68004A71CA /* RaygunNativeBridge.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RaygunNativeBridge.m; sourceTree = "<group>"; };
+		3B60FC3325C7ADE000A217A2 /* UIViewController+ReactNativeRaygunRUM.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIViewController+ReactNativeRaygunRUM.m"; sourceTree = "<group>"; };
+		3B60FC3425C7ADE000A217A2 /* UIViewController+ReactNativeRaygunRUM.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIViewController+ReactNativeRaygunRUM.h"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -52,6 +55,8 @@
 			children = (
 				3B3F0A7F25AE7C67004A71CA /* RaygunNativeBridge.h */,
 				3B3F0A8025AE7C68004A71CA /* RaygunNativeBridge.m */,
+				3B60FC3425C7ADE000A217A2 /* UIViewController+ReactNativeRaygunRUM.h */,
+				3B60FC3325C7ADE000A217A2 /* UIViewController+ReactNativeRaygunRUM.m */,
 				134814211AA4EA7D00B7C361 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -113,6 +118,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3B60FC3525C7ADE000A217A2 /* UIViewController+ReactNativeRaygunRUM.m in Sources */,
 				3B3F0A8125AE7C68004A71CA /* RaygunNativeBridge.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

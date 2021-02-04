@@ -23,13 +23,15 @@ const SessionRotateThreshold = 30 * 60 * 1000; //milliseconds (equivalent to 30 
 export default class RealUserMonitor {
   //#region ----INITIALIZATION----------------------------------------------------------------------
 
-  private readonly apiKey: string;
-  private readonly version: string;
-  private readonly disableNetworkMonitoring: boolean;
-  private readonly ignoredURLs: string[];
-  private readonly ignoredViews: string[];
+  private apiKey: string;
+  private version: string;
+  private disableNetworkMonitoring: boolean;
+  private ignoredURLs: string[];
+  private  ignoredViews: string[];
   private requests = new Map<string, RequestMeta>();
   private raygunRumEndpoint = 'https://api.raygun.com/events';
+
+  private loadingViews = new Map<string, number>();
 
   lastSessionInteractionTime = Date.now();
   RealUserMonitoringSessionId: string = ''; //The id for generated RUM Timing events to be grouped under
@@ -62,27 +64,28 @@ export default class RealUserMonitor {
       this.raygunRumEndpoint = customRealUserMonitoringEndpoint;
     }
 
-    // If the USER has not defined disabling network monitoring, setup the XHRInterceptor (see
-    // NetworkMonitor.ts).
-    // If the USER has not defined disabling network monitoring, setup the XHRInterceptor
     if (!disableNetworkMonitoring) {
       this.setupNetworkMonitoring();
     }
 
-    this.markSessionInteraction();
-    this.RealUserMonitoringSessionId = '';
-
     // Create native event listeners on this device
     const eventEmitter = new NativeEventEmitter(RaygunNativeBridge);
-    eventEmitter.addListener(RaygunNativeBridge.ON_START, this.sendViewLoadedEvent.bind(this));
-    eventEmitter.addListener(RaygunNativeBridge.ON_PAUSE, this.markSessionInteraction.bind(this));
-    eventEmitter.addListener(RaygunNativeBridge.ON_RESUME, this.rotateRUMSession.bind(this));
-    eventEmitter.addListener(RaygunNativeBridge.ON_DESTROY, () => {
-      eventEmitter.removeAllListeners(RaygunNativeBridge.ON_START);
-      eventEmitter.removeAllListeners(RaygunNativeBridge.ON_PAUSE);
-      eventEmitter.removeAllListeners(RaygunNativeBridge.ON_RESUME);
-      eventEmitter.removeAllListeners(RaygunNativeBridge.ON_DESTROY);
+    eventEmitter.addListener(RaygunNativeBridge.ON_SESSION_PAUSE, this.markSessionInteraction.bind(this));
+    eventEmitter.addListener(RaygunNativeBridge.ON_SESSION_RESUME, this.rotateRUMSession.bind(this));
+    eventEmitter.addListener(RaygunNativeBridge.ON_VIEW_LOADING, this.viewBeginsLoading.bind(this));
+    eventEmitter.addListener(RaygunNativeBridge.ON_VIEW_LOADED, this.viewFinishesLoading.bind(this));
+    eventEmitter.addListener(RaygunNativeBridge.ON_SESSION_END, () => {
+      eventEmitter.removeAllListeners(RaygunNativeBridge.ON_SESSION_PAUSE);
+      eventEmitter.removeAllListeners(RaygunNativeBridge.ON_SESSION_RESUME);
+      eventEmitter.removeAllListeners(RaygunNativeBridge.ON_VIEW_LOADING);
+      eventEmitter.removeAllListeners(RaygunNativeBridge.ON_VIEW_LOADED);
+      eventEmitter.removeAllListeners(RaygunNativeBridge.ON_SESSION_END);
     });
+
+    //Begin a Real User Monitoring session
+    this.generateNewSessionId();
+    this.markSessionInteraction();
+    this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
   }
 
   //#endregion--------------------------------------------------------------------------------------
@@ -135,7 +138,7 @@ export default class RealUserMonitor {
    */
   sendCustomRUMEvent(eventType: RealUserMonitoringTimings, name: string, duration: number) {
     if (eventType === RealUserMonitoringTimings.ViewLoaded) {
-      this.sendViewLoadedEvent({ name, duration });
+      this.sendViewLoadedEvent(name, duration);
       return;
     }
     if (eventType === RealUserMonitoringTimings.NetworkCall) {
@@ -159,30 +162,88 @@ export default class RealUserMonitor {
   }
 
   /**
+   * When a View begins loading this event will store the time that it started so that the duration
+   * can be calculated later.
+   * @param payload
+   */
+  viewBeginsLoading(payload: Record<string, any>) {
+    const { viewname, time } = payload;
+
+    RaygunLogger.d(`View started loading ${viewname}`);
+
+    if (this.loadingViews.has(viewname)) return;
+    else {
+      this.loadingViews.set(viewname, time);
+    }
+  }
+
+  /**
+   * When a View completes loading its load duration will be calculated using the load start time before
+   * being cleaned and transmitted to raygun.
+   * @param payload
+   */
+  viewFinishesLoading(payload: Record<string, any>) {
+    const { viewname, time } = payload;
+
+    RaygunLogger.d(`View finished loading: ${viewname}`);
+
+    if (this.loadingViews.has(viewname)) {
+      let viewLoadStartTime = this.loadingViews.get(viewname);
+      if (!!viewLoadStartTime) {
+        let duration : number = Math.round(time - viewLoadStartTime);
+
+        this.loadingViews.delete(viewname);
+
+        this.sendViewLoadedEvent(this.cleanViewName(viewname), duration);
+      }
+      else {
+        RaygunLogger.d(`Loading views cannot have an undefined start time: ${viewname}`);
+      }
+    }
+  }
+
+  /**
    * This method sends a mobile event timing message to the raygun server. If the current session
    * has not been setup, this method will also ensure that the session has been allocated an ID
    * before sending away any data.
-   * @param payload
+   * @param name
+   * @param duration
    */
-  async sendViewLoadedEvent(payload: Record<string, any>) {
-    const { name, duration } = payload;
-
+  async sendViewLoadedEvent(name : string, duration : number) {
+  
     if (shouldIgnoreView(name, this.ignoredViews)){
       return;
     }
+    const data = { name: name, timing: { type: RealUserMonitoringTimings.ViewLoaded, duration } };
 
-    if (!this.RealUserMonitoringSessionId) {
-      this.RealUserMonitoringSessionId = getDeviceId();
-      await this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
-    }
-    const data = { name, timing: { type: RealUserMonitoringTimings.ViewLoaded, duration } };
     return this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.EventTiming, data);
+  }
+
+  /**
+   * Take in a viewname from the native side and clean it depending on the platform it came from.
+   * @param viewname
+   */
+  cleanViewName(viewname: string) : string{
+    let cleanedViewName = viewname;
+    if (cleanedViewName.startsWith("iOS_View: ")) {
+      cleanedViewName = cleanedViewName.replace("iOS_View: ", "");
+      cleanedViewName = cleanedViewName.replace("<", "");
+      cleanedViewName = cleanedViewName.replace(">", "");
+      cleanedViewName = cleanedViewName.split(':')[0];
+    }
+    return cleanedViewName;
   }
 
   //#endregion--------------------------------------------------------------------------------------
 
   //#region ----RUM PAYLOAD MANAGEMENT--------------------------------------------------------------
 
+  /**
+   * Construct the RUM payload to transmit given the events information
+   * @param eventName
+   * @param data
+   * @param timeAt
+   */
   generateRealUserMonitorPayload(
     eventName: string,
     data: Record<string, any>,
@@ -211,11 +272,14 @@ export default class RealUserMonitor {
    * @param timeAt - The time at which this event occurred, defaults to NOW if undefined/null.
    */
   async transmitRealUserMonitoringEvent(eventName: string, data: Record<string, any>, timeAt?: number) {
+
     //Check whether the session has been idle long enough to rotate it
     if (Date.now() - this.lastSessionInteractionTime > SessionRotateThreshold) await this.rotateRUMSession();
     else this.markSessionInteraction();
 
     const rumMessage = this.generateRealUserMonitorPayload(eventName, data, timeAt);
+
+    RaygunLogger.v("Transmitting Real User Monitoring Payload", {Name: eventName, URL: this.raygunRumEndpoint+"?apiKey="+encodeURIComponent(this.apiKey), Value: JSON.stringify(rumMessage)});
 
     return fetch(this.raygunRumEndpoint + '?apiKey=' + encodeURIComponent(this.apiKey),
       {

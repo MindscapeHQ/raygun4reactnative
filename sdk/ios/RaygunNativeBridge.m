@@ -18,8 +18,6 @@
 
 #if TARGET_OS_IOS || TARGET_OS_TV
 #import <UIKit/UIKit.h>
-#else
-#import <AppKit/AppKit.h>
 #endif
 
 
@@ -102,18 +100,20 @@ static uint64_t getMemorySize(void) {
 
 static CFTimeInterval startedAt; //Time that this object was created
 
-BOOL crashReportingInitialized = FALSE;
-
 //RUM events to capture and send to the react layer
-NSString *viewName = @"RCTView";
-NSString *onStart = @"ON_START";
-NSString *onPause = @"ON_PAUSE";
-NSString *onResume = @"ON_RESUME";
-NSString *onDestroy = @"ON_DESTROY";
+NSString *onSessionPause = @"ON_SESSION_PAUSE";
+NSString *onSessionResume = @"ON_SESSION_RESUME";
+NSString *onSessionEnd = @"ON_SESSION_END";
+
+NSString *onViewLoading = @"ON_VIEW_LOADING";
+NSString *onViewLoaded = @"ON_VIEW_LOADED";
 
 //Retrieving and storing the device UUID
 static NSString *DEVICE_UUID = nil;
 static NSString *_Nonnull const nativeIdentifierKey = @"com.raygun.identifier";
+
+static bool crashReportingInitialized = FALSE;
+static bool realUserMonitoringInitialized = FALSE;
 
 // ============================================================================
 #pragma mark - INHERITED NATIVE MODULE STARTUP METHODS -
@@ -156,10 +156,11 @@ static CFTimeInterval processStartTime() {
     NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
     
     [dict setValue: DEVICE_UUID forKey: @"DEVICE_ID"];
-    [dict setValue: onStart forKey: onStart];
-    [dict setValue: onPause forKey: onPause];
-    [dict setValue: onResume forKey: onResume];
-    [dict setValue: onDestroy forKey: onDestroy];
+    [dict setValue: onSessionPause forKey: onSessionPause];
+    [dict setValue: onSessionResume forKey: onSessionResume];
+    [dict setValue: onViewLoaded forKey: onViewLoaded];
+    [dict setValue: onViewLoading forKey:onViewLoading];
+    [dict setValue: onSessionEnd forKey: onSessionEnd];
     [dict setValue: [self getVersion: "kern.osversion"] forKey:@"osVersion"];
     [dict setValue: [self platform] forKey:@"platform"];
     return dict;
@@ -222,41 +223,53 @@ RCT_EXPORT_MODULE();
 
 RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
 {
-
+    if (realUserMonitoringInitialized) {
+        return;
+    }
+    
 #if TARGET_OS_IOS || TARGET_OS_TV
     //CREATE OBSERVERS FOR STATE CHANGE EVENTS
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillEnterForeground) name:UIApplicationWillEnterForegroundNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidEnterBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate) name:UIApplicationWillTerminateNotification object:nil];
-#else
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillEnterForeground) name:NSApplicationWillBecomeActiveNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidEnterBackground) name:NSApplicationDidResignActiveNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate) name:NSApplicationWillTerminateNotification object:nil];
+    
+    //CREATE OBSERVERS FOR VIEW LOADED EVENTS
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(viewStartedLoading:) name:@"RAYGUN_VIEW_LOADING" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(viewFinishedLoading:) name:@"RAYGUN_VIEW_LOADED" object:nil];
+    
 #endif
-    //TRIGGER THE ON_START EVENT
-    NSNumber *used = @(CACurrentMediaTime() - startedAt);
-    [self sendEventWithName: onStart body:@{@"duration": used, @"name": viewName}];
+    realUserMonitoringInitialized = TRUE;
 }
 
-//RUM EVENT HANDLERS
-
+//RUM SESSION EVENTS
 - (void)applicationWillEnterForeground {
-    [self sendEventWithName: onResume body:@{@"name": viewName}];
+    [self sendEventWithName: onSessionResume body:@{}];
 }
 
 - (void)applicationDidEnterBackground {
-    [self sendEventWithName: onPause body:@{@"name": viewName}];
+    [self sendEventWithName: onSessionPause body:@{}];
 }
 
 - (void)applicationWillTerminate {
-    [self sendEventWithName: onDestroy body:@{@"name": viewName}];
+    [self sendEventWithName: onSessionEnd body:@{}];
 }
 
 //RUM EVENTS THAT CAN OCCUR
 - (NSArray<NSString *> *)supportedEvents
 {
-  return @[onStart, onPause, onResume, onDestroy];
+  return @[onSessionPause, onSessionResume, onViewLoading, onViewLoaded, onSessionEnd];
 }
+
+
+- (void)viewStartedLoading:(NSNotification *) note{
+    [self sendEventWithName: onViewLoading body:@{@"time": [note.userInfo objectForKey:@"time"], @"viewname": [note.userInfo objectForKey:@"name"]}];
+}
+
+- (void)viewFinishedLoading:(NSNotification *) note{
+    [self sendEventWithName: onViewLoaded body:@{@"time": [note.userInfo objectForKey:@"time"], @"viewname": [note.userInfo objectForKey:@"name"]}];
+}
+
+
 
 // ============================================================================
 #pragma mark - CRASH REPORTING INITIALISATION -
@@ -274,6 +287,7 @@ RCT_EXPORT_METHOD(initCrashReportingNativeSupport:(NSString*)apiKey
     //ENABLE NATIVE SIDE CRASH REPORTING
     [[RaygunClient sharedInstanceWithApiKey:apiKey] setCrashReportingApiEndpoint: customCREndpoint];
     [RaygunClient.sharedInstance enableCrashReporting];
+    RaygunClient.sharedInstance.applicationVersion = version;
     
     crashReportingInitialized = TRUE;
 }
@@ -284,7 +298,6 @@ RCT_EXPORT_METHOD(initCrashReportingNativeSupport:(NSString*)apiKey
 
 RCT_EXPORT_METHOD(setTags:(NSArray *) tags) {
     if (!crashReportingInitialized) {
-        RCTLogInfo(@"Cannot set native tags until native Crash Reporting is initialised");
         return;
     }
     [RaygunClient.sharedInstance setTags:tags];
@@ -292,7 +305,6 @@ RCT_EXPORT_METHOD(setTags:(NSArray *) tags) {
 
 RCT_EXPORT_METHOD(setCustomData:(NSDictionary *) customData) {
     if (!crashReportingInitialized) {
-        RCTLogInfo(@"Cannot set custom data until native Crash Reporting is initialised");
         return;
     }
     [RaygunClient.sharedInstance setCustomData:customData];
@@ -300,7 +312,6 @@ RCT_EXPORT_METHOD(setCustomData:(NSDictionary *) customData) {
 
 RCT_EXPORT_METHOD(recordBreadcrumb:(NSDictionary *) breadcrumb) {
     if (!crashReportingInitialized) {
-        RCTLogInfo(@"Cannot record native breadcrumbs until native Crash Reporting is initialised");
         return;
     }
     [RaygunClient.sharedInstance recordBreadcrumb:[RaygunBreadcrumb breadcrumbWithInformation:breadcrumb]];
@@ -308,7 +319,6 @@ RCT_EXPORT_METHOD(recordBreadcrumb:(NSDictionary *) breadcrumb) {
 
 RCT_EXPORT_METHOD(clearBreadcrumbs) {
     if (!crashReportingInitialized) {
-        RCTLogInfo(@"Cannot clear native breadcrumbs until native Crash Reporting is initialised");
         return;
     }
     [RaygunClient.sharedInstance clearBreadcrumbs];
@@ -316,7 +326,6 @@ RCT_EXPORT_METHOD(clearBreadcrumbs) {
 
 RCT_EXPORT_METHOD(setUser:(NSDictionary *) user) {
     if (!crashReportingInitialized) {
-        RCTLogInfo(@"Cannot set native user until native Crash Reporting is initialised");
         return;
     }
     

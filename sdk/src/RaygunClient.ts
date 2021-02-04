@@ -45,7 +45,7 @@ let initialized: boolean = false;
 const init = (raygunClientOptions: RaygunClientOptions) => {
     //Do not reinitialize
     if (initialized) {
-        RaygunLogger.w("RaygunClient version already initialized");
+        RaygunLogger.w("RaygunClient VERSION already initialized");
         return false;
     }
 
@@ -102,7 +102,7 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
     }
 
     initialized = true;
-    RaygunLogger.i(`RaygunClient version initialized`)
+    RaygunLogger.d(`RaygunClient VERSION initialized`)
     return true;
 };
 
