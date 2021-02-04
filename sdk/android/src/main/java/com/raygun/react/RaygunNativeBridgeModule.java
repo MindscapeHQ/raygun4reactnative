@@ -167,19 +167,17 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     @Override
     public void onActivityCreated(Activity activity, Bundle bundle) {
         Log.i("TAG", "CREATED");
-        activity.getApplication().onCreate();
-        if (!loaded) {
-            loaded = true;
-            if (currentActivity == null || currentActivity.get() != activity) {
-                currentActivity = new WeakReference<>(activity);
-            }
-            startedTime = System.currentTimeMillis();
 
-            WritableMap payload = Arguments.createMap();
-            payload.putString("viewname", getActivityName());
-            payload.putString("time", startedTime + "");
-            this.sendJSEvent(ON_VIEW_LOADING, payload);
+        //If there is no current activity then this one will become the current activity
+        if (currentActivity == null) {
+            currentActivity = new WeakReference<>(activity);
         }
+
+        //Pass off a view loading event to the react side
+        WritableMap payload = Arguments.createMap();
+        payload.putString("viewname", activity.getClass().getSimpleName());
+        payload.putString("time", System.currentTimeMillis() + "");
+        this.sendJSEvent(ON_VIEW_LOADING, payload);
     }
 
     @Override
@@ -187,7 +185,7 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
         Log.i("TAG", "STARTED");
         WritableMap payload = Arguments.createMap();
         long time = System.currentTimeMillis();
-        payload.putString("viewname", getActivityName());
+        payload.putString("viewname", activity.getClass().getSimpleName());
         payload.putString("time", time + "");
         this.sendJSEvent(ON_VIEW_LOADED, payload);
     }
@@ -195,15 +193,21 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     @Override
     public void onActivityResumed(Activity activity) {
         Log.i("TAG", "RESUMED");
-        currentActivity = new WeakReference<>(activity);
-        this.sendJSEvent(ON_SESSION_RESUME, null);
-        loaded = false;
+
+        //If the activity that recently paused is returning to the foreground then the whole
+        // application has resumed, therefore update the session
+        if (currentActivity.get() == activity) this.sendJSEvent(ON_SESSION_RESUME, null);
+
+        //If any other activity resumes that means that it is taking over from the current activity
+        else  currentActivity = new WeakReference<>(activity);
     }
 
     @Override
     public void onActivityPaused(Activity activity) {
         Log.i("TAG", "PAUSE: ACTIVITY");
-        this.sendJSEvent(ON_SESSION_PAUSE, null);
+        if (currentActivity.get() == activity) {
+            this.sendJSEvent(ON_SESSION_PAUSE, null);
+        }
     }
 
     @Override
@@ -216,7 +220,10 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
 
     @Override
     public void onActivityDestroyed(Activity activity) {
-        this.sendJSEvent(ON_SESSION_END, null);
+        if (currentActivity.get() == activity) {
+            this.sendJSEvent(ON_SESSION_END, null);
+            currentActivity = null;
+        }
     }
 
 
