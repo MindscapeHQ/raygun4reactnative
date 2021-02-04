@@ -49,6 +49,7 @@ import static android.provider.Settings.Secure.getString;
 public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule implements Application.ActivityLifecycleCallbacks {
 
     //#region---GLOBAL CONSTANTS----------------------------------------------------------------------
+
     // ReactNative Context, a connection the the React Code.
     private static ReactApplicationContext reactContext;
 

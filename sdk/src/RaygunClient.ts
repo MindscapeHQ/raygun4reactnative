@@ -100,7 +100,7 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
     }
 
     initialized = true;
-    RaygunLogger.i(`RaygunClient version initialized`)
+    RaygunLogger.d(`RaygunClient version initialized`)
     return true;
 };
 
