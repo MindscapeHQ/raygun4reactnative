@@ -127,19 +127,17 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
      */
     @ReactMethod
     public void initRealUserMonitoringNativeSupport() {
-        if (lifecycleInitialized) {
-            Timber.i("Lifecycle Event listener already initialized");
-            return;
-        }
-        if (reactContext.getCurrentActivity() != null) {
-            currentActivity = new WeakReference<>(reactContext.getCurrentActivity());
-            reactContext.getCurrentActivity().getApplication().registerActivityLifecycleCallbacks(this);
+        //Cant initialise bridge rum twice
+        if (realUserMonitoringInitialized) return;
 
-            WritableMap payload = Arguments.createMap();
-            payload.putString("viewname", getActivityName());
-            payload.putString("time", System.currentTimeMillis() + "");
-            this.sendJSEvent(ON_VIEW_LOADING, payload);
+        if (reactContext.getCurrentActivity() != null) {
+            //Store the current activity to differentiate session changes
+            currentActivity = new WeakReference<>(reactContext.getCurrentActivity());
+            //Attach the activity listening logic to the Application
+            reactContext.getCurrentActivity().getApplication().registerActivityLifecycleCallbacks(this);
         }
+        else Log.e("TAG", "This react application has no active activity");
+
         realUserMonitoringInitialized = true;
     }
 
@@ -156,7 +154,6 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
         public RaygunMessage onBeforeSend(RaygunMessage raygunMessage) {
             RaygunErrorMessage error = raygunMessage.getDetails().getError();
             if (error.getMessage().contains("JavascriptException")) {
-                System.out.println("DO NOT SEND: " + raygunMessage.getDetails().getError().getMessage());
                 return null;
             }
             return raygunMessage;
