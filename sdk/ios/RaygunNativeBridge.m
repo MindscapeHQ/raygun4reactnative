@@ -108,9 +108,6 @@ NSString *onSessionEnd = @"ON_SESSION_END";
 NSString *onViewLoading = @"ON_VIEW_LOADING";
 NSString *onViewLoaded = @"ON_VIEW_LOADED";
 
-//Storing start times for views in the process of loading
-NSMutableDictionary *viewLoadStartTimes;
-
 //Retrieving and storing the device UUID
 static NSString *DEVICE_UUID = nil;
 static NSString *_Nonnull const nativeIdentifierKey = @"com.raygun.identifier";
@@ -127,8 +124,6 @@ static bool realUserMonitoringInitialized = FALSE;
 
     //Get the device id and store it
     [self init_Device_UUID];
-    
-    viewLoadStartTimes = [[NSMutableDictionary alloc] init];
 }
 
 + (BOOL) requiresMainQueueSetup {

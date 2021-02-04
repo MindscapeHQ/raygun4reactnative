@@ -12,24 +12,6 @@ import {LogLevel, RaygunClientOptions} from "raygun4reactnative";
 
 const Tab = createBottomTabNavigator();
 
-const options: RaygunClientOptions = {
-  apiKey: '',// Your API key
-  version: '', // Your application version
-  enableCrashReporting: true,
-  enableRealUserMonitoring: true,
-  //onBeforeSendingCrashReport: beforeSendFunc,
-  ignoredURLs: [],
-  logLevel: LogLevel.verbose,
-  // Other settings to customize your Raygun usage
-  // disableNativeCrashReporting: true,
-  // disableNetworkMonitoring: true,
-  // customCrashReportingEndpoint: "http://some-url-of-your-choice",
-  // customRealUserMonitoringEndpoint: "http://some-url-of-your-choice"
-
-}
-
-raygunClient.init(options);
-
 function Tabs() {
   return (
     <Tab.Navigator
