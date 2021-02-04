@@ -17,6 +17,9 @@ export default function RealUserMonitoring() {
   const [networkBtnColor, setNetworkBtnColor] = useState("green");
   const [networkError, setNetworkError] = useState("");
   const [sendNetworkBtn, setSendNetworkBtn] = useState("Send Valid Request");
+  // Custom View Events variables
+  const [sendCustomViewColor, setSendCustomViewColor] = useState("green");
+  const [sendCustomViewBtn, setSendCustomViewBtn] = useState("Send Custom View Event");
   // Login Variables
   const [username, setUsername] = useState("Username");
   const [loggedIn, setLoggedIn] = useState(false);
@@ -64,6 +67,25 @@ export default function RealUserMonitoring() {
     raygunClient.sendRUMTimingEvent(RealUserMonitoringTimings.NetworkCall, "Test Network Event", 100);
   }
 
+
+  /**
+   * Manages switching between a valid, and ignored, custom view event
+   */
+  const customViewEvent = () => {
+    switch (sendCustomViewBtn){
+      case "Send Custom View Event":
+        sendCustomViewEvent();
+        setSendCustomViewBtn("Send Ignored Custom View Event")
+        setSendCustomViewColor("red");
+        return;
+      case "Send Ignored Custom View Event":
+        sendCustomIgnoredViewEvent();
+        setSendCustomViewBtn("Send Custom View Event")
+        setSendCustomViewColor("green");
+
+    }
+  }
+
   /**
    * This is an example of sending your own ViewLoaded event. The RaygunClient will automatically record the time it takes
    * to launch the application, however you may want to record times taken for other such events that occur in your app.
@@ -71,6 +93,14 @@ export default function RealUserMonitoring() {
    */
   const sendCustomViewEvent = () => {
     raygunClient.sendRUMTimingEvent(RealUserMonitoringTimings.ViewLoaded, "Test ViewLoaded Event", 200);
+  }
+
+  /**
+   * This is an example of sending your own ViewLoaded event (same as above). However, the name of this event means it
+   * will be ignored as it is on the ignored views list (see Home.tsx), so this event will not be sent through.
+   */
+  const sendCustomIgnoredViewEvent = () => {
+    raygunClient.sendRUMTimingEvent(RealUserMonitoringTimings.ViewLoaded, "Test Ignored View", 150);
   }
 
   /**
@@ -164,9 +194,9 @@ export default function RealUserMonitoring() {
 
             <View style={styles.secondView}>
               <Button
-                title={"Send Custom View Event"}
-                color={"green"}
-                onPress={() => sendCustomViewEvent()}/>
+                title={sendCustomViewBtn}
+                color={sendCustomViewColor}
+                onPress={() => customViewEvent()}/>
             </View>
           </View>
 

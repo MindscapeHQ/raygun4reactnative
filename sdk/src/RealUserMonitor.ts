@@ -4,7 +4,7 @@ import {
   RealUserMonitorPayload,
   RequestMeta
 } from './Types';
-import { getDeviceId, shouldIgnore, getCurrentUser, getCurrentTags, getRandomGUID } from './Utils';
+import {getDeviceId, shouldIgnoreURL, getCurrentUser, getCurrentTags, getRandomGUID, shouldIgnoreView} from './Utils';
 // @ts-ignore
 import XHRInterceptor from 'react-native/Libraries/Network/XHRInterceptor';
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
@@ -13,7 +13,8 @@ import RaygunLogger from "./RaygunLogger";
 const { RaygunNativeBridge } = NativeModules;
 const { osVersion, platform } = RaygunNativeBridge;
 
-const defaultURLIgnoreList = ['api.raygun.com', 'localhost:8081/symbolicate'];
+const defaultURLIgnoreList: string[] = ['api.raygun.com', 'localhost:8081'];
+const defaultViewIgnoreList: string[] = []; // Nothing as of right now
 const SessionRotateThreshold = 30 * 60 * 1000; //milliseconds (equivalent to 30 minutes)
 
 /**
@@ -26,6 +27,11 @@ export default class RealUserMonitor {
   private version: string;
   private disableNetworkMonitoring: boolean;
   private ignoredURLs: string[];
+  private apiKey: string;
+  private version: string;
+  private disableNetworkMonitoring: boolean;
+  private ignoredURLs: string[];
+  private  ignoredViews: string[];
   private requests = new Map<string, RequestMeta>();
   private raygunRumEndpoint = 'https://api.raygun.com/events';
 
@@ -39,6 +45,7 @@ export default class RealUserMonitor {
    * @param apiKey - The User's API key that gives them access to RUM. (User provided)
    * @param disableNetworkMonitoring - If true, XHRInterceptor is not switched on. All requests go through without monitoring.
    * @param ignoredURLs - A string array of URLs to ignore when watching the network.
+   * @param ignoredViews - A string array of all the view names to ignore logging.
    * @param customRealUserMonitoringEndpoint - The custom API URL endpoint where this API should send data to.
    * @param version - The Version number of this application. (User provided)
    */
@@ -46,6 +53,7 @@ export default class RealUserMonitor {
     apiKey: string,
     disableNetworkMonitoring: boolean,
     ignoredURLs: string[],
+    ignoredViews: string[],
     customRealUserMonitoringEndpoint: string,
     version: string
   ) {
@@ -54,6 +62,7 @@ export default class RealUserMonitor {
     this.disableNetworkMonitoring = disableNetworkMonitoring;
     this.version = version;
     this.ignoredURLs = ignoredURLs.concat(defaultURLIgnoreList, customRealUserMonitoringEndpoint || []);
+    this.ignoredViews = ignoredViews.concat(defaultViewIgnoreList);
 
     if (customRealUserMonitoringEndpoint && customRealUserMonitoringEndpoint.length > 0){
       this.raygunRumEndpoint = customRealUserMonitoringEndpoint;
@@ -209,8 +218,12 @@ export default class RealUserMonitor {
    * @param payload
    */
   async sendViewLoadedEvent(name : string, duration : number) {
-
+  
+    if (shouldIgnoreView(name, this.ignoredViews)){
+      return;
+    }
     const data = { name: name, timing: { type: RealUserMonitoringTimings.ViewLoaded, duration } };
+
     return this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.EventTiming, data);
   }
 
@@ -304,7 +317,7 @@ export default class RealUserMonitor {
    */
   handleRequestOpen(method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', url: string, xhr: any) {
     // If this URL is on the IGNORE list, then do nothing.
-    if (shouldIgnore(url, this.ignoredURLs)) {
+    if (shouldIgnoreURL(url, this.ignoredURLs)) {
       return;
     }
     // Obtain the device ID

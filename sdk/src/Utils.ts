@@ -1,7 +1,6 @@
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
 import { NativeModules } from 'react-native';
 import { User } from './Types';
-import RaygunLogger from "./RaygunLogger";
 
 const { RaygunNativeBridge } = NativeModules;
 
@@ -122,10 +121,14 @@ export const removeProtocol = (url: string) => url.replace(/^http(s)?:\/\//i, ''
 
 //#region ----FILTERING-----------------------------------------------------------------------------
 
-export const shouldIgnore = (url: string, ignoredURLs: string[]): boolean => {
+export const shouldIgnoreURL = (url: string, ignoredURLs: string[]): boolean => {
   const target = removeProtocol(url);
   return ignoredURLs.some(ignored => target.startsWith(ignored));
 };
+
+export const shouldIgnoreView = (name: string, ignoredViews: string[]): boolean => {
+  return ignoredViews.some(ignored => name.startsWith(ignored));
+}
 
 export const filterOutReactFrames = (frame: StackFrame): boolean => !!frame.file && !frame.file.match(internalTrace);
 

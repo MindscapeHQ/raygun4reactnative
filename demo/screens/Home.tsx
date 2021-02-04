@@ -33,6 +33,12 @@ const beforeSendFunc: BeforeSendHandler = (crp: CrashReportPayload) => {
 const ignoredUrls: string[] = ["www.youtube.com"]
 
 /**
+ * This is an array of views that should be ignored. The name of the view is placed in the list, and or the
+ * start of the name of many views is placed in the list.
+ */
+const ignoredViews: string[] = ["Test Ignored View"]
+
+/**
  * This is an example of a RaygunClientOptions type. This object defines the non-varying conditions
  * of your Raygun application. This object is parsed into the RaygunClient via the init method.
  * There are no mandatory fields in this object, but be aware, that any variable that is not defined
@@ -46,6 +52,7 @@ const options: RaygunClientOptions = {
   enableRealUserMonitoring: true,
   onBeforeSendingCrashReport: beforeSendFunc,
   ignoredURLs: ignoredUrls,
+  ignoredViews: ignoredViews,
   logLevel: LogLevel.verbose,
   // Other settings to customize your Raygun usage
   // disableNativeCrashReporting: true,
