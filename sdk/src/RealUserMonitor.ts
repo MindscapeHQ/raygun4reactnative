@@ -64,15 +64,9 @@ export default class RealUserMonitor {
       this.raygunRumEndpoint = customRealUserMonitoringEndpoint;
     }
 
-    // If the USER has not defined disabling network monitoring, setup the XHRInterceptor (see
-    // NetworkMonitor.ts).
-    // If the USER has not defined disabling network monitoring, setup the XHRInterceptor
     if (!disableNetworkMonitoring) {
       this.setupNetworkMonitoring();
     }
-
-    this.markSessionInteraction();
-    this.RealUserMonitoringSessionId = '';
 
     // Create native event listeners on this device
     const eventEmitter = new NativeEventEmitter(RaygunNativeBridge);
@@ -90,6 +84,7 @@ export default class RealUserMonitor {
 
     //Begin a Real User Monitoring session
     this.generateNewSessionId();
+    this.markSessionInteraction();
     this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
   }
 
