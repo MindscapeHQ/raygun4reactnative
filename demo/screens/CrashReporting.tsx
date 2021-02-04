@@ -14,8 +14,6 @@ import {raygunClient} from "../utils/Utils";
 import {Breadcrumb, CustomData, ManualCrashReportDetails} from "raygun4reactnative";
 import CheckBox from "@react-native-community/checkbox";
 
-const {RaygunDemoBridge} = NativeModules
-
 //#region -- Breadcrumb Objects --------------------------------------------------------------------
 
 /**
@@ -345,21 +343,6 @@ export default function CrashReporting() {
                 title={"Throw Uncaught Error"}
                 color={"red"}
                 onPress={() => {throwError()}}
-              />
-            </View>
-          </View>
-
-          {/*Throw Native Error Section*/}
-          <View style={styles.mainView}>
-            <View style={styles.secondView}>
-              <Text key={"Native Error Title"} style={styles.title}>Native Uncaught Error</Text>
-            </View>
-
-            <View style={styles.secondView}>
-              <Button
-                title={"Throw Native Error"}
-                color={"red"}
-                onPress={() => {RaygunDemoBridge.runNativeError()}}
               />
             </View>
           </View>
