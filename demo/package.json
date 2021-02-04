@@ -1,6 +1,6 @@
 {
   "name": "raygun4reactnativedemo",
-  "version": "0.0.3-alpha",
+  "version": "1.0.0-beta",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
