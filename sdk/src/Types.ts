@@ -14,6 +14,7 @@ export type RaygunClientOptions = {
   logLevel?: LogLevel;
   onBeforeSendingCrashReport?: BeforeSendHandler;
   ignoredURLs?: string[];
+  ignoredViews?: string[];
 };
 
 export enum LogLevel {
@@ -83,6 +84,7 @@ export type Breadcrumb = {
   level?: 'debug' | 'info' | 'warning' | 'error';
   customData?: CustomData;
   timestamp?: number;
+  type?: 'manual'
 };
 export type BeforeSendHandler = (payload: CrashReportPayload) => CrashReportPayload | null;
 
