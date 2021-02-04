@@ -12,9 +12,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.WindowManager;
 
-import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -35,9 +33,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Objects;
 
 import javax.annotation.Nullable;
 
@@ -135,8 +131,7 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
             currentActivity = new WeakReference<>(reactContext.getCurrentActivity());
             //Attach the activity listening logic to the Application
             reactContext.getCurrentActivity().getApplication().registerActivityLifecycleCallbacks(this);
-        }
-        else Log.e("TAG", "This react application has no active activity");
+        } else Log.e("TAG", "This react application has no active activity");
 
         realUserMonitoringInitialized = true;
     }
@@ -193,8 +188,8 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
         // application has resumed, therefore update the session
         if (currentActivity.get() == activity) this.sendJSEvent(ON_SESSION_RESUME, null);
 
-        //If any other activity resumes that means that it is taking over from the current activity
-        else  currentActivity = new WeakReference<>(activity);
+            //If any other activity resumes that means that it is taking over from the current activity
+        else currentActivity = new WeakReference<>(activity);
     }
 
     @Override
