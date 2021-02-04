@@ -101,6 +101,8 @@ export default class RealUserMonitor {
    */
   async rotateRUMSession() {
 
+    RaygunLogger.i("ROTATING SESSION");
+
     //Terminate the current session
     await this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionEnd, {});
 
@@ -169,6 +171,8 @@ export default class RealUserMonitor {
   viewBeginsLoading(payload: Record<string, any>) {
     const { viewname, time } = payload;
 
+    RaygunLogger.i(`View loading ${viewname}`);
+
     if (this.loadingViews.has(viewname)) return;
     else {
       this.loadingViews.set(viewname, time);
@@ -182,6 +186,8 @@ export default class RealUserMonitor {
    */
   viewFinishesLoading(payload: Record<string, any>) {
     const { viewname, time } = payload;
+
+    RaygunLogger.i(`View loaded ${viewname}`);
 
     if (this.loadingViews.has(viewname)) {
       let viewLoadStartTime = this.loadingViews.get(viewname);

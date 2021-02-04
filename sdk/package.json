@@ -10,9 +10,10 @@
   "typings": "dist/index.d.ts",
   "types": "dist/index.d.ts",
   "scripts": {
+    "install": "npm i @react-native-async-storage/async-storage",
     "eslint": "eslint src/**",
+    "builder": "npm run build_pack_1 && npm run build_demo_2",
     "clean": "npx rimraf node_modules dist package-lock.json raygun4reactnative-0.0.3-alpha.tgz ../demo/node_modules ../demo/dist ../demo/raygun4reactnative-0.0.3-alpha.tgz ../demo/android/app/build ../demo/ios/Pods ../demo/ios/Podfile.lock ../demo/package-lock.json",
-    "builder": "npm run clean && npm run build_pack_1 && npm run build_demo_2",
     "build_run": "npm run builder && npm run run_demo_3",
     "prepublish": "tsc -p ./",
     "prebuild": "npx rimraf release",
@@ -27,7 +28,7 @@
     "run_demo_3": "run-script-os",
     "run_demo_3:windows": "cd ../demo && npx react-native run-android",
     "run_demo_3:macos": "cd ../demo && cd ios && pod install && cd ../ && npx react-native run-ios",
-    "run_demo_3:linux": "cd ../demo && gnome-terminal -x bash -c \"npm start -- --reset-cache\" && npx react-native run-android",
+    "run_demo_3:linux": "cd ../demo && gnome-terminal -x bash -c \"npx react-native start\" && npx react-native run-android",
     "prettier": "npx prettier --write src"
   },
   "repository": {
@@ -45,8 +46,6 @@
   "licenseFilename": "LICENSE",
   "readmeFilename": "README.md",
   "peerDependencies": {
-    "react": "^16.8.1",
-    "react-native": ">=0.60.0-rc.0 <1.0.x",
     "@react-native-async-storage/async-storage": "^1.13.3"
   },
   "devDependencies": {
@@ -54,10 +53,10 @@
     "@types/node": "^12.12.47",
     "@types/react": "^16.9.35",
     "@types/react-native": "^0.62.12",
-    "@typescript-eslint/eslint-plugin": "^4.14.2",
-    "@typescript-eslint/parser": "^4.14.2",
+    "@typescript-eslint/eslint-plugin": "^4.14.0",
+    "@typescript-eslint/parser": "^4.14.0",
     "copyfiles": "^2.4.1",
-    "eslint": "^7.19.0",
+    "eslint": "^7.18.0",
     "eslint-config-google": "^0.14.0",
     "eslint-config-prettier": "^6.11.0",
     "eslint-import-resolver-typescript": "^2.0.0",
@@ -73,10 +72,10 @@
     "react-native": "^0.61.5",
     "rimraf": "^3.0.2",
     "run-script-os": "^1.1.5",
-    "ts-jest": "^26.5.0",
+    "ts-jest": "^26.4.0",
     "typescript": "^3.9.7"
   },
   "dependencies": {
-    "@react-native-async-storage/async-storage": "^1.13.4"
+    "@react-native-async-storage/async-storage": "^1.13.3"
   }
 }

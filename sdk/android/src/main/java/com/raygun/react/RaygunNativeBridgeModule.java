@@ -51,14 +51,12 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     //#region---GLOBAL CONSTANTS----------------------------------------------------------------------
     // ReactNative Context, a connection the the React Code.
     private static ReactApplicationContext reactContext;
+
     // Is the NativeBridge/RUMEventHandler initialized
-    private boolean initialized = false;
-    private boolean lifecycleInitialized = false;
-    // Maintains a value of when the ReactNativeBridgePackage was initiated (start of the project).
-    private long startedTime;
+    private boolean realUserMonitoringInitialized = false;
+    private boolean crashReportingInitialized = false;
 
-    private static boolean loaded = false;
-
+    //The activity in the foreground of the application that the user is currently interacting with.
     private static WeakReference<Activity> currentActivity;
 
     // Session state change events
@@ -89,7 +87,6 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     public RaygunNativeBridgeModule(ReactApplicationContext context, long startedAt) {
         super(context);
         reactContext = context;
-        startedTime = startedAt;
     }
 
     /**
@@ -109,8 +106,8 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
      */
     @ReactMethod
     public void initCrashReportingNativeSupport(String apiKey, String version, String customCrashReportingEndpoint) {
-        if (initialized) {
-            Timber.i("ReactNativeBridge already initialized");
+        if (crashReportingInitialized) {
+            Timber.i("ReactNativeBridge crash reporting already initialized");
             return;
         }
 
@@ -119,7 +116,7 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
         RaygunClient.setOnBeforeSend(new OnBeforeSendHandler());
         RaygunClient.setCustomCrashReportingEndpoint(customCrashReportingEndpoint);
 
-        initialized = true;
+        crashReportingInitialized = true;
     }
 
     /**
@@ -143,7 +140,7 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
             payload.putString("time", System.currentTimeMillis() + "");
             this.sendJSEvent(ON_VIEW_LOADING, payload);
         }
-        lifecycleInitialized = true;
+        realUserMonitoringInitialized = true;
     }
 
     /**
@@ -323,16 +320,6 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
         return getString(getReactApplicationContext().getContentResolver(), Settings.Secure.ANDROID_ID);
     }
 
-    /**
-     * Gets the name of the activity (current view of the application where the UI resides). This is
-     * used to monitor events on the screen and to maintain a track on the window responsible for the
-     * application.
-     *
-     * @return - String, value assigned to the activity to identify it.
-     */
-    private String getActivityName() {
-        return reactContext.getCurrentActivity().getClass().getSimpleName();
-    }
     //#endregion--------------------------------------------------------------------------------------
 
 
