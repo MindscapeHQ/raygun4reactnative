@@ -110,7 +110,7 @@ export default class RaygunLogger {
         the loggers to simply log exactly what is parsed through
          */
 
-        const message = msg.replace("version", `(v${pj.version})`)
+        const message = msg.replace("VERSION", `(v${pj.version})`)
 
         if (additionInfo)
             this.consoles[consoleIndex](message + "\n", JSON.stringify(additionInfo, null, 4));

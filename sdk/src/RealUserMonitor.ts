@@ -27,10 +27,6 @@ export default class RealUserMonitor {
   private version: string;
   private disableNetworkMonitoring: boolean;
   private ignoredURLs: string[];
-  private apiKey: string;
-  private version: string;
-  private disableNetworkMonitoring: boolean;
-  private ignoredURLs: string[];
   private  ignoredViews: string[];
   private requests = new Map<string, RequestMeta>();
   private raygunRumEndpoint = 'https://api.raygun.com/events';
@@ -215,7 +211,8 @@ export default class RealUserMonitor {
    * This method sends a mobile event timing message to the raygun server. If the current session
    * has not been setup, this method will also ensure that the session has been allocated an ID
    * before sending away any data.
-   * @param payload
+   * @param name
+   * @param duration
    */
   async sendViewLoadedEvent(name : string, duration : number) {
   
@@ -287,7 +284,7 @@ export default class RealUserMonitor {
 
     const rumMessage = this.generateRealUserMonitorPayload(eventName, data, timeAt);
 
-    RaygunLogger.d(`Transmitting ${eventName} event to ${this.raygunRumEndpoint}?apiKey=${encodeURIComponent(this.apiKey)}: \n${JSON.stringify(rumMessage)}`);
+    RaygunLogger.v("Transmitting", {Name: eventName, URL: this.raygunRumEndpoint+"?apiKey="+encodeURIComponent(this.apiKey), Value: JSON.stringify(rumMessage)});
 
     return fetch(this.raygunRumEndpoint + '?apiKey=' + encodeURIComponent(this.apiKey),
       {
