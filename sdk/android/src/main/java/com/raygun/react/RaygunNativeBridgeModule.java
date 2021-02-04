@@ -7,7 +7,6 @@ import android.app.Application;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -53,7 +52,7 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     // ReactNative Context, a connection the the React Code.
     private static ReactApplicationContext reactContext;
 
-    // Is the NativeBridge/RUMEventHandler initialized
+    // Are the NativeBridge features initialized
     private boolean realUserMonitoringInitialized = false;
     private boolean crashReportingInitialized = false;
 
@@ -167,8 +166,6 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
 
     @Override
     public void onActivityCreated(Activity activity, Bundle bundle) {
-        Log.i("TAG", "CREATED");
-
         //If there is no current activity then this one will become the current activity
         if (currentActivity == null) {
             currentActivity = new WeakReference<>(activity);
@@ -183,7 +180,6 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
 
     @Override
     public void onActivityStarted(Activity activity) {
-        Log.i("TAG", "STARTED");
         WritableMap payload = Arguments.createMap();
         long time = System.currentTimeMillis();
         payload.putString("viewname", activity.getClass().getSimpleName());
@@ -193,8 +189,6 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
 
     @Override
     public void onActivityResumed(Activity activity) {
-        Log.i("TAG", "RESUMED");
-
         //If the activity that recently paused is returning to the foreground then the whole
         // application has resumed, therefore update the session
         if (currentActivity.get() == activity) this.sendJSEvent(ON_SESSION_RESUME, null);
@@ -205,10 +199,8 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
 
     @Override
     public void onActivityPaused(Activity activity) {
-        Log.i("TAG", "PAUSE: ACTIVITY");
-        if (currentActivity.get() == activity) {
-            this.sendJSEvent(ON_SESSION_PAUSE, null);
-        }
+        //If the current activity is pausing then the session is paused
+        if (currentActivity.get() == activity) this.sendJSEvent(ON_SESSION_PAUSE, null);
     }
 
     @Override
@@ -226,8 +218,6 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
             currentActivity = null;
         }
     }
-
-
 
     /**
      * Emits an event to the ReactContext.

@@ -197,10 +197,9 @@ export default class RealUserMonitor {
         this.sendViewLoadedEvent(this.cleanViewName(viewname), duration);
       }
       else {
-        RaygunLogger.e(`Loading views cannot have an undefined start time: ${viewname}`);
+        RaygunLogger.d(`Loading views cannot have an undefined start time: ${viewname}`);
       }
     }
-    else RaygunLogger.e(`${viewname} has finished loading but never started`);
   }
 
   /**
@@ -215,15 +214,18 @@ export default class RealUserMonitor {
     return this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.EventTiming, data);
   }
 
-  cleanViewName(viewName: string) : string{
-    let cleanedViewName = viewName;
+  /**
+   * Take in a viewname from the native side and clean it depending on the platform it came from.
+   * @param viewname
+   */
+  cleanViewName(viewname: string) : string{
+    let cleanedViewName = viewname;
     if (cleanedViewName.startsWith("iOS_View: ")) {
       cleanedViewName = cleanedViewName.replace("iOS_View: ", "");
       cleanedViewName = cleanedViewName.replace("<", "");
       cleanedViewName = cleanedViewName.replace(">", "");
       cleanedViewName = cleanedViewName.split(':')[0];
     }
-
     return cleanedViewName;
   }
 
@@ -231,6 +233,12 @@ export default class RealUserMonitor {
 
   //#region ----RUM PAYLOAD MANAGEMENT--------------------------------------------------------------
 
+  /**
+   * Construct the RUM payload to transmit given the events information
+   * @param eventName
+   * @param data
+   * @param timeAt
+   */
   generateRealUserMonitorPayload(
     eventName: string,
     data: Record<string, any>,
