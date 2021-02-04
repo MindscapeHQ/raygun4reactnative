@@ -14,6 +14,7 @@
 2. [Installations](#installation)
     - [Additional step for IOS](#additional-step-for-ios)
     - [Additional step for ANDROID](#additional-step-for-android)
+    - [Additional Public Documentation](#additional-public-documentation)
 3. [API guide](#api-guide)
     - [Important information](#important-information)
     - [Using the client](#using-the-client)
@@ -49,7 +50,8 @@
 
 ```json
 {
-  "react-native": "^0.60.0"
+  "react-native": "^0.60.0",
+  "@react-native-async-storage/async-storage": "^1.13.3"
 }
 ```
 
@@ -112,6 +114,12 @@ Crash Reporting Service & Real-time User monitoring
     ...
 </application>
 ```
+### Additional Public Documentation
+
+[Crash Reporting Installation](https://raygun.com/documentation/language-guides/react-native/crash-reporting/installation/) <br/>
+[Crash Reporting Features](https://raygun.com/documentation/language-guides/react-native/crash-reporting/features/) <br/>
+[Real User Monitoring Installation](https://raygun.com/documentation/language-guides/react-native/real-user-monitoring/installation/) <br/> 
+[Real USer Monitoring Features](https://raygun.com/documentation/language-guides/react-native/real-user-monitoring/features/) 
 
 ---
 
@@ -217,12 +225,12 @@ const globalTags: string[] = RaygunClient.getTags();
 
 ### setUser(user: User | null)
 
-The `setUser` function is parsed a User object. Setting the user is an important step in maintaining a session. By
+The `setUser` function is parsed a User object. Setting the user is an important step in maintaining a Real User Monitoring session. By
 updating the User, the following rules are applied:
 
-- anonymous_user -> user_1 => Current blank session is updated with the user data.
+- anonymous_user -> user_1 => Current session is updated with the user data.
 - user_1 -> user_2 => Current session ends. A new session begins with user_2 information.
-- user_1 -> anonymous_user => Current sessions ends. A new blank session begins.
+- user_1 -> anonymous_user => Current sessions ends. A new session begins.
 
 Note, if `null` is parsed to this method, the user is set to an anonymous user.
 <br/>
@@ -287,7 +295,7 @@ const breadCrumb: Breadcrumb = {
     message: "Hansel and Gretel #1",
     category: "FairyTales",
     level: 'warning',
-    customData: {"House Materials": ["GringerBread", "GumDrops"]},
+    customData: {"House Materials": ["GingerBread", "GumDrops"]},
     timestamp: Date.now(),
     type: 'manual',
 }
@@ -332,12 +340,12 @@ RaygunClient.clearBreadcrumbs();
 The `sendError` function manually sends an error to your Raygun dashboard. By default, the crash reporter will capture
 all unhandled errors, and send them through to Raygun, however in some cases, an error shouldn't be thrown as the
 program can still persist. If you have caught some error, you can utilize this method, and send the error through to
-Raygun. Appended to this error is a ManualCrashReportDetails object. This non-mandatory object can set local tags and
-CustomData to the error you are sending away. These local variables will be appended to the global variables and
-attached to the crash report.
+Raygun. Appended to this error is a ManualCrashReportDetails object. This non-mandatory object can apply specific tags and
+CustomData to the error you are sending away as well as the global tags and CustomData.
 
 See also:<br/>
 [CustomData](#customdata)
+<br/>
 [ManualCrashReportDetails](#manualcrashreportdetails)
 
 ```typescript
@@ -418,14 +426,14 @@ import RaygunClient from "raygun4reactnative"
 RaygunClient.setMaxReportsStoredOnDevice(10); // Sets the amount to 10
 
 // Alternatively
-RaygunClient.setMaxReportsStoredOnDevice(65); // Sets the amount to 64
-RaygunClient.setMaxReportsStoredOnDevice(-1); // Sets the amount to 0
+RaygunClient.setMaxReportsStoredOnDevice(100); // Sets the amount to 64
+RaygunClient.setMaxReportsStoredOnDevice(-100); // Sets the amount to 0
 ```
 
 <br/>
 <br/>
 
-### sendRUMTimingEvent(eventType: RealUserMonitoringTimings, name: string, timeUsedInMs: number)
+### sendRUMTimingEvent(eventType: RealUserMonitoringTimings, name: string, durationMs: number)
 
 The `sendRUMTimingEvent` function manually sends a new timing event to Real User Monitoring. Parsing in a
 `RealUserMonitoringTiming` event, the name of the event, and the duration of the event. This can be used to monitor the
@@ -461,7 +469,7 @@ be imported into your program and used (as the examples throughout the rest of t
 
 The `BeforeSendHandler` acts as an intermediate function between your application and Raygun. This function is parsed a
 CrashReportPayload and returns a CrashReportPayload or Null. Before the CrashReportPayload is sent to Raygun, this
-function will be called to interfere with the report. If `null` or other invalid object is returned, then the report is
+function will be called to apply some logic to the report. If `null` or other invalid object is returned, then the report is
 ignored (not sent to Raygun).
 
 See also:<br/>
@@ -482,7 +490,7 @@ These are sent away with a CrashReportPayload.
 [Find out more here!](https://raygun.com/documentation/product-guides/crash-reporting/breadcrumbs/)
 
 See also:<br/>
-[CrashReportPayload](#crashreportpayload)
+[CrashReportPayload](#crashreportpayload)<br/>
 [CustomData](#customdata)
 
 ```typescript
@@ -501,7 +509,7 @@ export type Breadcrumb = {
 
 ### CrashReportPayload
 
-This object is only accessible within the [BeforeSendHandler](#beforesendhandler) function. This reference should aid in
+The `CrashReportPayload` is only accessible within the [BeforeSendHandler](#beforesendhandler) function. This reference should aid in
 designing an intermediate function. It acts as a container for basic information about some environment where a crash
 occurred. This may give you some insight to the error.
 
