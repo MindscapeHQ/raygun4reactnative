@@ -1,7 +1,7 @@
 {
   "name": "raygun4reactnative",
   "title": "Raygun4reactnative",
-  "version": "0.0.3-alpha",
+  "version": "1.0.0-beta",
   "description": "Raygun React Native SDK",
   "main": "dist/index.js",
   "typescript": {
@@ -11,8 +11,8 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "eslint": "eslint src/**",
+    "clean": "npx rimraf node_modules dist package-lock.json ../**/*.tgz ../demo/node_modules ../demo/dist ../demo/android/.gradle ../demo/android/app/build ../demo/ios/Pods ../demo/ios/Podfile.lock ../demo/package-lock.json",
     "builder": "npm run build_pack_1 && npm run build_demo_2",
-    "clean": "npx rimraf node_modules dist package-lock.json raygun4reactnative-0.0.3-alpha.tgz ../demo/node_modules ../demo/dist ../demo/raygun4reactnative-0.0.3-alpha.tgz ../demo/android/app/build ../demo/ios/Pods ../demo/ios/Podfile.lock ../demo/package-lock.json",
     "build_run": "npm run builder && npm run run_demo_3",
     "prepublish": "tsc -p ./",
     "prebuild": "npx rimraf release",

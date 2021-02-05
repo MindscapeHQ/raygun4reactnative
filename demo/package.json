@@ -1,6 +1,6 @@
 {
   "name": "raygun4reactnativedemo",
-  "version": "0.0.3-alpha",
+  "version": "1.0.0-beta",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -14,7 +14,7 @@
     "@react-native-community/checkbox": "^0.5.7",
     "@react-navigation/bottom-tabs": "^5.11.7",
     "@react-navigation/native": "^5.9.2",
-    "raygun4reactnative": "file:raygun4reactnative-0.0.3-alpha.tgz",
+    "raygun4reactnative": "file:raygun4reactnative-1.0.0-beta.tgz",
     "react": "16.13.1",
     "react-native": "0.63.0",
     "react-native-safe-area-context": "^3.1.9",
