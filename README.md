@@ -165,8 +165,8 @@ See also:<br/>
 import RaygunClient, {RaygunClientOptions, LogLevel} from "raygun4reactnative"
 
 const options: RaygunClientOptions = {
-  apiKey: "This_Is_My_Key",
-  version: "0.1.2-beta",
+  apiKey: "INSERT_YOUR_API_KEY_HERE",
+  version: "0.1.2",
   enableCrashReporting: true,
   disableNativeCrashReporting: false,
   enableRealUserMonitoring: true,
@@ -247,11 +247,11 @@ See also:<br/>
 import RaygunClient, {User} from "raygun4reactnative"
 
 const user: User = {
-  identifier: 'identifier',
+  identifier: 'ronald@raygun.com',
   isAnonymous: false,
-  email: 'user_by_object@email.com',
-  firstName: 'first name',
-  fullName: 'full name',
+  email: 'ronald@raygun.com',
+  firstName: 'Ronald',
+  fullName: 'Ronald Raygun',
   uuid: 'uuid'
 }
 
