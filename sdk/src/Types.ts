@@ -7,6 +7,7 @@ export type RaygunClientOptions = {
   version?: string;
   enableCrashReporting?: boolean;
   disableNativeCrashReporting?: boolean;
+  disableUnhandledPromiseRejectionReporting?: boolean;
   enableRealUserMonitoring?: boolean;
   disableNetworkMonitoring?: boolean;
   customCrashReportingEndpoint?: string;

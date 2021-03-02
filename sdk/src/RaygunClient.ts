@@ -57,6 +57,7 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
         version = '',
         enableCrashReporting = false,
         disableNativeCrashReporting = false,
+        disableUnhandledPromiseRejectionReporting = false,
         enableRealUserMonitoring = false,
         disableNetworkMonitoring = false,
         customCrashReportingEndpoint = '',
@@ -76,6 +77,7 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
         crashReporter = new CrashReporter(
             apiKey,
             disableNativeCrashReporting,
+            disableUnhandledPromiseRejectionReporting,
             customCrashReportingEndpoint || '',
             onBeforeSendingCrashReport as BeforeSendHandler,
             version

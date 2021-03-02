@@ -38,6 +38,7 @@ export default class CrashReporter {
    *
    * @param apiKey - Access key for Raygun API
    * @param disableNativeCrashReporting - Whether or not to enable Native side error reporting
+   * @param disableUnhandledPromiseRejectionReporting - Whether or not to enable unhandled promise rejection reporting
    * @param customCrashReportingEndpoint - Custom endpoint for Crash Report (may be empty or null)
    * @param onBeforeSendingCrashReport - A lambda to execute before each Crash Report transmission
    * @param version - The current version of the RaygunClient
@@ -45,6 +46,7 @@ export default class CrashReporter {
   constructor(
     apiKey: string,
     disableNativeCrashReporting: boolean,
+    disableUnhandledPromiseRejectionReporting: boolean,
     customCrashReportingEndpoint: string,
     onBeforeSendingCrashReport: BeforeSendHandler | null,
     version: string
@@ -59,22 +61,24 @@ export default class CrashReporter {
       this.raygunCrashReportEndpoint = customCrashReportingEndpoint;
     }
 
-    //Set up error handler to divert errors to crash reporter
+    // Set up error handler to divert errors to crash reporter
     const prevHandler = ErrorUtils.getGlobalHandler();
     ErrorUtils.setGlobalHandler(async (error: Error, isFatal?: boolean) => {
       await this.processUnhandledError(error, isFatal);
       prevHandler && prevHandler(error, isFatal);
     });
 
-    //Set up rejection handler to divert rejections to crash reporter
-    polyfillGlobal('Promise', () => {
-      tracking.enable({
-        allRejections: true,
-        onUnhandled: this.processUnhandledRejection.bind(this),
-      })
+    if (!disableUnhandledPromiseRejectionReporting) {
+      // Set up rejection handler to divert rejections to crash reporter
+      polyfillGlobal('Promise', () => {
+        tracking.enable({
+          allRejections: true,
+          onUnhandled: this.processUnhandledRejection.bind(this),
+        })
 
-      return Promise
-    })
+        return Promise
+      })
+    }
 
     this.resendCachedReports().then(r => {});
   }
