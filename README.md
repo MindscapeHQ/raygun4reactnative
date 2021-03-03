@@ -169,6 +169,7 @@ const options: RaygunClientOptions = {
   version: "0.1.2",
   enableCrashReporting: true,
   disableNativeCrashReporting: false,
+  disableUnhandledPromiseRejectionReporting: false,
   enableRealUserMonitoring: true,
   disableNetworkMonitoring: false,
   customCrashReportingEndpoint: "https://myCrashReportingEndpoint.com",
@@ -668,6 +669,7 @@ export type RaygunClientOptions = {
   version?: string;
   enableCrashReporting?: boolean;
   disableNativeCrashReporting?: boolean;
+  disableUnhandledPromiseRejectionReporting?: boolean;
   enableRealUserMonitoring?: boolean;
   disableNetworkMonitoring?: boolean;
   customCrashReportingEndpoint?: string;

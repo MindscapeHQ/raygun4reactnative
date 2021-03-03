@@ -8,10 +8,6 @@ import RaygunLogger from "./RaygunLogger";
 const {RaygunNativeBridge} = NativeModules;
 const {version: clientVersion} = require('../package.json');
 
-const {polyfillGlobal} = require('react-native/Libraries/Utilities/PolyfillFunctions')
-const Promise = require('promise/setimmediate/es6-extensions')
-const tracking = require('promise/setimmediate/rejection-tracking')
-
 /**
  * The Crash Reporter is responsible for all of the functionality related to generating, catching
  * formatting, caching and transmitting Crash Reports as well as managing users custom data
@@ -38,6 +34,7 @@ export default class CrashReporter {
    *
    * @param apiKey - Access key for Raygun API
    * @param disableNativeCrashReporting - Whether or not to enable Native side error reporting
+   * @param disableUnhandledPromiseRejectionReporting - Whether or not to enable unhandled promise rejection reporting
    * @param customCrashReportingEndpoint - Custom endpoint for Crash Report (may be empty or null)
    * @param onBeforeSendingCrashReport - A lambda to execute before each Crash Report transmission
    * @param version - The current version of the RaygunClient
@@ -45,6 +42,7 @@ export default class CrashReporter {
   constructor(
     apiKey: string,
     disableNativeCrashReporting: boolean,
+    disableUnhandledPromiseRejectionReporting: boolean,
     customCrashReportingEndpoint: string,
     onBeforeSendingCrashReport: BeforeSendHandler | null,
     version: string
@@ -59,22 +57,28 @@ export default class CrashReporter {
       this.raygunCrashReportEndpoint = customCrashReportingEndpoint;
     }
 
-    //Set up error handler to divert errors to crash reporter
+    // Set up error handler to divert errors to crash reporter
     const prevHandler = ErrorUtils.getGlobalHandler();
     ErrorUtils.setGlobalHandler(async (error: Error, isFatal?: boolean) => {
       await this.processUnhandledError(error, isFatal);
       prevHandler && prevHandler(error, isFatal);
     });
 
-    //Set up rejection handler to divert rejections to crash reporter
-    polyfillGlobal('Promise', () => {
-      tracking.enable({
-        allRejections: true,
-        onUnhandled: this.processUnhandledRejection.bind(this),
-      })
+    if (!disableUnhandledPromiseRejectionReporting) {
+      const {polyfillGlobal} = require('react-native/Libraries/Utilities/PolyfillFunctions');
+      const Promise = require('promise/setimmediate/es6-extensions');
+      const tracking = require('promise/setimmediate/rejection-tracking');
 
-      return Promise
-    })
+      // Set up rejection handler to divert rejections to crash reporter
+      polyfillGlobal('Promise', () => {
+        tracking.enable({
+          allRejections: true,
+          onUnhandled: this.processUnhandledRejection.bind(this),
+        });
+
+        return Promise;
+      });
+    }
 
     this.resendCachedReports().then(r => {});
   }
@@ -316,6 +320,10 @@ export default class CrashReporter {
    * @param error - The caught rejection
    */
   processUnhandledRejection(id: string, error: Error) {
+    if (__DEV__) {
+      console.warn(id, error);
+    }
+
     this.processUnhandledError(error, false);
   }
 
