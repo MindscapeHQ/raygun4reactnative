@@ -56,6 +56,7 @@ const options: RaygunClientOptions = {
   logLevel: LogLevel.verbose,
   // Other settings to customize your Raygun usage
   // disableNativeCrashReporting: true,
+  // disableUnhandledPromiseRejectionReporting: true,
   // disableNetworkMonitoring: true,
   // customCrashReportingEndpoint: "http://some-url-of-your-choice",
   // customRealUserMonitoringEndpoint: "http://some-url-of-your-choice"
