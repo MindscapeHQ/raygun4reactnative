@@ -8,10 +8,6 @@ import RaygunLogger from "./RaygunLogger";
 const {RaygunNativeBridge} = NativeModules;
 const {version: clientVersion} = require('../package.json');
 
-const {polyfillGlobal} = require('react-native/Libraries/Utilities/PolyfillFunctions')
-const Promise = require('promise/setimmediate/es6-extensions')
-const tracking = require('promise/setimmediate/rejection-tracking')
-
 /**
  * The Crash Reporter is responsible for all of the functionality related to generating, catching
  * formatting, caching and transmitting Crash Reports as well as managing users custom data
@@ -69,15 +65,19 @@ export default class CrashReporter {
     });
 
     if (!disableUnhandledPromiseRejectionReporting) {
+      const {polyfillGlobal} = require('react-native/Libraries/Utilities/PolyfillFunctions');
+      const Promise = require('promise/setimmediate/es6-extensions');
+      const tracking = require('promise/setimmediate/rejection-tracking');
+
       // Set up rejection handler to divert rejections to crash reporter
       polyfillGlobal('Promise', () => {
         tracking.enable({
           allRejections: true,
           onUnhandled: this.processUnhandledRejection.bind(this),
-        })
+        });
 
-        return Promise
-      })
+        return Promise;
+      });
     }
 
     this.resendCachedReports().then(r => {});
@@ -320,6 +320,10 @@ export default class CrashReporter {
    * @param error - The caught rejection
    */
   processUnhandledRejection(id: string, error: Error) {
+    if (__DEV__) {
+      console.warn(id, error);
+    }
+
     this.processUnhandledError(error, false);
   }
 
