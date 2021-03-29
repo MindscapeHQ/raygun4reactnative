@@ -16,6 +16,8 @@ export type RaygunClientOptions = {
   onBeforeSendingCrashReport?: BeforeSendHandler;
   ignoredURLs?: string[];
   ignoredViews?: string[];
+  maxErrorReportsStoredOnDevice?: number;
+  maxBreadcrumbsPerErrorReport?: number;
 };
 
 export enum LogLevel {
