@@ -66,7 +66,7 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
         onBeforeSendingCrashReport = null,
         ignoredURLs = [],
         ignoredViews = [],
-        maxErrorReportsStoredOnDevice = CrashReporter.MAX_ERROR_REPORTS_STORED_LOCALLY,
+        maxErrorReportsStoredOnDevice = CrashReporter.MAX_ERROR_REPORTS_STORED_ON_DEVICE,
         maxBreadcrumbsPerErrorReport = CrashReporter.MAX_BREADCRUMBS_PER_ERROR_REPORT,
     } = options;
 

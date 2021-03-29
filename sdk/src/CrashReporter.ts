@@ -16,7 +16,7 @@ const {version: clientVersion} = require('../package.json');
 export default class CrashReporter {
   //#region ----INITIALIZATION----------------------------------------------------------------------
 
-  public static readonly MAX_ERROR_REPORTS_STORED_LOCALLY = 64;
+  public static readonly MAX_ERROR_REPORTS_STORED_ON_DEVICE = 64;
   public static readonly MAX_BREADCRUMBS_PER_ERROR_REPORT = 32;
 
   private readonly LOCAL_STORAGE_KEY = 'raygun4reactnative_local_storage';
@@ -29,7 +29,7 @@ export default class CrashReporter {
   private disableNativeCrashReporting: boolean;
   private onBeforeSendingCrashReport: BeforeSendHandler | null;
   private raygunCrashReportEndpoint = 'https://api.raygun.com/entries';
-  private maxLocallyStoredErrorReports: number;
+  private maxErrorReportsStoredOnDevice: number;
   private maxBreadcrumbsPerErrorReport: number;
 
   /**
@@ -60,7 +60,7 @@ export default class CrashReporter {
     this.disableNativeCrashReporting = disableNativeCrashReporting;
     this.onBeforeSendingCrashReport = onBeforeSendingCrashReport;
     this.version = version;
-    this.maxLocallyStoredErrorReports = Math.min(Math.max(maxErrorReportsStoredOnDevice, 0), CrashReporter.MAX_ERROR_REPORTS_STORED_LOCALLY);
+    this.maxErrorReportsStoredOnDevice = Math.min(Math.max(maxErrorReportsStoredOnDevice, 0), CrashReporter.MAX_ERROR_REPORTS_STORED_ON_DEVICE);
     this.maxBreadcrumbsPerErrorReport = Math.min(Math.max(maxBreadCrumbsPerErrorReport, 0), CrashReporter.MAX_BREADCRUMBS_PER_ERROR_REPORT);
 
     if (customCrashReportingEndpoint && customCrashReportingEndpoint.length > 0) {
@@ -197,8 +197,8 @@ export default class CrashReporter {
     let appendedCache : CrashReportPayload[] = (await this.getCachedCrashReports()).concat(reports);
 
     //If the cache is already full then ignore this report
-    if (appendedCache.length >= this.maxLocallyStoredErrorReports) {
-      appendedCache = appendedCache.slice(0, this.maxLocallyStoredErrorReports);
+    if (appendedCache.length >= this.maxErrorReportsStoredOnDevice) {
+      appendedCache = appendedCache.slice(0, this.maxErrorReportsStoredOnDevice);
     }
 
     await this.setCachedCrashReports(appendedCache);
@@ -227,12 +227,12 @@ export default class CrashReporter {
    */
   async setMaxReportsStoredOnDevice(newSize: number) {
     //Set the maximum keeping between a range of [0, 64]
-    this.maxLocallyStoredErrorReports = Math.min(Math.max(newSize, 0), CrashReporter.MAX_ERROR_REPORTS_STORED_LOCALLY);
+    this.maxErrorReportsStoredOnDevice = Math.min(Math.max(newSize, 0), CrashReporter.MAX_ERROR_REPORTS_STORED_ON_DEVICE);
 
     //Remove excess cached reports where necessary, prioritising older reports
     let cache : CrashReportPayload[] = await this.getCachedCrashReports();
-    if (cache.length > this.maxLocallyStoredErrorReports) {
-      await this.setCachedCrashReports(cache.slice(0, this.maxLocallyStoredErrorReports));
+    if (cache.length > this.maxErrorReportsStoredOnDevice) {
+      await this.setCachedCrashReports(cache.slice(0, this.maxErrorReportsStoredOnDevice));
     }
   }
 
