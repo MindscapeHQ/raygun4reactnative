@@ -16,6 +16,12 @@ const {version: clientVersion} = require('../package.json');
 export default class CrashReporter {
   //#region ----INITIALIZATION----------------------------------------------------------------------
 
+  public static readonly MAX_ERROR_REPORTS_STORED_ON_DEVICE = 64;
+  public static readonly MAX_BREADCRUMBS_PER_ERROR_REPORT = 32;
+
+  private readonly LOCAL_STORAGE_KEY = 'raygun4reactnative_local_storage';
+  private readonly RAYGUN_RATE_LIMITING_STATUS_CODE = 429;
+
   private breadcrumbs: Breadcrumb[] = [];
   private customData: CustomData = {};
   private apiKey: string;
@@ -23,10 +29,8 @@ export default class CrashReporter {
   private disableNativeCrashReporting: boolean;
   private onBeforeSendingCrashReport: BeforeSendHandler | null;
   private raygunCrashReportEndpoint = 'https://api.raygun.com/entries';
-
-  private local_storage_key : string = "raygun4reactnative_local_storage";
-  private readonly RAYGUN_RATE_LIMITING_STATUS_CODE : number = 429;
-  private maxLocallyStoredCrashReports : number = 64;
+  private maxErrorReportsStoredOnDevice: number;
+  private maxBreadcrumbsPerErrorReport: number;
 
   /**
    * Initialise Javascript side error/promise rejection handlers and identify whether the Native or
@@ -38,6 +42,8 @@ export default class CrashReporter {
    * @param customCrashReportingEndpoint - Custom endpoint for Crash Report (may be empty or null)
    * @param onBeforeSendingCrashReport - A lambda to execute before each Crash Report transmission
    * @param version - The current version of the RaygunClient
+   * @param maxErrorReportsStoredOnDevice - The total number of error reports that can be in local storage at one time
+   * @param maxBreadCrumbsPerErrorReport - The total number of breadcrumbs an error report can contain
    */
   constructor(
     apiKey: string,
@@ -45,13 +51,17 @@ export default class CrashReporter {
     disableUnhandledPromiseRejectionReporting: boolean,
     customCrashReportingEndpoint: string,
     onBeforeSendingCrashReport: BeforeSendHandler | null,
-    version: string
+    version: string,
+    maxErrorReportsStoredOnDevice: number,
+    maxBreadCrumbsPerErrorReport: number,
   ) {
     // Assign the values parsed in (assuming initiation is the only time these are altered).
     this.apiKey = apiKey;
     this.disableNativeCrashReporting = disableNativeCrashReporting;
     this.onBeforeSendingCrashReport = onBeforeSendingCrashReport;
     this.version = version;
+    this.maxErrorReportsStoredOnDevice = Math.min(Math.max(maxErrorReportsStoredOnDevice, 0), CrashReporter.MAX_ERROR_REPORTS_STORED_ON_DEVICE);
+    this.maxBreadcrumbsPerErrorReport = Math.min(Math.max(maxBreadCrumbsPerErrorReport, 0), CrashReporter.MAX_BREADCRUMBS_PER_ERROR_REPORT);
 
     if (customCrashReportingEndpoint && customCrashReportingEndpoint.length > 0) {
       this.raygunCrashReportEndpoint = customCrashReportingEndpoint;
@@ -116,6 +126,11 @@ export default class CrashReporter {
    */
   recordBreadcrumb(breadcrumb: Breadcrumb) {
     this.breadcrumbs.push({...breadcrumb});
+
+    if (this.breadcrumbs.length > this.maxBreadcrumbsPerErrorReport) {
+      this.breadcrumbs.shift();
+    }
+
     if (!this.disableNativeCrashReporting) {
       RaygunNativeBridge.recordBreadcrumb(breadcrumb);
     }
@@ -147,7 +162,7 @@ export default class CrashReporter {
    */
   async getCachedCrashReports() : Promise<CrashReportPayload[]>{
     try {
-      const rawCache = await AsyncStorage.getItem(this.local_storage_key)
+      const rawCache = await AsyncStorage.getItem(this.LOCAL_STORAGE_KEY);
       if(rawCache !== null) {
         try {
           return JSON.parse(rawCache);
@@ -168,7 +183,7 @@ export default class CrashReporter {
    */
   async setCachedCrashReports(newCache : CrashReportPayload[]) {
     try {
-      await AsyncStorage.setItem(this.local_storage_key, JSON.stringify(newCache));
+      await AsyncStorage.setItem(this.LOCAL_STORAGE_KEY, JSON.stringify(newCache));
     } catch(e) {
       RaygunLogger.e("Unable to access local storage");
     }
@@ -182,8 +197,8 @@ export default class CrashReporter {
     let appendedCache : CrashReportPayload[] = (await this.getCachedCrashReports()).concat(reports);
 
     //If the cache is already full then ignore this report
-    if (appendedCache.length >= this.maxLocallyStoredCrashReports) {
-      appendedCache = appendedCache.slice(0, this.maxLocallyStoredCrashReports);
+    if (appendedCache.length >= this.maxErrorReportsStoredOnDevice) {
+      appendedCache = appendedCache.slice(0, this.maxErrorReportsStoredOnDevice);
     }
 
     await this.setCachedCrashReports(appendedCache);
@@ -212,12 +227,12 @@ export default class CrashReporter {
    */
   async setMaxReportsStoredOnDevice(newSize: number) {
     //Set the maximum keeping between a range of [0, 64]
-    this.maxLocallyStoredCrashReports = Math.min(Math.max(newSize, 0), 64)
+    this.maxErrorReportsStoredOnDevice = Math.min(Math.max(newSize, 0), CrashReporter.MAX_ERROR_REPORTS_STORED_ON_DEVICE);
 
     //Remove excess cached reports where necessary, prioritising older reports
     let cache : CrashReportPayload[] = await this.getCachedCrashReports();
-    if (cache.length > this.maxLocallyStoredCrashReports) {
-      await this.setCachedCrashReports(cache.slice(0, this.maxLocallyStoredCrashReports));
+    if (cache.length > this.maxErrorReportsStoredOnDevice) {
+      await this.setCachedCrashReports(cache.slice(0, this.maxErrorReportsStoredOnDevice));
     }
   }
 

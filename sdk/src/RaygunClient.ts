@@ -65,7 +65,9 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
         logLevel = LogLevel.warn,
         onBeforeSendingCrashReport = null,
         ignoredURLs = [],
-        ignoredViews = []
+        ignoredViews = [],
+        maxErrorReportsStoredOnDevice = CrashReporter.MAX_ERROR_REPORTS_STORED_ON_DEVICE,
+        maxBreadcrumbsPerErrorReport = CrashReporter.MAX_BREADCRUMBS_PER_ERROR_REPORT,
     } = options;
 
     RaygunLogger.init(logLevel);
@@ -80,7 +82,9 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
             disableUnhandledPromiseRejectionReporting,
             customCrashReportingEndpoint || '',
             onBeforeSendingCrashReport as BeforeSendHandler,
-            version
+            version,
+            maxErrorReportsStoredOnDevice,
+            maxBreadcrumbsPerErrorReport,
         );
 
         if (!disableNativeCrashReporting) {

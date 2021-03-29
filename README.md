@@ -178,6 +178,8 @@ const options: RaygunClientOptions = {
   ignoredViews: ["name of view to ignore"],
   logLevel: LogLevel.verbose,
   onBeforeSendingCrashReport: (crashReport) => console.log(crashReport),
+  maxErrorReportsStoredOnDevice: 10,
+  maxBreadCrumbsPerErrorReport: 10,
 };
 
 RaygunClient.init(options);
@@ -678,6 +680,8 @@ export type RaygunClientOptions = {
   onBeforeSendingCrashReport?: BeforeSendHandler;
   ignoredURLs?: string[];
   ignoredViews?: string[];
+  maxErrorReportsStoredOnDevice?: number;
+  maxBreadcrumbsPerErrorReport?: number;
 };
 ```
 
