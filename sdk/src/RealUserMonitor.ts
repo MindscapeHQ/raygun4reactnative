@@ -71,7 +71,7 @@ export default class RealUserMonitor {
     // Create native event listeners on this device
     const eventEmitter = new NativeEventEmitter(RaygunNativeBridge);
     eventEmitter.addListener(RaygunNativeBridge.ON_SESSION_PAUSE, this.markSessionInteraction.bind(this));
-    eventEmitter.addListener(RaygunNativeBridge.ON_SESSION_RESUME, this.rotateRUMSession.bind(this));
+    eventEmitter.addListener(RaygunNativeBridge.ON_SESSION_RESUME, this.sessionResumed.bind(this));
     eventEmitter.addListener(RaygunNativeBridge.ON_VIEW_LOADING, this.viewBeginsLoading.bind(this));
     eventEmitter.addListener(RaygunNativeBridge.ON_VIEW_LOADED, this.viewFinishesLoading.bind(this));
     eventEmitter.addListener(RaygunNativeBridge.ON_SESSION_END, () => {
@@ -159,6 +159,17 @@ export default class RealUserMonitor {
   sendNetworkTimingEvent(name: string, sendTime: number, duration: number) {
     const data = { name, timing: { type: RealUserMonitoringTimings.NetworkCall, duration } };
     this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.EventTiming, data, sendTime).catch();
+  }
+
+  /**
+   * Ensures RUM generates a new session after a period of app inactivity.
+   */
+  async sessionResumed() {
+    if (Date.now() - this.lastSessionInteractionTime > SessionRotateThreshold) {
+      await this.rotateRUMSession();
+    } else {
+      this.markSessionInteraction();
+    }
   }
 
   /**
@@ -272,10 +283,7 @@ export default class RealUserMonitor {
    * @param timeAt - The time at which this event occurred, defaults to NOW if undefined/null.
    */
   async transmitRealUserMonitoringEvent(eventName: string, data: Record<string, any>, timeAt?: number) {
-
-    //Check whether the session has been idle long enough to rotate it
-    if (Date.now() - this.lastSessionInteractionTime > SessionRotateThreshold) await this.rotateRUMSession();
-    else this.markSessionInteraction();
+    this.markSessionInteraction();
 
     const rumMessage = this.generateRealUserMonitorPayload(eventName, data, timeAt);
 
