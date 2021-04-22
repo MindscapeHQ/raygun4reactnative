@@ -84,7 +84,6 @@ export default class RealUserMonitor {
 
     //Begin a Real User Monitoring session
     this.generateNewSessionId();
-    this.markSessionInteraction();
     this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
   }
 
@@ -100,13 +99,12 @@ export default class RealUserMonitor {
    *  user -> anon_user = YES (logout)
    */
   async rotateRUMSession() {
-
     //Terminate the current session
     await this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionEnd, {});
 
     //Begin a new session
     this.generateNewSessionId();
-    this.markSessionInteraction();
+
     return this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
   }
 
