@@ -2,39 +2,47 @@ import {
   RealUserMonitoringEvents,
   RealUserMonitoringTimings,
   RealUserMonitorPayload,
-  RequestMeta
+  RequestMeta,
 } from './Types';
-import {getDeviceId, shouldIgnoreURL, getCurrentUser, getCurrentTags, getRandomGUID, shouldIgnoreView} from './Utils';
+import {
+  getDeviceId,
+  shouldIgnoreURL,
+  getCurrentUser,
+  getCurrentTags,
+  getRandomGUID,
+  shouldIgnoreView,
+} from './Utils';
+
 // @ts-ignore
 import XHRInterceptor from 'react-native/Libraries/Network/XHRInterceptor';
-import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
-import RaygunLogger from "./RaygunLogger";
+import {NativeEventEmitter, NativeModules, Platform} from 'react-native';
+import RaygunLogger from './RaygunLogger';
 
-const { RaygunNativeBridge } = NativeModules;
-const { osVersion, platform } = RaygunNativeBridge;
+const {RaygunNativeBridge} = NativeModules;
+const {osVersion, platform} = RaygunNativeBridge;
 
 const defaultURLIgnoreList: string[] = ['api.raygun.com', 'localhost:8081'];
 const defaultViewIgnoreList: string[] = []; // Nothing as of right now
-const SessionRotateThreshold = 30 * 60 * 1000; //milliseconds (equivalent to 30 minutes)
+const SessionRotateThreshold = 30 * 60 * 1000; // milliseconds (equivalent to 30 minutes)
 
 /**
  * The Real User Monitor class is responsible for managing all logic for RUM specific tasks.
  */
 export default class RealUserMonitor {
-  //#region ----INITIALIZATION----------------------------------------------------------------------
-
   private apiKey: string;
   private version: string;
   private disableNetworkMonitoring: boolean;
   private ignoredURLs: string[];
-  private  ignoredViews: string[];
+  private ignoredViews: string[];
   private requests = new Map<string, RequestMeta>();
   private raygunRumEndpoint = 'https://api.raygun.com/events';
 
   private loadingViews = new Map<string, number>();
 
   lastSessionInteractionTime = Date.now();
-  RealUserMonitoringSessionId: string = ''; //The id for generated RUM Timing events to be grouped under
+  RealUserMonitoringSessionId: string = ''; // The id for generated RUM Timing events to be grouped under
+
+  //#region ----INITIALIZATION----------------------------------------------------------------------
 
   /**
    * RealUserMonitor: Manages RUM specific logic tasks.
@@ -51,16 +59,16 @@ export default class RealUserMonitor {
     ignoredURLs: string[],
     ignoredViews: string[],
     customRealUserMonitoringEndpoint: string,
-    version: string
+    version: string,
   ) {
-    // Assign the values parsed in (assuming initiation is the only time these are altered).
+    // Assign the values parsed in (assuming initiation is the only time these are altered)
     this.apiKey = apiKey;
     this.disableNetworkMonitoring = disableNetworkMonitoring;
     this.version = version;
     this.ignoredURLs = ignoredURLs.concat(defaultURLIgnoreList, customRealUserMonitoringEndpoint || []);
     this.ignoredViews = ignoredViews.concat(defaultViewIgnoreList);
 
-    if (customRealUserMonitoringEndpoint && customRealUserMonitoringEndpoint.length > 0){
+    if (customRealUserMonitoringEndpoint && customRealUserMonitoringEndpoint.length > 0) {
       this.raygunRumEndpoint = customRealUserMonitoringEndpoint;
     }
 
@@ -82,7 +90,7 @@ export default class RealUserMonitor {
       eventEmitter.removeAllListeners(RaygunNativeBridge.ON_SESSION_END);
     });
 
-    //Begin a Real User Monitoring session
+    // Begin a Real User Monitoring session
     this.generateNewSessionId();
     this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
   }
@@ -99,10 +107,10 @@ export default class RealUserMonitor {
    *  user -> anon_user = YES (logout)
    */
   async rotateRUMSession() {
-    //Terminate the current session
+    // Terminate the current session
     await this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionEnd, {});
 
-    //Begin a new session
+    // Begin a new session
     this.generateNewSessionId();
 
     return this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
@@ -125,6 +133,76 @@ export default class RealUserMonitor {
   //#endregion--------------------------------------------------------------------------------------
 
   //#region ----RUM EVENT HANDLERS------------------------------------------------------------------
+
+  /**
+   * Ensures RUM generates a new session after a period of app inactivity.
+   */
+  async sessionResumed() {
+    if (Date.now() - this.lastSessionInteractionTime > SessionRotateThreshold) {
+      await this.rotateRUMSession();
+    } else {
+      this.markSessionInteraction();
+    }
+  }
+
+  /**
+   * When a View begins loading this event will store the time that it started so that the duration
+   * can be calculated later.
+   * @param payload
+   */
+  viewBeginsLoading(payload: Record<string, any>) {
+    const {viewname, time} = payload;
+
+    RaygunLogger.d(`View started loading ${viewname}`);
+
+    if (this.loadingViews.has(viewname)) return;
+    else {
+      this.loadingViews.set(viewname, time);
+    }
+  }
+
+  /**
+   * When a View completes loading its load duration will be calculated using the load start time before
+   * being cleaned and transmitted to raygun.
+   * @param payload
+   */
+  viewFinishesLoading(payload: Record<string, any>) {
+    const {viewname, time} = payload;
+
+    RaygunLogger.d(`View finished loading: ${viewname}`);
+
+    if (this.loadingViews.has(viewname)) {
+      const viewLoadStartTime = this.loadingViews.get(viewname);
+      if (!!viewLoadStartTime) {
+        const duration : number = Math.round(time - viewLoadStartTime);
+
+        this.loadingViews.delete(viewname);
+
+        this.sendViewLoadedEvent(this.cleanViewName(viewname), duration);
+      } else {
+        RaygunLogger.d(`Loading views cannot have an undefined start time: ${viewname}`);
+      }
+    }
+  }
+
+  /**
+   * Take in a viewname from the native side and clean it depending on the platform it came from.
+   * @param viewname
+   */
+  cleanViewName(viewname: string) : string {
+    let cleanedViewName = viewname;
+    if (cleanedViewName.startsWith('iOS_View: ')) {
+      cleanedViewName = cleanedViewName.replace('iOS_View: ', '');
+      cleanedViewName = cleanedViewName.replace('<', '');
+      cleanedViewName = cleanedViewName.replace('>', '');
+      cleanedViewName = cleanedViewName.split(':')[0];
+    }
+    return cleanedViewName;
+  }
+
+  //#endregion--------------------------------------------------------------------------------------
+
+  //#region ----RUM EVENT MANAGEMENT------------------------------------------------------------------
 
   /**
    * Enables the ability to send a custom RUM message. Utilizing the parameters described below,
@@ -155,60 +233,8 @@ export default class RealUserMonitor {
    * @param duration - The time taken for this event to fully execute.
    */
   sendNetworkTimingEvent(name: string, sendTime: number, duration: number) {
-    const data = { name, timing: { type: RealUserMonitoringTimings.NetworkCall, duration } };
+    const data = {name, timing: {type: RealUserMonitoringTimings.NetworkCall, duration}};
     this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.EventTiming, data, sendTime).catch();
-  }
-
-  /**
-   * Ensures RUM generates a new session after a period of app inactivity.
-   */
-  async sessionResumed() {
-    if (Date.now() - this.lastSessionInteractionTime > SessionRotateThreshold) {
-      await this.rotateRUMSession();
-    } else {
-      this.markSessionInteraction();
-    }
-  }
-
-  /**
-   * When a View begins loading this event will store the time that it started so that the duration
-   * can be calculated later.
-   * @param payload
-   */
-  viewBeginsLoading(payload: Record<string, any>) {
-    const { viewname, time } = payload;
-
-    RaygunLogger.d(`View started loading ${viewname}`);
-
-    if (this.loadingViews.has(viewname)) return;
-    else {
-      this.loadingViews.set(viewname, time);
-    }
-  }
-
-  /**
-   * When a View completes loading its load duration will be calculated using the load start time before
-   * being cleaned and transmitted to raygun.
-   * @param payload
-   */
-  viewFinishesLoading(payload: Record<string, any>) {
-    const { viewname, time } = payload;
-
-    RaygunLogger.d(`View finished loading: ${viewname}`);
-
-    if (this.loadingViews.has(viewname)) {
-      let viewLoadStartTime = this.loadingViews.get(viewname);
-      if (!!viewLoadStartTime) {
-        let duration : number = Math.round(time - viewLoadStartTime);
-
-        this.loadingViews.delete(viewname);
-
-        this.sendViewLoadedEvent(this.cleanViewName(viewname), duration);
-      }
-      else {
-        RaygunLogger.d(`Loading views cannot have an undefined start time: ${viewname}`);
-      }
-    }
   }
 
   /**
@@ -219,28 +245,12 @@ export default class RealUserMonitor {
    * @param duration
    */
   async sendViewLoadedEvent(name : string, duration : number) {
-  
-    if (shouldIgnoreView(name, this.ignoredViews)){
+    if (shouldIgnoreView(name, this.ignoredViews)) {
       return;
     }
-    const data = { name: name, timing: { type: RealUserMonitoringTimings.ViewLoaded, duration } };
+    const data = {name: name, timing: {type: RealUserMonitoringTimings.ViewLoaded, duration}};
 
     return this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.EventTiming, data);
-  }
-
-  /**
-   * Take in a viewname from the native side and clean it depending on the platform it came from.
-   * @param viewname
-   */
-  cleanViewName(viewname: string) : string{
-    let cleanedViewName = viewname;
-    if (cleanedViewName.startsWith("iOS_View: ")) {
-      cleanedViewName = cleanedViewName.replace("iOS_View: ", "");
-      cleanedViewName = cleanedViewName.replace("<", "");
-      cleanedViewName = cleanedViewName.replace(">", "");
-      cleanedViewName = cleanedViewName.split(':')[0];
-    }
-    return cleanedViewName;
   }
 
   //#endregion--------------------------------------------------------------------------------------
@@ -256,7 +266,7 @@ export default class RealUserMonitor {
   generateRealUserMonitorPayload(
     eventName: string,
     data: Record<string, any>,
-    timeAt?: number
+    timeAt?: number,
   ): RealUserMonitorPayload {
     const timestamp = timeAt ? new Date(timeAt) : new Date();
     return {
@@ -269,7 +279,7 @@ export default class RealUserMonitor {
       os: Platform.OS,
       osVersion,
       platform,
-      data: JSON.stringify([data])
+      data: JSON.stringify([data]),
     };
   }
 
@@ -285,18 +295,22 @@ export default class RealUserMonitor {
 
     const rumMessage = this.generateRealUserMonitorPayload(eventName, data, timeAt);
 
-    RaygunLogger.v("Transmitting Real User Monitoring Payload", {Name: eventName, URL: this.raygunRumEndpoint+"?apiKey="+encodeURIComponent(this.apiKey), Value: JSON.stringify(rumMessage)});
+    RaygunLogger.v('Transmitting Real User Monitoring Payload', {
+      Name: eventName,
+      URL: this.raygunRumEndpoint+'?apiKey='+encodeURIComponent(this.apiKey),
+      Value: JSON.stringify(rumMessage),
+    });
 
     return fetch(this.raygunRumEndpoint + '?apiKey=' + encodeURIComponent(this.apiKey),
       {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ eventData: [rumMessage] })
-      }
-    ).catch(err => {
-      RaygunLogger.e("Unable to send Real User Monitor payload", err);
+        body: JSON.stringify({eventData: [rumMessage]}),
+      },
+    ).catch((err) => {
+      RaygunLogger.e('Unable to send Real User Monitor payload', err);
     });
   }
 
@@ -325,7 +339,7 @@ export default class RealUserMonitor {
     xhr._id_ = id;
 
     // Store the ID and the action taken on the device in a map, ID => REQUEST_META
-    this.requests.set(id, { name: `${method} ${url}` });
+    this.requests.set(id, {name: `${method} ${url}`});
   }
 
   /**
@@ -336,7 +350,7 @@ export default class RealUserMonitor {
    */
   handleRequestSend(data: string, xhr: any) {
     // Extract the XHRInterceptor's ID (also the Device's base ID). Use that to get the RequestMeta object from the map
-    const { _id_ } = xhr;
+    const {_id_} = xhr;
     const requestMeta = this.requests.get(_id_);
 
     // If the object exists, then store the current time
@@ -361,13 +375,13 @@ export default class RealUserMonitor {
    */
   handleResponse(status: number, timeout: number, resp: string, respUrl: string, respType: string, xhr: any) {
     // Extract the XHRInterceptor's ID (also the Device's base ID). Use that to get the RequestMeta object from the map
-    const { _id_ } = xhr;
+    const {_id_} = xhr;
     const requestMeta = this.requests.get(_id_);
 
     // If the object exists, then ...
     if (requestMeta) {
       // Extract the name and send time from the Request
-      const { name, sendTime } = requestMeta;
+      const {name, sendTime} = requestMeta;
       const duration = Date.now() - sendTime!;
       this.sendNetworkTimingEvent(name, sendTime!, duration);
     }
