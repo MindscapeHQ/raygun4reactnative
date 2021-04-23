@@ -20,5 +20,7 @@ module.exports = {
     '@typescript-eslint',
   ],
   'rules': {
+    'max-len': [2, 120],
+    'indent': [2, 2],
   },
 };
