@@ -1,6 +1,4 @@
-import { ErrorUtils } from 'react-native';
-
-//#region ----RAYGUN CLIENT SESSION TYPES-----------------------------------------------------------
+import {ErrorUtils} from 'react-native';
 
 export type RaygunClientOptions = {
   apiKey?: string;
@@ -43,10 +41,6 @@ export type User = {
   fullName?: string;
   uuid?: string;
 };
-
-//#endregion----------------------------------------------------------------------------------------
-
-//#region ----CRASH REPORTING SPECIFIC TYPES--------------------------------------------------------
 
 export type RaygunStackFrame = {
   FileName: string;
@@ -118,13 +112,6 @@ export type ManualCrashReportDetails = {
   tags?: string[]
 }
 
-
-
-
-//#endregion----------------------------------------------------------------------------------------
-
-//#region ----REAL USER MONITORING SPECIFIC TYPES---------------------------------------------------
-
 export enum RealUserMonitoringEvents {
   SessionStart = 'session_start',
   SessionEnd = 'session_end',
@@ -149,20 +136,12 @@ export type RealUserMonitorPayload = {
   data: string;
 };
 
-//#endregion----------------------------------------------------------------------------------------
-
-//#region ----NETWORK MONITORING SPECIFIC TYPES-----------------------------------------------------
-
 export type RequestMeta = {
   name: string;
   sendTime?: number;
 };
 
 export type NetworkTimingCallback = (name: string, sendTime: number, duration: number) => void;
-
-//#endregion----------------------------------------------------------------------------------------
-
-//#region ----NAMESPACE DECLARATION-----------------------------------------------------------------
 
 declare global {
   namespace NodeJS {
@@ -172,5 +151,3 @@ declare global {
     };
   }
 }
-
-//#endregion----------------------------------------------------------------------------------------

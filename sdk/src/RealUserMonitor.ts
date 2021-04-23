@@ -42,16 +42,14 @@ export default class RealUserMonitor {
   lastSessionInteractionTime = Date.now();
   RealUserMonitoringSessionId: string = ''; // The id for generated RUM Timing events to be grouped under
 
-  //#region ----INITIALIZATION----------------------------------------------------------------------
-
   /**
    * RealUserMonitor: Manages RUM specific logic tasks.
-   * @param apiKey - The User's API key that gives them access to RUM. (User provided)
-   * @param disableNetworkMonitoring - If true, XHRInterceptor is not switched on. All requests go through without monitoring.
-   * @param ignoredURLs - A string array of URLs to ignore when watching the network.
-   * @param ignoredViews - A string array of all the view names to ignore logging.
-   * @param customRealUserMonitoringEndpoint - The custom API URL endpoint where this API should send data to.
-   * @param version - The Version number of this application. (User provided)
+   * @param {string} apiKey - The User's API key that gives them access to RUM. (User provided).
+   * @param {boolean} disableNetworkMonitoring - If true, XHRInterceptor is not switched on. All requests go through without monitoring.
+   * @param {sting[]} ignoredURLs - A string array of URLs to ignore when watching the network.
+   * @param {string[]} ignoredViews - A string array of all the view names to ignore logging.
+   * @param {string} customRealUserMonitoringEndpoint - The custom API URL endpoint where this API should send data to.
+   * @param {string} version - The Version number of this application. (User provided).
    */
   constructor(
     apiKey: string,
@@ -95,10 +93,6 @@ export default class RealUserMonitor {
     this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.SessionStart, {});
   }
 
-  //#endregion--------------------------------------------------------------------------------------
-
-  //#region ----RUM SESSION MANAGEMENT--------------------------------------------------------------
-
   /**
    * "Rotating" a RUM session is to close down the current session and open another. Instances where
    * a rotation is needed:
@@ -130,10 +124,6 @@ export default class RealUserMonitor {
     this.lastSessionInteractionTime = Date.now();
   }
 
-  //#endregion--------------------------------------------------------------------------------------
-
-  //#region ----RUM EVENT HANDLERS------------------------------------------------------------------
-
   /**
    * Ensures RUM generates a new session after a period of app inactivity.
    */
@@ -148,7 +138,7 @@ export default class RealUserMonitor {
   /**
    * When a View begins loading this event will store the time that it started so that the duration
    * can be calculated later.
-   * @param payload
+   * @param {Record<string, any>} payload - The event information.
    */
   viewBeginsLoading(payload: Record<string, any>) {
     const {viewname, time} = payload;
@@ -164,7 +154,7 @@ export default class RealUserMonitor {
   /**
    * When a View completes loading its load duration will be calculated using the load start time before
    * being cleaned and transmitted to raygun.
-   * @param payload
+   * @param {Record<string, any>} payload - The event information.
    */
   viewFinishesLoading(payload: Record<string, any>) {
     const {viewname, time} = payload;
@@ -187,7 +177,8 @@ export default class RealUserMonitor {
 
   /**
    * Take in a viewname from the native side and clean it depending on the platform it came from.
-   * @param viewname
+   * @param {string} viewname
+   * @return {string} The sanitised name that is ready for the RUM payload
    */
   cleanViewName(viewname: string) : string {
     let cleanedViewName = viewname;
@@ -200,17 +191,13 @@ export default class RealUserMonitor {
     return cleanedViewName;
   }
 
-  //#endregion--------------------------------------------------------------------------------------
-
-  //#region ----RUM EVENT MANAGEMENT------------------------------------------------------------------
-
   /**
    * Enables the ability to send a custom RUM message. Utilizing the parameters described below,
    * each one is used in constructing a RUM message, which is ultimately fed to the transmitRealUserMonitoringEvent
    * method.
-   * @param eventType - A small description of the event (used to categorize events)
-   * @param name - The name of the event (makes the event individual from it's category)
-   * @param duration - How long this event took to execute.
+   * @param {RealUserMonitoringTimings} eventType - A small description of the event (used to categorize events).
+   * @param {string} name - The name of the event (makes the event individual from it's category).
+   * @param {number} duration - How long this event took to execute.
    */
   sendCustomRUMEvent(eventType: RealUserMonitoringTimings, name: string, duration: number) {
     if (eventType === RealUserMonitoringTimings.ViewLoaded) {
@@ -227,10 +214,9 @@ export default class RealUserMonitor {
    * Sends a RUMEvent with the parameters parsed into this method. Utilizing the JSON layout sent
    * to api.raygun.com, the name and duration are added as parameters to the "DATA" field in the
    * RUM message.
-   * @param name - The event name (note this is not the event type), used in the "DATA" param of a
-   * RUM message
-   * @param sendTime - The time at which the event occurred.
-   * @param duration - The time taken for this event to fully execute.
+   * @param {string} name - The event name (note this is not the event type), used in the "DATA" param of a RUM message.
+   * @param {number} sendTime - The time at which the event occurred.
+   * @param {number} duration - The time taken for this event to fully execute.
    */
   sendNetworkTimingEvent(name: string, sendTime: number, duration: number) {
     const data = {name, timing: {type: RealUserMonitoringTimings.NetworkCall, duration}};
@@ -241,8 +227,8 @@ export default class RealUserMonitor {
    * This method sends a mobile event timing message to the raygun server. If the current session
    * has not been setup, this method will also ensure that the session has been allocated an ID
    * before sending away any data.
-   * @param name
-   * @param duration
+   * @param {string} name - The event name (note this is not the event type), used in the "DATA" param of a RUM message.
+   * @param {number} duration - The time taken for this event to fully execute.
    */
   async sendViewLoadedEvent(name : string, duration : number) {
     if (shouldIgnoreView(name, this.ignoredViews)) {
@@ -253,15 +239,12 @@ export default class RealUserMonitor {
     return this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.EventTiming, data);
   }
 
-  //#endregion--------------------------------------------------------------------------------------
-
-  //#region ----RUM PAYLOAD MANAGEMENT--------------------------------------------------------------
-
   /**
-   * Construct the RUM payload to transmit given the events information
-   * @param eventName
-   * @param data
-   * @param timeAt
+   * Construct the RUM payload to transmit given the events information.
+   * @param {string} eventName - A custom name for the "TYPE" of RUM message.
+   * @param {Record<string, any>} data - Extra information to send in the RUM message, under "DATA".
+   * @param {number} timeAt - The time at which this event occurred, defaults to NOW if undefined/null.
+   * @return {RealUserMonitorPayload} The RUM payload object that can be serialised and sent.
    */
   generateRealUserMonitorPayload(
     eventName: string,
@@ -286,9 +269,9 @@ export default class RealUserMonitor {
   /**
    * Sends a POST request to the custom || default RUM Endpoint, creating an object (later
    * JSON.stringify-ing this object) with the eventName, data, and time recorded in the message.
-   * @param eventName - A custom name for the "TYPE" of RUM message
-   * @param data - Extra information to send in the RUM message, under "DATA".
-   * @param timeAt - The time at which this event occurred, defaults to NOW if undefined/null.
+   * @param {string} eventName - A custom name for the "TYPE" of RUM message.
+   * @param {Record<string, any>} data - Extra information to send in the RUM message, under "DATA".
+   * @param {number} timeAt - The time at which this event occurred, defaults to NOW if undefined/null.
    */
   async transmitRealUserMonitoringEvent(eventName: string, data: Record<string, any>, timeAt?: number) {
     this.markSessionInteraction();
@@ -314,18 +297,14 @@ export default class RealUserMonitor {
     });
   }
 
-  //#endregion--------------------------------------------------------------------------------------
-
-  //#region ----NETWORK MONITORING------------------------------------------------------------------
-
   /**
    * This method returns a callback method to utilize in the XHRInterceptor.setOpenCallback method.
    * It determines the method request, url and XHRInterceptor specific for this device.
    * Using that information, this method will create an instance of this device to store for later data gathering.
    *
-   * @param method
-   * @param url
-   * @param xhr
+   * @param {string} method - The request operation being performed.
+   * @param {string} url - The destination this request is reaching.
+   * @param {any} xhr - The interceptor that picked up the request.
    */
   handleRequestOpen(method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', url: string, xhr: any) {
     // If this URL is on the IGNORE list, then do nothing.
@@ -345,8 +324,8 @@ export default class RealUserMonitor {
   /**
    * When the XHRInterceptor receives a send request, this method is called. It stores the current time in the relevant
    * device RequestMeta object (last known activity).
-   * @param data - UNUSED.
-   * @param xhr - The interceptor that picked up the send request.
+   * @param {string} data - UNUSED.
+   * @param {any} xhr - The interceptor that picked up the send request.
    */
   handleRequestSend(data: string, xhr: any) {
     // Extract the XHRInterceptor's ID (also the Device's base ID). Use that to get the RequestMeta object from the map
@@ -366,12 +345,12 @@ export default class RealUserMonitor {
    * has last sent a request (called the handleRequestSend method above), and then it calls the 'sendNetworkTimingEvent'
    * parsing the name and sendTime from the RequestMeta along with the calculated duration (Time taken from request to
    * response).
-   * @param status
-   * @param timeout
-   * @param resp
-   * @param respUrl
-   * @param respType
-   * @param xhr
+   * @param {number} status
+   * @param {number} timeout
+   * @param {string} resp
+   * @param {string} respUrl
+   * @param {string} respType
+   * @param {any} xhr
    */
   handleResponse(status: number, timeout: number, resp: string, respUrl: string, respType: string, xhr: any) {
     // Extract the XHRInterceptor's ID (also the Device's base ID). Use that to get the RequestMeta object from the map
@@ -396,6 +375,4 @@ export default class RealUserMonitor {
     XHRInterceptor.setResponseCallback(this.handleResponse.bind(this));
     XHRInterceptor.enableInterception();
   }
-
-  //#endregion--------------------------------------------------------------------------------------
 }
