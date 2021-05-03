@@ -14,6 +14,7 @@
 2. [Installations](#installation)
     - [Additional step for IOS](#additional-step-for-ios)
     - [Additional step for ANDROID](#additional-step-for-android)
+    - [Manual integration](#manual-integration)
     - [Additional Public Documentation](#additional-public-documentation)
 3. [API guide](#api-guide)
     - [Important information](#important-information)
@@ -114,6 +115,60 @@ enable the background Crash Reporting Service & Real-time User monitoring
   ...
 </application>
 ```
+
+## Manual Integration
+
+### iOS
+
+#### Using 'Pods'
+Enter into iOS Folder cd ios/ (on your project's root folder).
+
+Add this line to your Podfile just below the last pod (if you don't have one, you can create it by running pod init):
+```
++ pod 'raygun4reactnative', :path => '../node_modules/raygun4reactnative'
+```
+Run pod install
+
+<br/>
+
+### Android
+Add project to android/settings.gradle:
+```
+rootProject.name = 'MyApp'
+
+include ':app'
+
++ include ':raygun4reactnative'
++ project(':raygun4reactnative').projectDir = new File(rootProject.projectDir, '../node_modules/raygun4reactnative/android')
+```
+
+In android/app/build.gradle add to dependencies:
+```
+dependencies {
+  ...
++ implementation project(':@raygun4reactnative')
+}
+```
+
+Then, in android/app/src/main/java/your/package/MainApplication.java:
+```
+package com.myapp;
+
++ import com.raygun.react.RaygunNativeBridgePackage;
+...
+
+@Override
+protected List<ReactPackage> getPackages() {
+    return Arrays.<ReactPackage>asList(
+        new MainReactPackage(),
++       new RaygunNativeBridgePackage()
+    );
+}
+#
+```
+
+<br/>
+<br/>
 
 ### Additional Public Documentation
 
