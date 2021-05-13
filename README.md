@@ -1,14 +1,6 @@
-<p align="center">
-    <a href="https://raygun.com/" target="_blank" align="center">
-        <img src="https://brandfolder.com/raygun/logo/raygun-primary-logo.png" width="500">
-    </a>
-</p>
-
 # Raygun SDK for React Native
 
----
-
-# Table of contents
+## Table of contents
 
 1. [Requirements](#requirements)
 2. [Installations](#installation)
