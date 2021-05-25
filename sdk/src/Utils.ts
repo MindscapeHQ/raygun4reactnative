@@ -108,15 +108,4 @@ export const noAddressAt = ({methodName, ...rest}: StackFrame): StackFrame => {
   };
 };
 
-export const removeProtocol = (url: string) => url.replace(/^http(s)?:\/\//i, '');
-
-export const shouldIgnoreURL = (url: string, ignoredURLs: string[]): boolean => {
-  const target = removeProtocol(url);
-  return ignoredURLs.some((ignored) => target.startsWith(ignored));
-};
-
-export const shouldIgnoreView = (name: string, ignoredViews: string[]): boolean => {
-  return ignoredViews.some((ignored) => name.startsWith(ignored));
-};
-
 export const filterOutReactFrames = (frame: StackFrame): boolean => !!frame.file && !frame.file.match(internalTrace);
