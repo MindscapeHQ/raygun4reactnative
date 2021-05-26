@@ -86,11 +86,10 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
       disableNativeCrashReporting,
       disableUnhandledPromiseRejectionReporting,
       customCrashReportingEndpoint || '',
-            onBeforeSendingCrashReport as BeforeSendHandler,
-            version,
-            maxErrorReportsStoredOnDevice,
-            maxBreadcrumbsPerErrorReport,
-    );
+      onBeforeSendingCrashReport as BeforeSendHandler,
+      version,
+      maxErrorReportsStoredOnDevice,
+      maxBreadcrumbsPerErrorReport);
 
     if (!disableNativeCrashReporting) {
       RaygunNativeBridge.initCrashReportingNativeSupport(apiKey, version, customCrashReportingEndpoint);
@@ -105,8 +104,7 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
       ignoredURLs,
       ignoredViews,
       customRealUserMonitoringEndpoint,
-      version,
-    );
+      version);
 
     // Add the lifecycle event listeners to the bridge.
     RaygunNativeBridge.initRealUserMonitoringNativeSupport();

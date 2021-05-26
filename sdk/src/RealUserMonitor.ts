@@ -6,11 +6,9 @@ import {
 } from './Types';
 import {
   getDeviceId,
-  shouldIgnoreURL,
   getCurrentUser,
   getCurrentTags,
   getRandomGUID,
-  shouldIgnoreView,
 } from './Utils';
 
 // @ts-ignore
@@ -219,6 +217,10 @@ export default class RealUserMonitor {
    * @param {number} duration - The time taken for this event to fully execute.
    */
   sendNetworkTimingEvent(name: string, sendTime: number, duration: number) {
+    if (this.shouldIgnoreURL(name)) {
+      return;
+    }
+
     const data = {name, timing: {type: RealUserMonitoringTimings.NetworkCall, duration}};
     this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.EventTiming, data, sendTime).catch();
   }
@@ -231,7 +233,7 @@ export default class RealUserMonitor {
    * @param {number} duration - The time taken for this event to fully execute.
    */
   async sendViewLoadedEvent(name : string, duration : number) {
-    if (shouldIgnoreView(name, this.ignoredViews)) {
+    if (this.shouldIgnoreView(name)) {
       return;
     }
     const data = {name: name, timing: {type: RealUserMonitoringTimings.ViewLoaded, duration}};
@@ -308,9 +310,10 @@ export default class RealUserMonitor {
    */
   handleRequestOpen(method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', url: string, xhr: any) {
     // If this URL is on the IGNORE list, then do nothing.
-    if (shouldIgnoreURL(url, this.ignoredURLs)) {
+    if (this.shouldIgnoreURL(url)) {
       return;
     }
+
     // Obtain the device ID
     const id = getDeviceId();
 
@@ -375,4 +378,22 @@ export default class RealUserMonitor {
     XHRInterceptor.setResponseCallback(this.handleResponse.bind(this));
     XHRInterceptor.enableInterception();
   }
+
+  shouldIgnoreURL(url: string): boolean {
+    for (let i = 0; i < this.ignoredURLs.length; i++) {
+      if (url.includes(this.ignoredURLs[i])) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  shouldIgnoreView(name: string): boolean {
+    for (let i = 0; i < this.ignoredViews.length; i++) {
+      if (name.includes(this.ignoredViews[i])) {
+        return true;
+      }
+    }
+    return false;
+  };
 }
