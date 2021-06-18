@@ -286,7 +286,14 @@ export default class CrashReporter {
   async cleanStackTrace(error: Error) {
     // Extract the errors stack trace
     const parseErrorStack = require('react-native/Libraries/Core/Devtools/parseErrorStack');
-    const stackFrames = parseErrorStack(error);
+
+    let stackFrames;
+    try {
+      stackFrames = parseErrorStack(error);
+    } catch (e) {
+      // parseErrorStack in ReactNative 0.64 requires a string
+      stackFrames = parseErrorStack(error.stack);
+    }
 
     // Clean the stack trace and check for empty stack trace
     const cleanedStackFrames: StackFrame[] = cleanFilePath(stackFrames);
