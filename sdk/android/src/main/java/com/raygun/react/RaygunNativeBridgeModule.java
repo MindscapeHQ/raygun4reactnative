@@ -221,6 +221,11 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
      * @param payload   - A WritableMap of information to be parsed with this event's occurence.
      */
     private void sendJSEvent(String eventType, @Nullable WritableMap payload) {
+        if (reactContext == null || !reactContext.hasActiveCatalystInstance()) {
+          Log.w("Raygun", "Unable to send JS event for " + eventType + " due to inactive React context.");
+          return;
+        }
+
         reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(eventType, payload);
     }
 
