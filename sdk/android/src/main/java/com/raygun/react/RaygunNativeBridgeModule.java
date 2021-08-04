@@ -126,12 +126,12 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
         //Cant initialise bridge rum twice
         if (realUserMonitoringInitialized) return;
 
-        if (reactContext.getCurrentActivity() != null) {
+        if (reactContext != null && reactContext.getCurrentActivity() != null) {
             //Store the current activity to differentiate session changes
             currentActivity = new WeakReference<>(reactContext.getCurrentActivity());
             //Attach the activity listening logic to the Application
             reactContext.getCurrentActivity().getApplication().registerActivityLifecycleCallbacks(this);
-        } else Log.e("TAG", "This react application has no active activity");
+        } else Log.e("Raygun", "This react application has no active activity");
 
         realUserMonitoringInitialized = true;
     }
@@ -186,16 +186,21 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
     public void onActivityResumed(Activity activity) {
         //If the activity that recently paused is returning to the foreground then the whole
         // application has resumed, therefore update the session
-        if (currentActivity.get() == activity) this.sendJSEvent(ON_SESSION_RESUME, null);
-
+        if (currentActivity != null && currentActivity.get() == activity) {
+            this.sendJSEvent(ON_SESSION_RESUME, null);
+        }
+        else {
             //If any other activity resumes that means that it is taking over from the current activity
-        else currentActivity = new WeakReference<>(activity);
+            currentActivity = new WeakReference<>(activity);
+        }
     }
 
     @Override
     public void onActivityPaused(Activity activity) {
         //If the current activity is pausing then the session is paused
-        if (currentActivity.get() == activity) this.sendJSEvent(ON_SESSION_PAUSE, null);
+        if (currentActivity != null && currentActivity.get() == activity) {
+            this.sendJSEvent(ON_SESSION_PAUSE, null);
+        }
     }
 
     @Override
@@ -208,7 +213,7 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
 
     @Override
     public void onActivityDestroyed(Activity activity) {
-        if (currentActivity.get() == activity) {
+        if (currentActivity != null && currentActivity.get() == activity) {
             this.sendJSEvent(ON_SESSION_END, null);
             currentActivity = null;
         }
