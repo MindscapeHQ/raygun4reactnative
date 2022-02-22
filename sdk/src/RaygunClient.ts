@@ -92,7 +92,11 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
       maxBreadcrumbsPerErrorReport);
 
     if (!disableNativeCrashReporting) {
-      RaygunNativeBridge.initCrashReportingNativeSupport(apiKey, version, customCrashReportingEndpoint);
+      RaygunNativeBridge.initCrashReportingNativeSupport(
+        apiKey,
+        version,
+        customCrashReportingEndpoint || CrashReporter.DEFAULT_RAYGUN_CRASH_REPORTING_ENDPOINT,
+      );
     }
   }
 

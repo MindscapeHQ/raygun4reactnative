@@ -16,6 +16,7 @@ const {version: clientVersion} = require('../package.json');
 export default class CrashReporter {
   public static readonly MAX_ERROR_REPORTS_STORED_ON_DEVICE = 64;
   public static readonly MAX_BREADCRUMBS_PER_ERROR_REPORT = 32;
+  public static readonly DEFAULT_RAYGUN_CRASH_REPORTING_ENDPOINT = 'https://api.raygun.com/entries';
 
   private readonly LOCAL_STORAGE_KEY = 'raygun4reactnative_local_storage';
   private readonly RAYGUN_RATE_LIMITING_STATUS_CODE = 429;
@@ -26,7 +27,7 @@ export default class CrashReporter {
   private version: string;
   private disableNativeCrashReporting: boolean;
   private onBeforeSendingCrashReport: BeforeSendHandler | null;
-  private raygunCrashReportEndpoint = 'https://api.raygun.com/entries';
+  private raygunCrashReportEndpoint = CrashReporter.DEFAULT_RAYGUN_CRASH_REPORTING_ENDPOINT;
   private maxErrorReportsStoredOnDevice: number;
   private maxBreadcrumbsPerErrorReport: number;
 
