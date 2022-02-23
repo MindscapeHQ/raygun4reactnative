@@ -1,7 +1,7 @@
 {
   "name": "raygun4reactnative",
   "title": "Raygun4reactnative",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "Raygun React Native SDK",
   "main": "dist/index.js",
   "typescript": {
