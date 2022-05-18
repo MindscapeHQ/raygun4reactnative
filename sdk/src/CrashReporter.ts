@@ -81,6 +81,8 @@ export default class CrashReporter {
       const {polyfillGlobal} = require('react-native/Libraries/Utilities/PolyfillFunctions');
       const Promise = require('promise/setimmediate/es6-extensions');
       const tracking = require('promise/setimmediate/rejection-tracking');
+      require('promise/setimmediate/done');
+      require('promise/setimmediate/finally');
 
       // Set up rejection handler to divert rejections to crash reporter
       polyfillGlobal('Promise', () => {
