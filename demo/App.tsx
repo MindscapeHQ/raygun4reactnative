@@ -1,11 +1,11 @@
 import * as React from 'react';
-import { NavigationContainer } from "@react-navigation/native";
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import {NavigationContainer} from "@react-navigation/native";
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import Home from "./screens/Home";
 import CrashReporting from "./screens/CrashReporting";
 import RealUserMonitoring from "./screens/RealUserMonitoring";
-import { raygunClient } from "./utils/Utils";
-import { LogLevel, RaygunClientOptions } from "raygun4reactnative";
+import {raygunClient} from "./utils/Utils";
+import {LogLevel, RaygunClientOptions} from "raygun4reactnative";
 
 
 //#region -- REACT-NATIVE APPLICATION SETUP --------------------------------------------------------
@@ -13,7 +13,7 @@ import { LogLevel, RaygunClientOptions } from "raygun4reactnative";
 /*//------------- Application testing setup -------------
 //TODO: move to test initialization
 const options: RaygunClientOptions = {
-  apiKey: 'e5cxkTF9wHpIYxVaxvx6Ig',
+  apiKey: 'API_KEY_HERE',
   enableCrashReporting: true,
   enableRealUserMonitoring: true,
 }
@@ -55,7 +55,7 @@ function Tabs() {
 export default function App() {
   return (
     <NavigationContainer>
-      <Tabs />
+      <Tabs/>
     </NavigationContainer>
   );
 }
