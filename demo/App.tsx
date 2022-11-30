@@ -10,6 +10,16 @@ import {LogLevel, RaygunClientOptions} from "raygun4reactnative";
 
 //#region -- REACT-NATIVE APPLICATION SETUP --------------------------------------------------------
 
+/*//------------- Application testing setup -------------
+//TODO: move to test initialization
+const options: RaygunClientOptions = {
+  apiKey: 'API_KEY_HERE',
+  enableCrashReporting: true,
+  enableRealUserMonitoring: true,
+}
+raygunClient.init(options);
+//------------- End application testing setup -------------*/
+
 const Tab = createBottomTabNavigator();
 
 function Tabs() {

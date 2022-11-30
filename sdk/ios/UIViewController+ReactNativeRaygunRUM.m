@@ -63,17 +63,17 @@ static NSString* iOSViewTag = @"iOS_View: ";
 
 - (void)loadViewCaptureReactNative {
     [self recordReactNativeViewLoadStartTime];
-    [self loadViewCapture];
+    [self loadViewCaptureReactNative];
 }
 
 - (void)viewDidLoadCaptureReactNative {
     [self recordReactNativeViewLoadStartTime];
-    [self viewDidLoadCapture];
+    [self viewDidLoadCaptureReactNative];
 }
 
 - (void)viewWillAppearCaptureReactNative:(BOOL)animated {
     [self recordReactNativeViewLoadStartTime];
-    [self viewWillAppearCapture:animated];
+    [self viewWillAppearCaptureReactNative:animated];
 }
 
 - (void)recordReactNativeViewLoadStartTime {
@@ -89,7 +89,7 @@ static NSString* iOSViewTag = @"iOS_View: ";
 
 - (void)viewDidAppearCaptureReactNative:(BOOL)animated {
     
-    [self viewDidAppearCapture:animated];
+    [self viewDidAppearCaptureReactNative:animated];
     
     NSNumber* timeInSeconds = [NSNumber numberWithDouble:[@(CACurrentMediaTime()) doubleValue] * 1000.0];
     
