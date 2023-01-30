@@ -109,3 +109,9 @@ export const noAddressAt = ({methodName, ...rest}: StackFrame): StackFrame => {
 };
 
 export const filterOutReactFrames = (frame: StackFrame): boolean => !!frame.file && !frame.file.match(internalTrace);
+
+export const cleanFields = (obj: any): any => {
+  return Object.entries(obj)
+    .filter(([_, v]) => v != null)
+    .reduce((acc, [k, v]) => ({...acc, [k]: v}), {});
+}

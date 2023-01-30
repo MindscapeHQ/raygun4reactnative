@@ -19,6 +19,7 @@ import {
   getCurrentUser,
   setCurrentTags,
   setCurrentUser,
+  cleanFields,
 } from './Utils';
 import CrashReporter from './CrashReporter';
 import RealUserMonitor from './RealUserMonitor';
@@ -170,6 +171,8 @@ const setUser = (user: User | null) => {
   }
 
   // Ensure no values are "NULL"
+  user = cleanFields(user);
+  // Defaults:
   const newUser = {
     email: '',
     firstName: '',
@@ -210,6 +213,9 @@ const recordBreadcrumb = (breadcrumb: Breadcrumb) => {
     return;
   }
 
+  // Ensure no values are "NULL"
+  breadcrumb = cleanFields(breadcrumb);
+  // Defaults:
   const newBreadcrumb: Breadcrumb = {
     category: '',
     customData: {},
