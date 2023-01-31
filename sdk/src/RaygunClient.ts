@@ -19,6 +19,7 @@ import {
   getCurrentUser,
   setCurrentTags,
   setCurrentUser,
+  removeNullFields,
 } from './Utils';
 import CrashReporter from './CrashReporter';
 import RealUserMonitor from './RealUserMonitor';
@@ -54,7 +55,7 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
     return false;
   }
 
-  options = {...raygunClientOptions};
+  options = {...removeNullFields(raygunClientOptions)};
 
   // Cleans options with defaults
   const {
@@ -170,6 +171,8 @@ const setUser = (user: User | null) => {
   }
 
   // Ensure no values are "NULL"
+  user = removeNullFields(user);
+  // Defaults:
   const newUser = {
     email: '',
     firstName: '',
@@ -210,6 +213,9 @@ const recordBreadcrumb = (breadcrumb: Breadcrumb) => {
     return;
   }
 
+  // Ensure no values are "NULL"
+  breadcrumb = removeNullFields(breadcrumb);
+  // Defaults:
   const newBreadcrumb: Breadcrumb = {
     category: '',
     customData: {},
