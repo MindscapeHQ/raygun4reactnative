@@ -72,8 +72,9 @@ const options: RaygunClientOptions = {
  */
 const user1: User = {
   identifier: "Test_User_1",
-  email: null,
   isAnonymous: false,
+  firstName: undefined,
+  fullName: null,
 }
 
 /**
