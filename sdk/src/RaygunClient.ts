@@ -55,7 +55,7 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
     return false;
   }
 
-  options = {...raygunClientOptions};
+  options = {...cleanFields(raygunClientOptions)};
 
   // Cleans options with defaults
   const {

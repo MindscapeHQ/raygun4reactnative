@@ -21,6 +21,7 @@ import CheckBox from "@react-native-community/checkbox";
  */
 const bc1: Breadcrumb = {
   message: "Stage 1",
+  customData: null,
 }
 
 /**
