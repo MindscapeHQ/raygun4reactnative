@@ -50,7 +50,7 @@ static uint32_t ksdl_imageNamed(const char* const imageName, bool exactMatch)
         }
     }
     return UINT32_MAX;
-}	
+}
 
 static bool VMStats(vm_statistics_data_t* const vmStats, vm_size_t* const pageSize)
 {
@@ -154,7 +154,7 @@ static CFTimeInterval processStartTime() {
 
 - (NSDictionary<NSString *, id> *) constantsToExport {
     NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
-    
+
     [dict setValue: DEVICE_UUID forKey: @"DEVICE_ID"];
     [dict setValue: onSessionPause forKey: onSessionPause];
     [dict setValue: onSessionResume forKey: onSessionResume];
@@ -181,9 +181,9 @@ static CFTimeInterval processStartTime() {
         // Check if we have stored one before
         NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
         DEVICE_UUID = [defaults stringForKey:nativeIdentifierKey];
-        
+
         if (!DEVICE_UUID) {
-            
+
             //If not then generate a new UUID
             #if TARGET_OS_IOS || TARGET_OS_TV
             if ([UIDevice.currentDevice respondsToSelector:@selector(identifierForVendor)]) {
@@ -199,14 +199,14 @@ static CFTimeInterval processStartTime() {
             DEVICE_UUID = (__bridge NSString *)CFUUIDCreateString(NULL, theUUID);
             CFRelease(theUUID);
             #endif
-            
+
             // Store the new UUID
             NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
             [defaults setObject:DEVICE_UUID forKey:nativeIdentifierKey];
             [defaults synchronize];
         }
     }
-    
+
     return DEVICE_UUID;
 }
 
@@ -226,17 +226,17 @@ RCT_EXPORT_METHOD(initRealUserMonitoringNativeSupport)
     if (realUserMonitoringInitialized) {
         return;
     }
-    
+
 #if TARGET_OS_IOS || TARGET_OS_TV
     //CREATE OBSERVERS FOR STATE CHANGE EVENTS
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillEnterForeground) name:UIApplicationWillEnterForegroundNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidEnterBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate) name:UIApplicationWillTerminateNotification object:nil];
-    
+
     //CREATE OBSERVERS FOR VIEW LOADED EVENTS
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(viewStartedLoading:) name:@"RAYGUN_VIEW_LOADING" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(viewFinishedLoading:) name:@"RAYGUN_VIEW_LOADED" object:nil];
-    
+
 #endif
     realUserMonitoringInitialized = TRUE;
 }
@@ -283,12 +283,12 @@ RCT_EXPORT_METHOD(initCrashReportingNativeSupport:(NSString*)apiKey
         RCTLogInfo(@"Cannot initialise native native Crash Reporting more than once");
         return;
     }
-    
+
     //ENABLE NATIVE SIDE CRASH REPORTING
     [[RaygunClient sharedInstanceWithApiKey:apiKey] setCrashReportingApiEndpoint: customCREndpoint];
     [RaygunClient.sharedInstance enableCrashReporting];
     RaygunClient.sharedInstance.applicationVersion = version;
-    
+
     crashReportingInitialized = TRUE;
 }
 
@@ -328,9 +328,9 @@ RCT_EXPORT_METHOD(setUser:(NSDictionary *) user) {
     if (!crashReportingInitialized) {
         return;
     }
-    
+
     RaygunUserInformation * userInfo = [[RaygunUserInformation alloc] initWithIdentifier:
-        user[@"idenfifier"] withEmail: user[@"email"] withFullName: user[@"fullName"] withFirstName: user[@"firstName"]];
+        user[@"identifier"] withEmail: user[@"email"] withFullName: user[@"fullName"] withFirstName: user[@"firstName"]];
     [RaygunClient.sharedInstance setUserInformation: userInfo];
 }
 
