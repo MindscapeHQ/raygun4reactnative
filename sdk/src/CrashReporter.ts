@@ -126,14 +126,15 @@ export default class CrashReporter {
    * @param {Breadcrumb} breadcrumb
    */
   recordBreadcrumb(breadcrumb: Breadcrumb) {
-    this.breadcrumbs.push({...breadcrumb});
 
     /**
-        Android does not seem to handle the mismatched types gracefully like how iOS does.
-        Therefore we need to an additional check to avoid users app from crashing
+       Android does not seem to handle the mismatched types gracefully like how iOS does.
+       Therefore we need to an additional check to avoid users app from crashing
     **/
 
     breadcrumb.message = JSON.stringify(breadcrumb.message);
+
+    this.breadcrumbs.push({...breadcrumb});
 
     if (this.breadcrumbs.length > this.maxBreadcrumbsPerErrorReport) {
       this.breadcrumbs.shift();
