@@ -134,7 +134,7 @@ export default class CrashReporter {
     **/
 
     breadcrumb.message = JSON.stringify(breadcrumb.message);
-    
+
     if (this.breadcrumbs.length > this.maxBreadcrumbsPerErrorReport) {
       this.breadcrumbs.shift();
     }
