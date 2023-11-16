@@ -35,3 +35,4 @@ docker/
 *.plist
 &.DS_Store
 .idea
+/sdk/android/.gradle
