@@ -136,6 +136,18 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
         realUserMonitoringInitialized = true;
     }
 
+    @ReactMethod
+    public void addListener(String eventName) {
+        // Dummy method to silence NativeEventEmitter warnings in React Native.
+        // No implementation required.
+    }
+
+    @ReactMethod
+    public void removeListeners(Integer count) {
+        // Dummy method to silence NativeEventEmitter warnings in React Native.
+        // No implementation required.
+    }
+
     /**
      * This class is designed to implement CrashReportingOnBeforeSend interface from the
      * Raygun4Android SDK. Before Sending some CrashReport, this handler will ensure that the crash
