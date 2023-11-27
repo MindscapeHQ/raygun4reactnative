@@ -22,4 +22,3 @@ tsconfig.jest.json
 .eslintrc.js
 .gitignore
 *.tgz
-demo/
