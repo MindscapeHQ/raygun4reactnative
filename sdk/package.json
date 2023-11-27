@@ -44,6 +44,9 @@
   "license": "MIT",
   "licenseFilename": "LICENSE",
   "readmeFilename": "README.md",
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "^1.13.4"
+  },
   "peerDependencies": {
     "@react-native-async-storage/async-storage": "^1.13.3"
   },
@@ -73,8 +76,5 @@
     "run-script-os": "^1.1.5",
     "ts-jest": "^26.4.0",
     "typescript": "^3.9.7"
-  },
-  "dependencies": {
-    "@react-native-async-storage/async-storage": "^1.13.4"
   }
 }
