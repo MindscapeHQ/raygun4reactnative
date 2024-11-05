@@ -81,7 +81,6 @@ docker/
 *.tgz
 *.xcuserstate
 *.xcworkspacedata
-*.plist
 &.DS_Store
 .idea
 /sdk/android/.gradle
