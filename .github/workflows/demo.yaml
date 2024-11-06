@@ -50,5 +50,9 @@ jobs:
       - name: Run npm Install
         run: npm install
 
+      - name: Pod Install
+        working-directory: demo/ios
+        run: pod install
+
       - name: Build application
         run: npx react-native build-ios
