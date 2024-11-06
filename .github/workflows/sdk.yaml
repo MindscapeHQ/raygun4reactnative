@@ -1,7 +1,7 @@
 name: SDK CI
 on: [ push, pull_request ]
 jobs:
-  sdk-build:
+  sdk-checks:
     runs-on: ubuntu-latest
     defaults:
       run:
