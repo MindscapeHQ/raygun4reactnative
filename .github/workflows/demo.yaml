@@ -32,3 +32,23 @@ jobs:
         run: |
              cd android
              ./gradlew assembleDebug
+
+  demo-ios-build:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: demo
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node  
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Run npm Install
+        run: npm install
+
+      - name: Build application
+        run: npx react-native build-ios
