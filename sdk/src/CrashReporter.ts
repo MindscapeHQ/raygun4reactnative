@@ -171,11 +171,11 @@ export default class CrashReporter {
       if (rawCache !== null) {
         try {
           return JSON.parse(rawCache);
-        } catch (e) {
+        } catch (e: any) {
           RaygunLogger.e('Unable to extract payload from cache:', {error: e.message, cache: rawCache});
         }
       }
-    } catch (e) {
+    } catch (e: any) {
       RaygunLogger.e('Unable to get access local storage:', e.message);
     }
     return [];
