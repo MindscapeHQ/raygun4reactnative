@@ -25,8 +25,12 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Run npm Install
+      - name: Build SDK
+        working-directory: ../sdk
         run: npm install
+
+      - name: Install dependencies
+        run: npm install --install-links
 
       - name: Build application
         run: |
@@ -47,8 +51,12 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Run npm Install
+      - name: Build SDK
+        working-directory: ../sdk
         run: npm install
+
+      - name: Install dependencies
+        run: npm install --install-links
 
       - name: Pod Install
         working-directory: demo/ios
