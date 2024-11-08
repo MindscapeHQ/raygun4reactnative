@@ -14,7 +14,7 @@
     "@react-native-community/checkbox": "^0.5.17",
     "@react-navigation/bottom-tabs": "^6.6.1",
     "@react-navigation/native": "^6.1.18",
-    "raygun4reactnative": "^1.4.5",
+    "raygun4reactnative": "file:../sdk",
     "react": "18.3.1",
     "react-native": "0.76.1",
     "react-native-safe-area-context": "^4.14.0",

@@ -1,0 +1,21 @@
+name: SDK CI
+on: [ push, pull_request ]
+jobs:
+  sdk-checks:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sdk
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node  
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Run npm Install
+        run: npm install
+
+    # TODO: Check Lint

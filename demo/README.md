@@ -2,6 +2,8 @@
 
 This folder contains the demo application for Raygun4ReactNative.
 
+This project uses the sdk package code located in this repository in the `../sdk` folder.
+
 ## Setup
 
 We recommend using `npx` to setup and run this demo project.
@@ -11,6 +13,18 @@ Install with `npm install -g npx` if not present already in your system.
 ### Check configuration
 
 Verify your system setup running `npx react-native doctor` and follow the instructions.
+
+### Build SDK
+
+Go to the folder `../sdk` and run `npm install`.
+
+This is necessary since the demo application uses the local sdk package.
+
+### Install dependencies
+
+Run `npm install --install-links` to install the project dependencies.
+
+Note that `--install-links` is required since the package `raygun4reactnative` should be copied over and not linked with a symbolic link, otherwise React-Native won't be able to access it.
 
 ### Setup Raygun Options
 

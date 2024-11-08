@@ -1,0 +1,32 @@
+version: 2
+updates:
+# Dependencies updates config for SDK
+  - package-ecosystem: "npm"
+    directory: "/src"
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+
+# Dependencies updates config for examples
+  - package-ecosystem: "npm"
+    directory: "/demo"
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    ignore:
+      # Package in example is accessed by path, 
+      # do not update in package.json.
+      - dependency-name: "raygun4reactnative"
+
+# Github Actions dependencies updates config
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
