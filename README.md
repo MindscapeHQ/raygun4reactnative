@@ -35,6 +35,7 @@
         - [RaygunStackFrame](#raygunstackframe)
         - [RealUserMonitoringTimings](#realusermonitoringtimings)
         - [User](#user)
+    - [Native Crash Reporting](#native-crash-reporting)
 
 ---
 
@@ -745,5 +746,22 @@ export type User = {
 
 <br/>
 <br/>
+
+## Native Crash Reporting
+
+Raygun4ReactNative uses internally [Raygun4Android](https://github.com/MindscapeHQ/raygun4android/) 
+and [Raygun4Apple](https://github.com/MindscapeHQ/raygun4apple) to capture errors on the platform framework layer.
+
+These two platform providers are initialized by default when the Raygun4ReactNative provider is initalized.
+To disable this, set `disableNativeCrashReporting` to `false` in the `RaygunClientOptions`.
+
+> [!IMPORTANT]  
+> Errors happening in the platform framework layer won't be captured by Raygun unless the provider has been initialized.
+
+You can also initialize the platform providers directly by performing the setup steps documented in each respective provider project.
+This ensures that the platform providers are initialized before the React Native application loads.
+
+Setting `disableNativeCrashReporting` to `false` also disables all communication between Raygun4ReactNative and the platform providers,
+therefore data like breadcrumbs or user information won't be accesible by the platform providers.
 
 ---
