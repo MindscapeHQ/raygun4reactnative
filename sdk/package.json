@@ -55,6 +55,7 @@
     "@types/react-native": "^0.72.8",
     "@typescript-eslint/eslint-plugin": "^8.13.0",
     "@typescript-eslint/parser": "^8.13.0",
+    "babel-plugin-syntax-hermes-parser": "^0.25.1",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "copyfiles": "^2.4.1",
     "eslint": "^9.14.0",
