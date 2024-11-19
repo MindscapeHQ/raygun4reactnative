@@ -26,9 +26,6 @@ jobs:
   # https://github.com/creyD/prettier_action?tab=readme-ov-file#example-4-dry-run
   prettier:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: sdk
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -41,6 +38,7 @@ jobs:
       - name: Prettify code
         uses: creyD/prettier_action@v4.3
         with:
+          working_directory: sdk
           # "dry" causes that if any file is modified, the job fails
           dry: True
           # "write" performs changes in place
