@@ -1,5 +1,5 @@
-import {NativeModules} from 'react-native';
+import { NativeModules } from 'react-native';
 
 NativeModules.RaygunNativeBridge = {
-  DEVICE_ID: '1234567890',
+  DEVICE_ID: '1234567890'
 };
