@@ -18,4 +18,6 @@ jobs:
       - name: Run npm Install
         run: npm install
 
-    # TODO: Check Lint
+      - name: Unit Tests
+        run: npm run test
+
