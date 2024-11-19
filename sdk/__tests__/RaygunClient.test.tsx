@@ -5,8 +5,8 @@ import { RaygunClientOptions } from '../src/Types';
 describe('RaygunClient', () => {
     beforeAll(() => {
         const options: RaygunClientOptions = {
-            apiKey: '',// Your API key
-            version: '', // Your application version
+            apiKey: 'ABCD',
+            version: '1.2.3',
             logLevel: 'off',
             enableCrashReporting: true,
             enableRealUserMonitoring: false,
@@ -32,9 +32,15 @@ describe('RaygunClient', () => {
         // fetch should be called once
         expect(fetch).toHaveBeenCalledTimes(1);
 
+        // Check url correct
+        expect(fetch.mock.calls[0][0]).toBe('https://api.raygun.com/entries?apiKey=ABCD');
+
         // Capture body from fetch and check if correct
         const body = JSON.parse(fetch.mock.calls[0][1].body);
         expect(body.Details.Error.Message).toBe('Test error');
+
+        // Check if the version is correct
+        expect(body.Details.Version).toBe('1.2.3');
     });
 
     it('should fail to send error', async () => {
