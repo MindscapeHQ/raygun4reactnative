@@ -1,9 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { init, sendError } from '../src/RaygunClient';
 import { RaygunClientOptions } from '../src/Types';
-import { cleanup } from '@testing-library/react-native';
-
-// jest.useFakeTimers();
 
 describe('RaygunClient', () => {
     beforeAll(() => {
@@ -28,8 +25,6 @@ describe('RaygunClient', () => {
         fetch.mockClear();
     });
 
-    afterEach(cleanup);
-
     it('should send error correctly', async () => {
         const error = new Error('Test error');
         await sendError(error);
@@ -52,7 +47,6 @@ describe('RaygunClient', () => {
         // failed to send error should be stored in AsyncStorage
         const storedErrors = await AsyncStorage.getItem('raygun4reactnative_local_storage');
         expect(storedErrors).not.toBeNull();
-        console.log(storedErrors);
 
         const errors = JSON.parse(storedErrors);
         expect(errors[0].Details.Error.Message).toBe('Failed error');
