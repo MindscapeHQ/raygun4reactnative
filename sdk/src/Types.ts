@@ -1,4 +1,4 @@
-import {ErrorUtils} from 'react-native';
+import { ErrorUtils } from 'react-native';
 
 export type RaygunClientOptions = {
   apiKey?: string;
@@ -24,7 +24,7 @@ export enum LogLevel {
   warn = 'warn',
   info = 'info',
   debug = 'debug',
-  verbose = 'verbose',
+  verbose = 'verbose'
 }
 
 type BasicType = string | number | boolean;
@@ -81,7 +81,7 @@ export type Breadcrumb = {
   level?: 'debug' | 'info' | 'warning' | 'error';
   customData?: CustomData;
   timestamp?: number;
-  type?: 'manual'
+  type?: 'manual';
 };
 export type BeforeSendHandler = (payload: CrashReportPayload) => CrashReportPayload | null;
 
@@ -108,9 +108,9 @@ export type CrashReportPayload = {
 };
 
 export type ManualCrashReportDetails = {
-  customData?: CustomData,
-  tags?: string[]
-}
+  customData?: CustomData;
+  tags?: string[];
+};
 
 export enum RealUserMonitoringEvents {
   SessionStart = 'session_start',

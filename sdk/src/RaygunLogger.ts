@@ -1,4 +1,4 @@
-import {LogLevel} from './Types';
+import { LogLevel } from './Types';
 
 const pj = require('../package.json');
 
@@ -85,7 +85,7 @@ export default class RaygunLogger {
 
       'off' will always be -1, so subtracting any index from off will return a negative (as indexs are
     */
-    if (levelIndex === -1 || (this.logLevel - levelIndex) < 0) return;
+    if (levelIndex === -1 || this.logLevel - levelIndex < 0) return;
 
     /*
       If this is a valid log level, then match it with the console command array.

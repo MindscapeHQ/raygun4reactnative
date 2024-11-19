@@ -1,8 +1,8 @@
-import {StackFrame} from 'react-native/Libraries/Core/Devtools/parseErrorStack';
-import {NativeModules} from 'react-native';
-import {User} from './Types';
+import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
+import { NativeModules } from 'react-native';
+import { User } from './Types';
 
-const {RaygunNativeBridge} = NativeModules;
+const { RaygunNativeBridge } = NativeModules;
 
 /**
  * @return {string} Constructs an ID specific for the current device being used.
@@ -14,7 +14,7 @@ export const getDeviceId = () => `${RaygunNativeBridge.DEVICE_ID}`;
  */
 export const anonUser: User = {
   identifier: `${getDeviceId()}`,
-  isAnonymous: true,
+  isAnonymous: true
 };
 
 /**
@@ -35,12 +35,12 @@ let currentUser: User = anonUser;
 let currentTags: string[] = [];
 
 export const setCurrentUser = (newUser: User) => {
-  currentUser = {...newUser};
+  currentUser = { ...newUser };
 };
 
 export const getCurrentUser = (): User => {
-  if (!currentUser) currentUser = {...anonUser};
-  return {...currentUser};
+  if (!currentUser) currentUser = { ...anonUser };
+  return { ...currentUser };
 };
 
 export const setCurrentTags = (newTags: string[]) => {
@@ -63,11 +63,11 @@ const internalTrace = new RegExp('ReactNativeRenderer-dev\\.js$|MessageQueue\\.j
  * @return {StackFrame[]} A set of stack frames.
  */
 export const cleanFilePath = (frames: StackFrame[]): StackFrame[] =>
-  frames.map((frame) => {
+  frames.map(frame => {
     const result = devicePathPattern.exec(frame.file);
     if (result) {
       const [_, __, ___, fileName] = result;
-      return {...frame, file: SOURCE_MAP_PREFIX + fileName};
+      return { ...frame, file: SOURCE_MAP_PREFIX + fileName };
     }
     return frame;
   });
@@ -85,11 +85,11 @@ export const upperFirst = (obj: any | any[]): any | any[] => {
     return Object.entries(obj).reduce(
       (all, [key, val]) => ({
         ...all,
-        ...(key !== 'customData' ?
-          {[key.slice(0, 1).toUpperCase() + key.slice(1)]: upperFirst(val)} :
-          {CustomData: val}),
+        ...(key !== 'customData'
+          ? { [key.slice(0, 1).toUpperCase() + key.slice(1)]: upperFirst(val) }
+          : { CustomData: val })
       }),
-      {},
+      {}
     );
   }
   return obj;
@@ -100,11 +100,11 @@ export const upperFirst = (obj: any | any[]): any | any[] => {
  * @param {StackFrame} frame - The stack frame.
  * @return {StackFrame} The stack frame.
  */
-export const noAddressAt = ({methodName, ...rest}: StackFrame): StackFrame => {
+export const noAddressAt = ({ methodName, ...rest }: StackFrame): StackFrame => {
   const pos = methodName.indexOf('(address at');
   return {
     ...rest,
-    methodName: pos > -1 ? methodName.slice(0, pos).trim() : methodName,
+    methodName: pos > -1 ? methodName.slice(0, pos).trim() : methodName
   };
 };
 
@@ -116,5 +116,5 @@ export const removeNullFields = (obj: any): any => {
   }
   return Object.entries(obj)
     .filter(([_, v]) => v != null)
-    .reduce((acc, [k, v]) => ({...acc, [k]: v}), {});
-}
+    .reduce((acc, [k, v]) => ({ ...acc, [k]: v }), {});
+};
