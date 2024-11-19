@@ -38,7 +38,7 @@ jobs:
       - name: Prettify code
         uses: creyD/prettier_action@v4.3
         with:
-          working_directory: sdk
+          working_directory: sdk/
           # "dry" causes that if any file is modified, the job fails
           dry: True
           # "write" performs changes in place
