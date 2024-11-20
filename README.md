@@ -6,6 +6,7 @@
 2. [Installations](#installation)
     - [Additional step for IOS](#additional-step-for-ios)
     - [Additional step for ANDROID](#additional-step-for-android)
+    - [Manual integration](#manual-integration)
     - [Additional Public Documentation](#additional-public-documentation)
 3. [API guide](#api-guide)
     - [Important information](#important-information)
@@ -106,6 +107,66 @@ enable the background Crash Reporting Service & Real-time User monitoring
   />
   ...
 </application>
+```
+
+## Manual Integration
+
+React-Native projects should load the native components of Raygun4ReactNative automatically.
+
+If for some reason your project is not able to load the Android and iOS modules code, for example if you are using an old architecture, you can follow these steps to load the native code.
+
+> [!IMPORTANT]  
+> This step is only necessary if your project is not loading the native code automatically, e.g. you are getting a "DEVICE_ID is null exception" on start.
+
+### iOS
+
+1. Enter into iOS Folder `cd ios/` (on your project's root folder).
+
+2. Add this line to your `Podfile` just below the last pod (if you don't have one, you can create it by running `pod init`):
+
+```
++ pod 'raygun4reactnative', :path => '../node_modules/raygun4reactnative'
+```
+
+3. Run `pod install`.
+
+### Android
+
+1. Add the project to `android/settings.gradle`:
+
+```
+rootProject.name = 'MyApp'
+
+include ':app'
+
++ include ':raygun4reactnative'
++ project(':raygun4reactnative').projectDir = new File(rootProject.projectDir, '../node_modules/raygun4reactnative/android')
+```
+
+2. In `android/app/build.gradle` add to dependencies:
+
+```
+dependencies {
+  ...
++ implementation project(':@raygun4reactnative')
+}
+```
+
+3. Then, in `android/app/src/main/java/your/package/MainApplication.java`:
+
+```
+package com.myapp;
+
++ import com.raygun.react.RaygunNativeBridgePackage;
+...
+
+@Override
+protected List<ReactPackage> getPackages() {
+    return Arrays.<ReactPackage>asList(
+        new MainReactPackage(),
++       new RaygunNativeBridgePackage()
+    );
+}
 ```
 
 ### Additional Public Documentation
