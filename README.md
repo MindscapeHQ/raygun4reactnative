@@ -118,21 +118,29 @@ enable the background Crash Reporting Service & Real-time User monitoring
 
 ## Manual Integration
 
+React-Native projects should load the native components of Raygun4ReactNative automatically.
+
+If for some reason your project is not able to load the Android and iOS modules code, for example if you are using an old architecture, you can follow these steps to load the native code.
+
+> [!IMPORTANT]  
+> This step is only necessary if your project is not loading the native code automatically, e.g. you are getting a "DEVICE_ID is null exception" on start.
+
 ### iOS
 
-#### Using 'Pods'
-Enter into iOS Folder cd ios/ (on your project's root folder).
+1. Enter into iOS Folder `cd ios/` (on your project's root folder).
 
-Add this line to your Podfile just below the last pod (if you don't have one, you can create it by running pod init):
+2. Add this line to your `Podfile` just below the last pod (if you don't have one, you can create it by running `pod init`):
+
 ```
 + pod 'raygun4reactnative', :path => '../node_modules/raygun4reactnative'
 ```
-Run pod install
 
-<br/>
+3. Run `pod install`.
 
 ### Android
-Add project to android/settings.gradle:
+
+1. Add the project to `android/settings.gradle`:
+
 ```
 rootProject.name = 'MyApp'
 
@@ -142,7 +150,8 @@ include ':app'
 + project(':raygun4reactnative').projectDir = new File(rootProject.projectDir, '../node_modules/raygun4reactnative/android')
 ```
 
-In android/app/build.gradle add to dependencies:
+2. In `android/app/build.gradle` add to dependencies:
+
 ```
 dependencies {
   ...
@@ -150,7 +159,8 @@ dependencies {
 }
 ```
 
-Then, in android/app/src/main/java/your/package/MainApplication.java:
+3. Then, in `android/app/src/main/java/your/package/MainApplication.java`:
+
 ```
 package com.myapp;
 
@@ -164,11 +174,7 @@ protected List<ReactPackage> getPackages() {
 +       new RaygunNativeBridgePackage()
     );
 }
-#
 ```
-
-<br/>
-<br/>
 
 ### Additional Public Documentation
 
