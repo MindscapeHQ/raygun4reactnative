@@ -1,23 +1,13 @@
-import {
-  RealUserMonitoringEvents,
-  RealUserMonitoringTimings,
-  RealUserMonitorPayload,
-  RequestMeta,
-} from './Types';
-import {
-  getDeviceId,
-  getCurrentUser,
-  getCurrentTags,
-  getRandomGUID,
-} from './Utils';
+import { RealUserMonitoringEvents, RealUserMonitoringTimings, RealUserMonitorPayload, RequestMeta } from './Types';
+import { getDeviceId, getCurrentUser, getCurrentTags, getRandomGUID } from './Utils';
 
 // @ts-ignore
 import XHRInterceptor from 'react-native/Libraries/Network/XHRInterceptor';
-import {NativeEventEmitter, NativeModules, Platform} from 'react-native';
+import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
 import RaygunLogger from './RaygunLogger';
 
-const {RaygunNativeBridge} = NativeModules;
-const {osVersion, platform} = RaygunNativeBridge;
+const { RaygunNativeBridge } = NativeModules;
+const { osVersion, platform } = RaygunNativeBridge;
 
 const defaultURLIgnoreList: string[] = ['api.raygun.com', 'localhost:8081'];
 const defaultViewIgnoreList: string[] = []; // Nothing as of right now
@@ -55,7 +45,7 @@ export default class RealUserMonitor {
     ignoredURLs: string[],
     ignoredViews: string[],
     customRealUserMonitoringEndpoint: string,
-    version: string,
+    version: string
   ) {
     // Assign the values parsed in (assuming initiation is the only time these are altered)
     this.apiKey = apiKey;
@@ -139,7 +129,7 @@ export default class RealUserMonitor {
    * @param {Record<string, any>} payload - The event information.
    */
   viewBeginsLoading(payload: Record<string, any>) {
-    const {viewname, time} = payload;
+    const { viewname, time } = payload;
 
     RaygunLogger.d(`View started loading ${viewname}`);
 
@@ -155,14 +145,14 @@ export default class RealUserMonitor {
    * @param {Record<string, any>} payload - The event information.
    */
   viewFinishesLoading(payload: Record<string, any>) {
-    const {viewname, time} = payload;
+    const { viewname, time } = payload;
 
     RaygunLogger.d(`View finished loading: ${viewname}`);
 
     if (this.loadingViews.has(viewname)) {
       const viewLoadStartTime = this.loadingViews.get(viewname);
       if (!!viewLoadStartTime) {
-        const duration : number = Math.round(time - viewLoadStartTime);
+        const duration: number = Math.round(time - viewLoadStartTime);
 
         this.loadingViews.delete(viewname);
 
@@ -178,7 +168,7 @@ export default class RealUserMonitor {
    * @param {string} viewname
    * @return {string} The sanitised name that is ready for the RUM payload
    */
-  cleanViewName(viewname: string) : string {
+  cleanViewName(viewname: string): string {
     let cleanedViewName = viewname;
     if (cleanedViewName.startsWith('iOS_View: ')) {
       cleanedViewName = cleanedViewName.replace('iOS_View: ', '');
@@ -221,7 +211,7 @@ export default class RealUserMonitor {
       return;
     }
 
-    const data = {name, timing: {type: RealUserMonitoringTimings.NetworkCall, duration}};
+    const data = { name, timing: { type: RealUserMonitoringTimings.NetworkCall, duration } };
     this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.EventTiming, data, sendTime).catch();
   }
 
@@ -232,11 +222,11 @@ export default class RealUserMonitor {
    * @param {string} name - The event name (note this is not the event type), used in the "DATA" param of a RUM message.
    * @param {number} duration - The time taken for this event to fully execute.
    */
-  async sendViewLoadedEvent(name : string, duration : number) {
+  async sendViewLoadedEvent(name: string, duration: number) {
     if (this.shouldIgnoreView(name)) {
       return;
     }
-    const data = {name: name, timing: {type: RealUserMonitoringTimings.ViewLoaded, duration}};
+    const data = { name: name, timing: { type: RealUserMonitoringTimings.ViewLoaded, duration } };
 
     return this.transmitRealUserMonitoringEvent(RealUserMonitoringEvents.EventTiming, data);
   }
@@ -251,7 +241,7 @@ export default class RealUserMonitor {
   generateRealUserMonitorPayload(
     eventName: string,
     data: Record<string, any>,
-    timeAt?: number,
+    timeAt?: number
   ): RealUserMonitorPayload {
     const timestamp = timeAt ? new Date(timeAt) : new Date();
     return {
@@ -264,7 +254,7 @@ export default class RealUserMonitor {
       os: Platform.OS,
       osVersion,
       platform,
-      data: JSON.stringify([data]),
+      data: JSON.stringify([data])
     };
   }
 
@@ -282,19 +272,17 @@ export default class RealUserMonitor {
 
     RaygunLogger.v('Transmitting Real User Monitoring Payload', {
       Name: eventName,
-      URL: this.raygunRumEndpoint+'?apiKey='+encodeURIComponent(this.apiKey),
-      Value: JSON.stringify(rumMessage),
+      URL: this.raygunRumEndpoint + '?apiKey=' + encodeURIComponent(this.apiKey),
+      Value: JSON.stringify(rumMessage)
     });
 
-    return fetch(this.raygunRumEndpoint + '?apiKey=' + encodeURIComponent(this.apiKey),
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({eventData: [rumMessage]}),
+    return fetch(this.raygunRumEndpoint + '?apiKey=' + encodeURIComponent(this.apiKey), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
       },
-    ).catch((err) => {
+      body: JSON.stringify({ eventData: [rumMessage] })
+    }).catch(err => {
       RaygunLogger.e('Unable to send Real User Monitor payload', err);
     });
   }
@@ -321,7 +309,7 @@ export default class RealUserMonitor {
     xhr._id_ = id;
 
     // Store the ID and the action taken on the device in a map, ID => REQUEST_META
-    this.requests.set(id, {name: `${method} ${url}`});
+    this.requests.set(id, { name: `${method} ${url}` });
   }
 
   /**
@@ -332,7 +320,7 @@ export default class RealUserMonitor {
    */
   handleRequestSend(data: string, xhr: any) {
     // Extract the XHRInterceptor's ID (also the Device's base ID). Use that to get the RequestMeta object from the map
-    const {_id_} = xhr;
+    const { _id_ } = xhr;
     const requestMeta = this.requests.get(_id_);
 
     // If the object exists, then store the current time
@@ -357,13 +345,13 @@ export default class RealUserMonitor {
    */
   handleResponse(status: number, timeout: number, resp: string, respUrl: string, respType: string, xhr: any) {
     // Extract the XHRInterceptor's ID (also the Device's base ID). Use that to get the RequestMeta object from the map
-    const {_id_} = xhr;
+    const { _id_ } = xhr;
     const requestMeta = this.requests.get(_id_);
 
     // If the object exists, then ...
     if (requestMeta) {
       // Extract the name and send time from the Request
-      const {name, sendTime} = requestMeta;
+      const { name, sendTime } = requestMeta;
       const duration = Date.now() - sendTime!;
       this.sendNetworkTimingEvent(name, sendTime!, duration);
     }
@@ -386,7 +374,7 @@ export default class RealUserMonitor {
       }
     }
     return false;
-  };
+  }
 
   shouldIgnoreView(name: string): boolean {
     for (let i = 0; i < this.ignoredViews.length; i++) {
@@ -395,5 +383,5 @@ export default class RealUserMonitor {
       }
     }
     return false;
-  };
+  }
 }

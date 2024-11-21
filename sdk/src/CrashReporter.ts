@@ -1,12 +1,12 @@
-import {cleanFilePath, filterOutReactFrames, getCurrentTags, getCurrentUser, noAddressAt, upperFirst} from './Utils';
-import {BeforeSendHandler, Breadcrumb, CrashReportPayload, CustomData, ManualCrashReportDetails} from './Types';
-import {StackFrame} from 'react-native/Libraries/Core/Devtools/parseErrorStack';
-import {NativeModules, Platform} from 'react-native';
+import { cleanFilePath, filterOutReactFrames, getCurrentTags, getCurrentUser, noAddressAt, upperFirst } from './Utils';
+import { BeforeSendHandler, Breadcrumb, CrashReportPayload, CustomData, ManualCrashReportDetails } from './Types';
+import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
+import { NativeModules, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RaygunLogger from './RaygunLogger';
 
-const {RaygunNativeBridge} = NativeModules;
-const {version: clientVersion} = require('../package.json');
+const { RaygunNativeBridge } = NativeModules;
+const { version: clientVersion } = require('../package.json');
 
 /**
  * The Crash Reporter is responsible for all of the functionality related to generating, catching
@@ -52,7 +52,7 @@ export default class CrashReporter {
     onBeforeSendingCrashReport: BeforeSendHandler | null,
     version: string,
     maxErrorReportsStoredOnDevice: number,
-    maxBreadCrumbsPerErrorReport: number,
+    maxBreadCrumbsPerErrorReport: number
   ) {
     // Assign the values parsed in (assuming initiation is the only time these are altered)
     this.apiKey = apiKey;
@@ -61,10 +61,14 @@ export default class CrashReporter {
     this.version = version;
 
     this.maxErrorReportsStoredOnDevice = Math.min(
-      Math.max(maxErrorReportsStoredOnDevice, 0), CrashReporter.MAX_ERROR_REPORTS_STORED_ON_DEVICE);
+      Math.max(maxErrorReportsStoredOnDevice, 0),
+      CrashReporter.MAX_ERROR_REPORTS_STORED_ON_DEVICE
+    );
 
     this.maxBreadcrumbsPerErrorReport = Math.min(
-      Math.max(maxBreadCrumbsPerErrorReport, 0), CrashReporter.MAX_BREADCRUMBS_PER_ERROR_REPORT);
+      Math.max(maxBreadCrumbsPerErrorReport, 0),
+      CrashReporter.MAX_BREADCRUMBS_PER_ERROR_REPORT
+    );
 
     if (customCrashReportingEndpoint && customCrashReportingEndpoint.length > 0) {
       this.raygunCrashReportEndpoint = customCrashReportingEndpoint;
@@ -78,7 +82,7 @@ export default class CrashReporter {
     });
 
     if (!disableUnhandledPromiseRejectionReporting) {
-      const {polyfillGlobal} = require('react-native/Libraries/Utilities/PolyfillFunctions');
+      const { polyfillGlobal } = require('react-native/Libraries/Utilities/PolyfillFunctions');
       const Promise = require('promise/setimmediate/es6-extensions');
       const tracking = require('promise/setimmediate/rejection-tracking');
       require('promise/setimmediate/done');
@@ -88,14 +92,14 @@ export default class CrashReporter {
       polyfillGlobal('Promise', () => {
         tracking.enable({
           allRejections: true,
-          onUnhandled: this.processUnhandledRejection.bind(this),
+          onUnhandled: this.processUnhandledRejection.bind(this)
         });
 
         return Promise;
       });
     }
 
-    this.resendCachedReports().then((r) => {});
+    this.resendCachedReports().then(r => {});
   }
 
   /**
@@ -103,9 +107,9 @@ export default class CrashReporter {
    * @param {CustomData} customData - The custom data to append.
    */
   setCustomData(customData: CustomData) {
-    this.customData = {...customData};
+    this.customData = { ...customData };
     if (!this.disableNativeCrashReporting) {
-      RaygunNativeBridge.setCustomData({...customData});
+      RaygunNativeBridge.setCustomData({ ...customData });
     }
   }
 
@@ -126,7 +130,6 @@ export default class CrashReporter {
    * @param {Breadcrumb} breadcrumb
    */
   recordBreadcrumb(breadcrumb: Breadcrumb) {
-
     /**
        Android does not seem to handle the mismatched types gracefully like how iOS does.
        Therefore we need to an additional check to avoid users app from crashing
@@ -134,7 +137,7 @@ export default class CrashReporter {
 
     breadcrumb.message = JSON.stringify(breadcrumb.message);
 
-    this.breadcrumbs.push({...breadcrumb});
+    this.breadcrumbs.push({ ...breadcrumb });
 
     if (this.breadcrumbs.length > this.maxBreadcrumbsPerErrorReport) {
       this.breadcrumbs.shift();
@@ -165,14 +168,14 @@ export default class CrashReporter {
   /**
    * Retrieve and format the local Crash Report cache as a JSON array.
    */
-  async getCachedCrashReports() : Promise<CrashReportPayload[]> {
+  async getCachedCrashReports(): Promise<CrashReportPayload[]> {
     try {
       const rawCache = await AsyncStorage.getItem(this.LOCAL_STORAGE_KEY);
       if (rawCache !== null) {
         try {
           return JSON.parse(rawCache);
         } catch (e: any) {
-          RaygunLogger.e('Unable to extract payload from cache:', {error: e.message, cache: rawCache});
+          RaygunLogger.e('Unable to extract payload from cache:', { error: e.message, cache: rawCache });
         }
       }
     } catch (e: any) {
@@ -185,7 +188,7 @@ export default class CrashReporter {
    * Override the local Crash Report cache with a new JSON array.
    * @param {CrashReportPayload[]} newCache - The new JSON array to override with.
    */
-  async setCachedCrashReports(newCache : CrashReportPayload[]) {
+  async setCachedCrashReports(newCache: CrashReportPayload[]) {
     try {
       await AsyncStorage.setItem(this.LOCAL_STORAGE_KEY, JSON.stringify(newCache));
     } catch (e) {
@@ -198,7 +201,7 @@ export default class CrashReporter {
    * @param {CrashReportPayload[]} reports - Reports to append.
    */
   async cacheCrashReports(...reports: CrashReportPayload[]) {
-    let appendedCache : CrashReportPayload[] = (await this.getCachedCrashReports()).concat(reports);
+    let appendedCache: CrashReportPayload[] = (await this.getCachedCrashReports()).concat(reports);
 
     // If the cache is already full then ignore this report
     if (appendedCache.length >= this.maxErrorReportsStoredOnDevice) {
@@ -212,16 +215,16 @@ export default class CrashReporter {
    * Attempt to send all cached reports, re-caching any that fail to send.
    */
   async resendCachedReports() {
-    const cache : CrashReportPayload[] = await this.getCachedCrashReports();
-    const reCache : CrashReportPayload[] = [];
+    const cache: CrashReportPayload[] = await this.getCachedCrashReports();
+    const reCache: CrashReportPayload[] = [];
 
     for (let i = 0; i < cache.length; i++) {
-      await this.sendCrashReport(cache[i]).then((success) => {
+      await this.sendCrashReport(cache[i]).then(success => {
         if (!success) reCache.push(cache[i]);
       });
     }
 
-    this.setCachedCrashReports(reCache);
+    await this.setCachedCrashReports(reCache);
   }
 
   /**
@@ -231,10 +234,12 @@ export default class CrashReporter {
   async setMaxReportsStoredOnDevice(newSize: number) {
     // Set the maximum keeping between a range of [0, 64]
     this.maxErrorReportsStoredOnDevice = Math.min(
-      Math.max(newSize, 0), CrashReporter.MAX_ERROR_REPORTS_STORED_ON_DEVICE);
+      Math.max(newSize, 0),
+      CrashReporter.MAX_ERROR_REPORTS_STORED_ON_DEVICE
+    );
 
     // Remove excess cached reports where necessary, prioritising older reports
-    const cache : CrashReportPayload[] = await this.getCachedCrashReports();
+    const cache: CrashReportPayload[] = await this.getCachedCrashReports();
     if (cache.length > this.maxErrorReportsStoredOnDevice) {
       await this.setCachedCrashReports(cache.slice(0, this.maxErrorReportsStoredOnDevice));
     }
@@ -259,7 +264,7 @@ export default class CrashReporter {
       payload.Details.Tags = getCurrentTags().concat('Fatal');
     }
 
-    this.managePayload(payload);
+    await this.managePayload(payload);
   }
 
   /**
@@ -276,18 +281,18 @@ export default class CrashReporter {
 
     const payload = await this.generateCrashReportPayload(error, stack);
 
-    const payloadWithLocalParams: CrashReportPayload = {...payload};
+    const payloadWithLocalParams: CrashReportPayload = { ...payload };
 
     if (details) {
       if (details.customData) {
-        payloadWithLocalParams.Details.UserCustomData = Object.assign({...this.customData}, details.customData);
+        payloadWithLocalParams.Details.UserCustomData = Object.assign({ ...this.customData }, details.customData);
       }
       if (details.tags) {
         payloadWithLocalParams.Details.Tags = getCurrentTags().concat(details.tags);
       }
     }
 
-    this.managePayload(payloadWithLocalParams);
+    await this.managePayload(payloadWithLocalParams);
   }
 
   /**
@@ -316,11 +321,11 @@ export default class CrashReporter {
    * Modifies and sends the Crash Report Payload (manages beforeSendHandler).
    * @param {CrashReportPayload} payload - The payload to send away.
    */
-  managePayload(payload: CrashReportPayload) {
+  async managePayload(payload: CrashReportPayload) {
     const modifiedPayload =
-      this.onBeforeSendingCrashReport && typeof this.onBeforeSendingCrashReport === 'function' ?
-        this.onBeforeSendingCrashReport(Object.freeze(payload)) :
-        payload;
+      this.onBeforeSendingCrashReport && typeof this.onBeforeSendingCrashReport === 'function'
+        ? this.onBeforeSendingCrashReport(Object.freeze(payload))
+        : payload;
 
     if (!modifiedPayload) {
       return;
@@ -329,12 +334,12 @@ export default class CrashReporter {
     RaygunLogger.v('Crash Report Payload:', modifiedPayload);
 
     // Send the Crash Report, caching it if the transmission is not successful
-    this.sendCrashReport(modifiedPayload).then((success) => {
-      if (!success) this.cacheCrashReports(modifiedPayload);
-      else {
-        this.resendCachedReports();
-      }
-    });
+    var success = await this.sendCrashReport(modifiedPayload);
+    if (!success) {
+      await this.cacheCrashReports(modifiedPayload);
+    } else {
+      await this.resendCachedReports();
+    }
   }
 
   /**
@@ -361,12 +366,12 @@ export default class CrashReporter {
       (RaygunNativeBridge.getEnvironmentInfo && (await RaygunNativeBridge.getEnvironmentInfo())) || {};
 
     // Reformat Native Stack frames to the Raygun StackTrace format
-    const convertToCrashReportingStackFrame = ({file, methodName, lineNumber, column}: StackFrame) => ({
+    const convertToCrashReportingStackFrame = ({ file, methodName, lineNumber, column }: StackFrame) => ({
       FileName: file,
       MethodName: methodName || '[anonymous]',
       LineNumber: lineNumber,
       ColumnNumber: column,
-      ClassName: `line ${lineNumber}, column ${column}`,
+      ClassName: `line ${lineNumber}, column ${column}`
     });
 
     return {
@@ -375,25 +380,25 @@ export default class CrashReporter {
         Error: {
           ClassName: error?.name || 'Unknown',
           Message: error?.message || 'Unknown',
-          StackTrace: Array.isArray(stackTrace) ?
-            stackTrace.map(convertToCrashReportingStackFrame) :
-            [convertToCrashReportingStackFrame(stackTrace)],
-          StackString: error?.toString() || '',
+          StackTrace: Array.isArray(stackTrace)
+            ? stackTrace.map(convertToCrashReportingStackFrame)
+            : [convertToCrashReportingStackFrame(stackTrace)],
+          StackString: error?.toString() || ''
         },
         Environment: {
           UtcOffset: new Date().getTimezoneOffset() / 60.0,
-          ...environmentDetails,
+          ...environmentDetails
         },
         Client: {
           Name: `raygun4reactnative.${Platform.OS}`,
-          Version: clientVersion,
+          Version: clientVersion
         },
         UserCustomData: this.customData,
         Tags: getCurrentTags(),
         User: getCurrentUser(),
         Breadcrumbs: upperFirst(this.breadcrumbs),
-        Version: this.version || 'Not supplied',
-      },
+        Version: this.version || 'Not supplied'
+      }
     };
   }
 
@@ -401,24 +406,25 @@ export default class CrashReporter {
    * Transmit a Crash Report payload to raygun, returning whether or not the transmission is successful.
    * @param {CrashReportPayload} payload
    */
-  async sendCrashReport(payload: CrashReportPayload) : Promise<boolean> {
+  async sendCrashReport(payload: CrashReportPayload): Promise<boolean> {
     // Send the message
     try {
       return await fetch(this.raygunCrashReportEndpoint + '?apiKey=' + encodeURIComponent(this.apiKey), {
         method: 'POST',
         mode: 'cors',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(payload)
       })
-        .then((response) => {
+        .then(response => {
           if (response.status === this.RAYGUN_RATE_LIMITING_STATUS_CODE) {
             RaygunLogger.w('Unable to send Crash Report payload:', 'Raygun rate limiting');
             return false;
           }
           return true;
-        }).catch((error) => {
+        })
+        .catch(error => {
           RaygunLogger.e('Unable to send Crash Report payload:', error.message);
           return false;
         });

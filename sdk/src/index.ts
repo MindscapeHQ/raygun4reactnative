@@ -11,7 +11,7 @@ import {
   getCustomData,
   sendError,
   setMaxReportsStoredOnDevice,
-  sendRUMTimingEvent,
+  sendRUMTimingEvent
 } from './RaygunClient';
 
 import {
@@ -25,7 +25,7 @@ import {
   RaygunClientOptions,
   RaygunStackFrame,
   RealUserMonitoringTimings,
-  User,
+  User
 } from './Types';
 
 export default {
@@ -41,7 +41,7 @@ export default {
   getCustomData,
   sendError,
   setMaxReportsStoredOnDevice,
-  sendRUMTimingEvent,
+  sendRUMTimingEvent
 };
 
 export type {
@@ -53,10 +53,7 @@ export type {
   ManualCrashReportDetails,
   RaygunClientOptions,
   RaygunStackFrame,
-  User,
+  User
 };
 
-export {
-  LogLevel,
-  RealUserMonitoringTimings,
-};
+export { LogLevel, RealUserMonitoringTimings };

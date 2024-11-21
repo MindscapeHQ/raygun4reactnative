@@ -3,7 +3,7 @@ module.exports = {
     platforms: {
       ios: {},
       android: {
-        packageInstance: "new RaygunNativeBridgePackage()"
+        packageInstance: 'new RaygunNativeBridgePackage()'
       }
     }
   }
