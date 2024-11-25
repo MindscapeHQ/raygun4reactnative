@@ -119,8 +119,7 @@ export default class CrashReporter {
   getCustomData() {
     // If this object isnt empty then return it
     for (const prop in this.customData) {
-      if (Object.prototype.hasOwnProperty.call(this.customData, prop)) 
-        return this.customData;
+      if (Object.prototype.hasOwnProperty.call(this.customData, prop)) return this.customData;
     }
 
     return null;
