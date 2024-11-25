@@ -334,7 +334,7 @@ export default class CrashReporter {
     RaygunLogger.v('Crash Report Payload:', modifiedPayload);
 
     // Send the Crash Report, caching it if the transmission is not successful
-    var success = await this.sendCrashReport(modifiedPayload);
+    const success = await this.sendCrashReport(modifiedPayload);
     if (!success) {
       await this.cacheCrashReports(modifiedPayload);
     } else {

@@ -151,7 +151,7 @@ export default class RealUserMonitor {
 
     if (this.loadingViews.has(viewname)) {
       const viewLoadStartTime = this.loadingViews.get(viewname);
-      if (!!viewLoadStartTime) {
+      if (viewLoadStartTime) {
         const duration: number = Math.round(time - viewLoadStartTime);
 
         this.loadingViews.delete(viewname);
