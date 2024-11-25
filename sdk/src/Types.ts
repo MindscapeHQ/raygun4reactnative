@@ -144,6 +144,7 @@ export type RequestMeta = {
 export type NetworkTimingCallback = (name: string, sendTime: number, duration: number) => void;
 
 declare global {
+  /* eslint-disable @typescript-eslint/no-namespace */
   namespace NodeJS {
     type Global = {
       HermesInternal?: Record<string, string>;

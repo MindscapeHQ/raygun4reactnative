@@ -1,7 +1,7 @@
 import { RealUserMonitoringEvents, RealUserMonitoringTimings, RealUserMonitorPayload, RequestMeta } from './Types';
 import { getDeviceId, getCurrentUser, getCurrentTags, getRandomGUID } from './Utils';
 
-// @ts-ignore
+// @ts-expect-error "ignore the could not find module error"
 import XHRInterceptor from 'react-native/Libraries/Network/XHRInterceptor';
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
 import RaygunLogger from './RaygunLogger';
