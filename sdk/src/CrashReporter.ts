@@ -78,7 +78,7 @@ export default class CrashReporter {
     const prevHandler = ErrorUtils.getGlobalHandler();
     ErrorUtils.setGlobalHandler(async (error: Error, isFatal?: boolean) => {
       await this.processUnhandledError(error, isFatal);
-      prevHandler && prevHandler(error, isFatal);
+      prevHandler?.(error, isFatal);
     });
 
     if (!disableUnhandledPromiseRejectionReporting) {
@@ -119,7 +119,7 @@ export default class CrashReporter {
   getCustomData() {
     // If this object isnt empty then return it
     for (const prop in this.customData) {
-      if (this.customData.hasOwnProperty(prop)) return this.customData;
+      if (Object.prototype.hasOwnProperty.call(this.customData, prop)) return this.customData;
     }
 
     return null;
@@ -334,7 +334,7 @@ export default class CrashReporter {
     RaygunLogger.v('Crash Report Payload:', modifiedPayload);
 
     // Send the Crash Report, caching it if the transmission is not successful
-    var success = await this.sendCrashReport(modifiedPayload);
+    const success = await this.sendCrashReport(modifiedPayload);
     if (!success) {
       await this.cacheCrashReports(modifiedPayload);
     } else {

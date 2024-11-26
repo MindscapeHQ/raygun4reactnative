@@ -53,6 +53,7 @@ export const getCurrentTags = (): string[] => {
 
 const SOURCE_MAP_PREFIX = 'file://reactnative.local/';
 
+/* eslint-disable no-useless-escape */
 const devicePathPattern = /^(.*@)?.*\/[^\.]+(\.app|CodePush)\/?(.*)/;
 const internalTrace = new RegExp('ReactNativeRenderer-dev\\.js$|MessageQueue\\.js$|native\\scode');
 

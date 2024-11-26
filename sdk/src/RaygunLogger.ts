@@ -2,14 +2,12 @@ import { LogLevel } from './Types';
 
 const pj = require('../package.json');
 
-// eslint-disable-next-line require-jsdoc
 export default class RaygunLogger {
   private static logLevelArr: any[] = [];
   private static logLevel: number = -2;
 
   private static consoles: any[] = [console.error, console.warn, console.info, console.debug];
 
-  // eslint-disable-next-line require-jsdoc
   public static init(level: LogLevel) {
     this.logLevelArr = Object.values(LogLevel);
     this.logLevel = this.logLevelArr.indexOf(level);
