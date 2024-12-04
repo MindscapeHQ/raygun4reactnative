@@ -828,15 +828,11 @@ therefore data like breadcrumbs or user information won't be accesible by the pl
 
 ## Generating Sourcemaps
 
-Source Maps help to convert minified JavaScript code back into source code. 
-Raygun uses them to take un-readable errors generated from minified JavaScript 
-and translate them to be readable and to include code snippets from your source.
+Source Maps helps convert minified JavaScript code back into source code.  Raygun uses them to take unreadable errors generated from minified JavaScript, translate them to be readable, and include code snippets from your source.
 
 To generate them in your app, refer to the React Native documentation:
-[Enabling sourcemaps for debuging release builds](https://reactnative.dev/docs/debugging-release-builds).
+[Enabling sourcemaps for debugging release builds](https://reactnative.dev/docs/debugging-release-builds).
 
-Once your sourcemaps have been generated,
-follow the instructions in the [JavaScript Source Maps documentation](https://raygun.com/documentation/language-guides/javascript/crash-reporting/source-maps/)
-to upload them.
+Once your sourcemaps have been generated, follow the instructions in the [JavaScript Source Maps documentation](https://raygun.com/documentation/language-guides/javascript/crash-reporting/source-maps/) to upload them.
 
 ---
