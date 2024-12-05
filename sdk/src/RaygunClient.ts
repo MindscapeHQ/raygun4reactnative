@@ -7,6 +7,7 @@ import {
   BeforeSendHandler,
   Breadcrumb,
   CustomData,
+  GroupingKeyHandler,
   LogLevel,
   ManualCrashReportDetails,
   RaygunClientOptions,
@@ -63,6 +64,7 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
     customRealUserMonitoringEndpoint = '',
     logLevel = LogLevel.warn,
     onBeforeSendingCrashReport = null,
+    groupingKey = null,
     ignoredURLs = [],
     ignoredViews = [],
     maxErrorReportsStoredOnDevice = CrashReporter.MAX_ERROR_REPORTS_STORED_ON_DEVICE,
@@ -81,6 +83,7 @@ const init = (raygunClientOptions: RaygunClientOptions) => {
       disableUnhandledPromiseRejectionReporting,
       customCrashReportingEndpoint || '',
       onBeforeSendingCrashReport as BeforeSendHandler,
+      groupingKey as GroupingKeyHandler,
       version,
       maxErrorReportsStoredOnDevice,
       maxBreadcrumbsPerErrorReport
@@ -358,5 +361,5 @@ export {
   getCustomData,
   sendError,
   setMaxReportsStoredOnDevice,
-  sendRUMTimingEvent
+  sendRUMTimingEvent,
 };

@@ -1,5 +1,5 @@
 import { cleanFilePath, filterOutReactFrames, getCurrentTags, getCurrentUser, noAddressAt, upperFirst } from './Utils';
-import { BeforeSendHandler, Breadcrumb, CrashReportPayload, CustomData, ManualCrashReportDetails } from './Types';
+import { BeforeSendHandler, Breadcrumb, CrashReportPayload, CustomData, GroupingKeyHandler, ManualCrashReportDetails } from './Types';
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
 import { NativeModules, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -27,6 +27,7 @@ export default class CrashReporter {
   private version: string;
   private disableNativeCrashReporting: boolean;
   private onBeforeSendingCrashReport: BeforeSendHandler | null;
+  private groupingKey: GroupingKeyHandler | null;
   private raygunCrashReportEndpoint = CrashReporter.DEFAULT_RAYGUN_CRASH_REPORTING_ENDPOINT;
   private maxErrorReportsStoredOnDevice: number;
   private maxBreadcrumbsPerErrorReport: number;
@@ -40,6 +41,7 @@ export default class CrashReporter {
    * @param {boolean} disableUnhandledPromiseRejectionReporting - Whether or not to enable unhandled promise rejection reporting.
    * @param {string} customCrashReportingEndpoint - Custom endpoint for Crash Report (may be empty or null).
    * @param {BeforeSendHandler} onBeforeSendingCrashReport - A lambda to execute before each Crash Report transmission.
+   * @param {GroupingKeyHandler} groupingKey - A lambda to determine the grouping key for a Crash Report.
    * @param {string} version - The current version of the RaygunClient.
    * @param {number} maxErrorReportsStoredOnDevice - The total number of error reports that can be in local storage at one time.
    * @param {number} maxBreadCrumbsPerErrorReport - The total number of breadcrumbs an error report can contain.
@@ -50,6 +52,7 @@ export default class CrashReporter {
     disableUnhandledPromiseRejectionReporting: boolean,
     customCrashReportingEndpoint: string,
     onBeforeSendingCrashReport: BeforeSendHandler | null,
+    groupingKey: GroupingKeyHandler | null,
     version: string,
     maxErrorReportsStoredOnDevice: number,
     maxBreadCrumbsPerErrorReport: number
@@ -58,6 +61,7 @@ export default class CrashReporter {
     this.apiKey = apiKey;
     this.disableNativeCrashReporting = disableNativeCrashReporting;
     this.onBeforeSendingCrashReport = onBeforeSendingCrashReport;
+    this.groupingKey = groupingKey;
     this.version = version;
 
     this.maxErrorReportsStoredOnDevice = Math.min(
@@ -99,7 +103,7 @@ export default class CrashReporter {
       });
     }
 
-    this.resendCachedReports().then(r => {});
+    this.resendCachedReports().then(r => { });
   }
 
   /**
@@ -331,6 +335,12 @@ export default class CrashReporter {
       return;
     }
 
+    // Set optinal grouping key
+    modifiedPayload.Details.GroupingKey =
+      this.groupingKey && typeof this.groupingKey === 'function'
+        ? this.groupingKey(Object.freeze(payload))
+        : null;
+
     RaygunLogger.v('Crash Report Payload:', modifiedPayload);
 
     // Send the Crash Report, caching it if the transmission is not successful
@@ -397,7 +407,8 @@ export default class CrashReporter {
         Tags: getCurrentTags(),
         User: getCurrentUser(),
         Breadcrumbs: upperFirst(this.breadcrumbs),
-        Version: this.version || 'Not supplied'
+        Version: this.version || 'Not supplied',
+        GroupingKey: null,
       }
     };
   }
