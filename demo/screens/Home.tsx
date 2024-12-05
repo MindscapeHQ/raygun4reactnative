@@ -1,7 +1,7 @@
 import {Button, Image, SafeAreaView, ScrollView, StatusBar, Text, View} from "react-native";
 import React, {useState} from "react";
 import {raygunClient, styles} from "../utils/Utils";
-import {BeforeSendHandler, CrashReportPayload, LogLevel, RaygunClientOptions, User} from "raygun4reactnative";
+import {BeforeSendHandler, CrashReportPayload, LogLevel, RaygunClientOptions, User, GroupingKeyHandler } from "raygun4reactnative";
 
 //#region -- Initialization Object -----------------------------------------------------------------
 
@@ -23,6 +23,18 @@ const beforeSendFunc: BeforeSendHandler = (crp: CrashReportPayload) => {
     return null;
   }
   return crp;
+}
+
+/**
+ * This is an example of a GroupingKeyHandler. This function is parsed through the RaygunClientOptions
+ * and is called before sending any crash report. The return value is used to group crash reports
+ * together. If the return value is null, the grouping key is then ignored.
+ * 
+ * @param crp - The CrashReportPayload that is about to be sent.
+ */
+const groupingKeyFunc: GroupingKeyHandler = (crp: CrashReportPayload) => {
+  // Group all errors with the same message together
+  return crp.Details.Error.Message;
 }
 
 /**
@@ -51,6 +63,7 @@ const options: RaygunClientOptions = {
   enableCrashReporting: true,
   enableRealUserMonitoring: true,
   onBeforeSendingCrashReport: beforeSendFunc,
+  groupingKey: groupingKeyFunc,
   ignoredURLs: ignoredUrls,
   ignoredViews: ignoredViews,
   logLevel: LogLevel.verbose,
