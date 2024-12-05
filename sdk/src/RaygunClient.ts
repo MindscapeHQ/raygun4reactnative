@@ -361,5 +361,5 @@ export {
   getCustomData,
   sendError,
   setMaxReportsStoredOnDevice,
-  sendRUMTimingEvent,
+  sendRUMTimingEvent
 };

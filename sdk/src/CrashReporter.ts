@@ -1,5 +1,12 @@
 import { cleanFilePath, filterOutReactFrames, getCurrentTags, getCurrentUser, noAddressAt, upperFirst } from './Utils';
-import { BeforeSendHandler, Breadcrumb, CrashReportPayload, CustomData, GroupingKeyHandler, ManualCrashReportDetails } from './Types';
+import {
+  BeforeSendHandler,
+  Breadcrumb,
+  CrashReportPayload,
+  CustomData,
+  GroupingKeyHandler,
+  ManualCrashReportDetails
+} from './Types';
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
 import { NativeModules, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -103,7 +110,7 @@ export default class CrashReporter {
       });
     }
 
-    this.resendCachedReports().then(r => { });
+    this.resendCachedReports().then(r => {});
   }
 
   /**
@@ -337,9 +344,7 @@ export default class CrashReporter {
 
     // Set optinal grouping key
     modifiedPayload.Details.GroupingKey =
-      this.groupingKey && typeof this.groupingKey === 'function'
-        ? this.groupingKey(Object.freeze(payload))
-        : null;
+      this.groupingKey && typeof this.groupingKey === 'function' ? this.groupingKey(Object.freeze(payload)) : null;
 
     RaygunLogger.v('Crash Report Payload:', modifiedPayload);
 
@@ -408,7 +413,7 @@ export default class CrashReporter {
         User: getCurrentUser(),
         Breadcrumbs: upperFirst(this.breadcrumbs),
         Version: this.version || 'Not supplied',
-        GroupingKey: null,
+        GroupingKey: null
       }
     };
   }
