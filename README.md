@@ -210,7 +210,20 @@ To complete the setup, perform the [additional step for Android](#additional-ste
 
 ### Expo support for iOS
 
-To complete the setup, perform the [additional step for iOS](#additional-step-for-ios)
+Run app on iOS once to create the native files directory:
+
+```
+npx expo run:android
+```
+
+If not done already, install Raygun4ReactNative and AsyncStorage dependency:
+
+```
+npm install --save raygun4reactnative
+npm install --save @react-native-async-storage/async-storage
+```
+
+The [additional step for iOS](#additional-step-for-ios) should not be necessary for Expo apps. As the native package should be automatically linked.
 
 ## Additional Public Documentation
 
