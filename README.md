@@ -193,7 +193,7 @@ Add the `android.package` property to the `app.json`.
 },
 ```
 
-Run app on Android once to create the native files directory:
+Run the app on Android once to create the native files directory:
 
 ```
 npx expo run:android
@@ -208,9 +208,11 @@ npm install --save @react-native-async-storage/async-storage
 
 To complete the setup, perform the [additional step for Android](#additional-step-for-android).
 
+Proceed to the [API guide](#api-guide) to start using the package.
+
 ### Expo support for iOS
 
-Run app on iOS once to create the native files directory:
+Run the app on iOS once to create the native files directory:
 
 ```
 npx expo run:android
@@ -224,6 +226,8 @@ npm install --save @react-native-async-storage/async-storage
 ```
 
 The [additional step for iOS](#additional-step-for-ios) should not be necessary for Expo apps. As the native package should be automatically linked.
+
+Proceed to the [API guide](#api-guide) to start using the package.
 
 ## Additional Public Documentation
 
