@@ -7,7 +7,7 @@
     - [Additional step for IOS](#additional-step-for-ios)
     - [Additional step for ANDROID](#additional-step-for-android)
     - [Manual integration](#manual-integration)
-    - [Expo] (#expo)
+    - [Expo](#expo)
     - [Additional Public Documentation](#additional-public-documentation)
 3. [API guide](#api-guide)
     - [Important information](#important-information)
