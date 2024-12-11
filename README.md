@@ -27,6 +27,7 @@
         - [sendRUMTimingEvent](#sendrumtimingeventeventtype-realusermonitoringtimings-name-string-timeusedinms-number)
     - [Raygun specific types](#raygun-specific-types)
         - [BeforeSendHandler](#beforesendhandler)
+        - [GroupingKeyHandler](#groupingkeyhandler)
         - [Breadcrumb](#breadcrumb)
         - [CrashReportPayload](#crashreportpayload)
         - [CustomData](#customdata)
@@ -293,6 +294,7 @@ const options: RaygunClientOptions = {
   ignoredViews: ["name of view to ignore"],
   logLevel: LogLevel.verbose,
   onBeforeSendingCrashReport: (crashReport) => console.log(crashReport),
+  groupingKey: (crashReport) => crashReport.Details.Error.Message,
   maxErrorReportsStoredOnDevice: 10,
   maxBreadCrumbsPerErrorReport: 10,
 };
@@ -605,6 +607,21 @@ See also:<br/>
 export type BeforeSendHandler = (payload: CrashReportPayload) => CrashReportPayload | null;
 ```
 
+### GroupingKeyHandler
+
+The `GroupingKeyHandler` allows to define a custom grouping key to group error together.
+
+When initializing Raygun, pass a `groupingKey` function.
+This function takes a `CrashReportPayload` and must return either a `string` with the custom grouping key,
+or `null` to use the default grouping.
+
+See also:<br/>
+[CrashReportPayload](#crashreportpayload)
+
+```typescript
+export type GroupingKeyHandler = (payload: CrashReportPayload) => string | null;
+```
+
 <br/>
 <br/>
 
@@ -779,6 +796,7 @@ and will instead be thrown away, and lost forever.
 
 See also:<br/>
 [BeforeSendHandler](#beforesendhandler)
+[GroupingKeyHandler](#groupingkeyhandler)
 
 ```typescript
 export type RaygunClientOptions = {
@@ -793,6 +811,7 @@ export type RaygunClientOptions = {
   customRealUserMonitoringEndpoint?: string;
   logLevel?: LogLevel;
   onBeforeSendingCrashReport?: BeforeSendHandler;
+  groupingKey?: GroupingKeyHandler;
   ignoredURLs?: string[];
   ignoredViews?: string[];
   maxErrorReportsStoredOnDevice?: number;

@@ -12,6 +12,7 @@ export type RaygunClientOptions = {
   customRealUserMonitoringEndpoint?: string;
   logLevel?: LogLevel;
   onBeforeSendingCrashReport?: BeforeSendHandler;
+  groupingKey?: GroupingKeyHandler;
   ignoredURLs?: string[];
   ignoredViews?: string[];
   maxErrorReportsStoredOnDevice?: number;
@@ -84,6 +85,7 @@ export type Breadcrumb = {
   type?: 'manual';
 };
 export type BeforeSendHandler = (payload: CrashReportPayload) => CrashReportPayload | null;
+export type GroupingKeyHandler = (payload: CrashReportPayload) => string | null;
 
 export type CrashReportPayload = {
   OccurredOn: Date;
@@ -104,6 +106,7 @@ export type CrashReportPayload = {
     User?: User;
     Breadcrumbs?: Breadcrumb[];
     Version: string;
+    GroupingKey: string | null;
   };
 };
 
