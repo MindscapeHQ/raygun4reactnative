@@ -7,6 +7,7 @@
     - [Additional step for IOS](#additional-step-for-ios)
     - [Additional step for ANDROID](#additional-step-for-android)
     - [Manual integration](#manual-integration)
+    - [Expo] (#expo)
     - [Additional Public Documentation](#additional-public-documentation)
 3. [API guide](#api-guide)
     - [Important information](#important-information)
@@ -170,7 +171,66 @@ protected List<ReactPackage> getPackages() {
 }
 ```
 
-### Additional Public Documentation
+## Expo
+
+Raygun for ReactNative is not compatible with [Expo Go](https://expo.dev/go) projects, however, it can be installed in Expo projects that use [development builds](https://docs.expo.dev/develop/development-builds/introduction/).
+
+You can find an example of Expo app using Raygun in the `ExpoDemo` folder.
+
+To use Raygun for ReactNative in Expo projects, first enable the development build mode:
+
+```
+npx expo install expo-dev-client
+```
+
+### Expo support for Android
+
+Add the `android.package` property to the `app.json`.
+
+```
+"android": {
+  "package": "com.raygun.expodemo",
+  ...
+},
+```
+
+Run the app on Android once to create the native files directory:
+
+```
+npx expo run:android
+```
+
+Install Raygun4ReactNative and AsyncStorage dependency:
+
+```
+npm install --save raygun4reactnative
+npm install --save @react-native-async-storage/async-storage
+```
+
+To complete the setup, perform the [additional step for Android](#additional-step-for-android).
+
+Proceed to the [API guide](#api-guide) to start using the package.
+
+### Expo support for iOS
+
+Run the app on iOS once to create the native files directory:
+
+```
+npx expo run:android
+```
+
+If not done already, install Raygun4ReactNative and AsyncStorage dependency:
+
+```
+npm install --save raygun4reactnative
+npm install --save @react-native-async-storage/async-storage
+```
+
+The [additional step for iOS](#additional-step-for-ios) should not be necessary for Expo apps. As the native package should be automatically linked.
+
+Proceed to the [API guide](#api-guide) to start using the package.
+
+## Additional Public Documentation
 
 [Crash Reporting Installation](https://raygun.com/documentation/language-guides/react-native/crash-reporting/installation/) <br/>
 [Crash Reporting Features](https://raygun.com/documentation/language-guides/react-native/crash-reporting/features/) <br/>
