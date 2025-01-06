@@ -17,7 +17,7 @@
     "raygun4reactnative": "file:../sdk",
     "react": "18.3.1",
     "react-native": "0.76.1",
-    "react-native-safe-area-context": "^4.14.0",
+    "react-native-safe-area-context": "^5.0.0",
     "react-native-screens": "^4.3.0"
   },
   "devDependencies": {
