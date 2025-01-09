@@ -1,3 +1,11 @@
+## 1.5.2
+
+- fix: #125 move README to sdk folder (#126) (2025-01-07)
+
+## 1.5.1
+
+*No changes*
+
 ## 1.5.0
 
 - feat: Add GroupingKey callback (#115) (2024-12-11)
