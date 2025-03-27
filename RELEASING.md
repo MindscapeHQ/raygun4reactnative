@@ -1,7 +1,6 @@
 # Releasing Raygun4ReactNative
 
-Raygun for Node is published on npmjs.com as [`raygun4reactnative`](https://www.npmjs.com/package/raygun4reactnative).
-
+Raygun4ReactNative is published on npmjs.com as [`raygun4reactnative`](https://www.npmjs.com/package/raygun4reactnative).
 ## Semantic versioning
 
 This package follows semantic versioning.
