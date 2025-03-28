@@ -11,6 +11,7 @@ All required React Native packages will be installed through `npm`.
 - The `raygun4reactnative` package is in the `sdk` folder.
 - The `demo` folder contains an example app based on React Native.
 - The `ExpoDemo` folder contains an example app based on Expo.
+
 ## Building and running
 
 The recommended IDE for working on this project is Visual Studio Code.
