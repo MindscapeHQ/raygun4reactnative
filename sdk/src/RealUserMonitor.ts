@@ -1,6 +1,6 @@
 import { RealUserMonitoringEvents, RealUserMonitoringTimings, RealUserMonitorPayload, RequestMeta } from './Types';
 import { getCurrentUser, getCurrentTags, getRandomGUID } from './Utils';
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 
 // @ts-expect-error "ignore the could not find module error"
 import XHRInterceptor from 'react-native/Libraries/Network/XHRInterceptor';
