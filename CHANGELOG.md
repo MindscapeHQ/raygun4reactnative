@@ -1,3 +1,28 @@
+## 1.5.3
+
+- fix: map RUM requests using a unique id (#149) (2025-04-02)
+- docs: add Releasing and Contributing (#139) (2025-04-02)
+- chore(deps-dev): bump @babel/core from 7.26.9 to 7.26.10 in /demo (#144) (2025-04-02)
+- chore(deps): bump @babel/helpers from 7.26.0 to 7.27.0 in /ExpoDemo (#148) (2025-04-01)
+- chore(deps): bump @babel/runtime from 7.26.0 to 7.27.0 in /ExpoDemo (#147) (2025-04-01)
+- chore(deps): bump @babel/helpers from 7.26.9 to 7.27.0 in /demo (#146) (2025-04-01)
+- chore(deps-dev): bump @babel/runtime from 7.26.9 to 7.27.0 in /demo (#145) (2025-04-01)
+- chore(deps-dev): bump react-test-renderer from 19.0.0 to 19.1.0 in /demo (#143) (2025-04-01)
+- chore(deps-dev): bump @react-native/typescript-config in /demo (#142) (2025-04-01)
+- chore(deps-dev): bump @react-native/eslint-config in /demo (#141) (2025-04-01)
+- chore(deps): bump react-native-screens from 4.9.1 to 4.10.0 in /demo (#140) (2025-04-01)
+- chore(deps-dev): bump React version and related dependencies in /demo (#136) (2025-03-04)
+- chore(deps-dev): bump @react-native/typescript-config in /demo (#134) (2025-03-04)
+- chore(deps-dev): bump @babel/runtime from 7.26.0 to 7.26.9 in /demo (#135) (2025-03-03)
+- chore(deps-dev): bump @react-native/metro-config in /demo (#137) (2025-03-03)
+- chore(deps-dev): bump prettier from 3.4.1 to 3.5.2 in /demo (#138) (2025-03-03)
+- chore(deps-dev): bump @react-native/babel-preset from 0.76.3 to 0.77.0 in /demo (#132) (2025-02-03)
+- chore(deps-dev): bump @react-native/typescript-config from 0.76.1 to 0.77.0 in /demo (#133) (2025-02-03)
+- chore(deps): bump @react-navigation/bottom-tabs from 7.1.3 to 7.2.0 in /demo (#131) (2025-02-03)
+- chore(deps-dev): bump @react-native-community/cli-platform-ios from 15.1.2 to 15.1.3 in /demo (#130) (2025-02-03)
+- chore(deps-dev): bump @babel/core from 7.26.0 to 7.26.7 in /demo (#129) (2025-02-03)
+- chore(deps): bump undici from 6.21.0 to 6.21.1 in /ExpoDemo (#128) (2025-01-24)
+
 ## 1.5.2
 
 - fix: #125 move README to sdk folder (#126) (2025-01-07)
