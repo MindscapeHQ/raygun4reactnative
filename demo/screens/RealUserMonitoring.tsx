@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import {
   Button,
   Image,
@@ -9,8 +9,8 @@ import {
   TextInput,
   View
 } from "react-native";
-import {raygunClient, styles} from "../utils/Utils";
-import {RealUserMonitoringTimings} from "raygun4reactnative";
+import { raygunClient, styles } from "../utils/Utils";
+import { RealUserMonitoringTimings } from "raygun4reactnative";
 
 export default function RealUserMonitoring() {
   // Send network component variables
@@ -67,12 +67,20 @@ export default function RealUserMonitoring() {
     raygunClient.sendRUMTimingEvent(RealUserMonitoringTimings.NetworkCall, "Test Network Event", 100);
   }
 
+  const sendMultipleNetworkEvent = () => {
+    for (let i = 0; i < 5; i++) {
+      fetch("https://www.example.com/").then(() => {
+        console.log(`Network request(${i}) to example.com`);
+      });
+    }
+  }
+
 
   /**
    * Manages switching between a valid, and ignored, custom view event
    */
   const customViewEvent = () => {
-    switch (sendCustomViewBtn){
+    switch (sendCustomViewBtn) {
       case "Send Custom View Event":
         sendCustomViewEvent();
         setSendCustomViewBtn("Send Ignored Custom View Event")
@@ -136,13 +144,13 @@ export default function RealUserMonitoring() {
 
   return (
     <>
-      <StatusBar barStyle="dark-content"/>
+      <StatusBar barStyle="dark-content" />
       <SafeAreaView>
         <ScrollView contentInsetAdjustmentBehavior="automatic" style={styles.scrollView}>
           <View key={"Raygun Logo"} style={styles.mainView}>
             <Image
               style={styles.image}
-              source={require("../utils/Raygun_Logo.png")}/>
+              source={require("../utils/Raygun_Logo.png")} />
           </View>
 
           <View style={styles.mainView}>
@@ -156,7 +164,7 @@ export default function RealUserMonitoring() {
               <Button
                 title={sendNetworkBtn}
                 color={networkBtnColor}
-                onPress={() => sendNetworkRequest()}/>
+                onPress={() => sendNetworkRequest()} />
             </View>
           </View>
 
@@ -175,7 +183,7 @@ export default function RealUserMonitoring() {
               <Button
                 title={"Send Custom Network Event"}
                 color={"green"}
-                onPress={() => sendCustomNetworkEvent()}/>
+                onPress={() => sendCustomNetworkEvent()} />
             </View>
           </View>
 
@@ -196,7 +204,7 @@ export default function RealUserMonitoring() {
               <Button
                 title={sendCustomViewBtn}
                 color={sendCustomViewColor}
-                onPress={() => customViewEvent()}/>
+                onPress={() => customViewEvent()} />
             </View>
           </View>
 
@@ -219,18 +227,35 @@ export default function RealUserMonitoring() {
               <Button
                 title={"Login"}
                 color={"blue"}
-                onPress={() => login()}/>
+                onPress={() => login()} />
             </View>
 
             {loggedIn && (
               <Image
                 style={styles.image}
-                source={require("../utils/Random_Image.png")}/>
+                source={require("../utils/Random_Image.png")} />
             )}
 
             {loggedIn && (
               completedImageLoad()
             )}
+          </View>
+
+          <View style={styles.mainView}>
+            <View style={styles.secondView}>
+              <Text key={"Send Multiple"} style={styles.title}>Send Multiple Network Events:</Text>
+              <Text key={"Send Multiple Network Event explain"} style={styles.text}>
+                Sends multiple network events at the same time,
+                which should all be captured by RUM
+              </Text>
+            </View>
+
+            <View style={styles.secondView}>
+              <Button
+                title={"Send Multiple Network Event"}
+                color={"green"}
+                onPress={() => sendMultipleNetworkEvent()} />
+            </View>
           </View>
         </ScrollView>
       </SafeAreaView>

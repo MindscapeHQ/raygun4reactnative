@@ -1,5 +1,6 @@
 import { RealUserMonitoringEvents, RealUserMonitoringTimings, RealUserMonitorPayload, RequestMeta } from './Types';
-import { getDeviceId, getCurrentUser, getCurrentTags, getRandomGUID } from './Utils';
+import { getCurrentUser, getCurrentTags, getRandomGUID } from './Utils';
+import {v4 as uuidv4} from 'uuid';
 
 // @ts-expect-error "ignore the could not find module error"
 import XHRInterceptor from 'react-native/Libraries/Network/XHRInterceptor';
@@ -302,11 +303,11 @@ export default class RealUserMonitor {
       return;
     }
 
-    // Obtain the device ID
-    const id = getDeviceId();
+    // Create a unique ID for this request
+    const id = uuidv4();
 
-    // Set the ID of the XHRInterceptor to the device ID
-    xhr._id_ = id;
+    // Set the ID of the XHRInterceptor to the unique ID
+    xhr._id_ = url;
 
     // Store the ID and the action taken on the device in a map, ID => REQUEST_META
     this.requests.set(id, { name: `${method} ${url}` });
@@ -319,7 +320,7 @@ export default class RealUserMonitor {
    * @param {any} xhr - The interceptor that picked up the send request.
    */
   handleRequestSend(data: string, xhr: any) {
-    // Extract the XHRInterceptor's ID (also the Device's base ID). Use that to get the RequestMeta object from the map
+    // Extract the XHRInterceptor's ID. Use that to get the RequestMeta object from the map
     const { _id_ } = xhr;
     const requestMeta = this.requests.get(_id_);
 
@@ -344,7 +345,7 @@ export default class RealUserMonitor {
    * @param {any} xhr
    */
   handleResponse(status: number, timeout: number, resp: string, respUrl: string, respType: string, xhr: any) {
-    // Extract the XHRInterceptor's ID (also the Device's base ID). Use that to get the RequestMeta object from the map
+    // Extract the XHRInterceptor's ID. Use that to get the RequestMeta object from the map
     const { _id_ } = xhr;
     const requestMeta = this.requests.get(_id_);
 
@@ -354,6 +355,8 @@ export default class RealUserMonitor {
       const { name, sendTime } = requestMeta;
       const duration = Date.now() - sendTime!;
       this.sendNetworkTimingEvent(name, sendTime!, duration);
+      // Remove the request from the map
+      this.requests.delete(_id_);
     }
   }
 

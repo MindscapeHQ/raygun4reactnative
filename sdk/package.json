@@ -46,7 +46,8 @@
   "licenseFilename": "LICENSE",
   "readmeFilename": "README.md",
   "dependencies": {
-    "@react-native-async-storage/async-storage": "^2.0.0"
+    "@react-native-async-storage/async-storage": "^2.0.0",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",
