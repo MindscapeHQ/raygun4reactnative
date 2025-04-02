@@ -307,8 +307,7 @@ export default class RealUserMonitor {
     const id = uuidv4();
 
     // Set the ID of the XHRInterceptor to the unique ID
-    xhr._id_ = url;
-
+    xhr._id_ = id;
     // Store the ID and the action taken on the device in a map, ID => REQUEST_META
     this.requests.set(id, { name: `${method} ${url}` });
   }
