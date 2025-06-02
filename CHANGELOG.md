@@ -1,3 +1,21 @@
+## 1.5.4
+
+- chore(deps): update raygun native dependencies (#160) (2025-05-31)
+- chore(deps): bump @react-navigation/bottom-tabs in /demo (#162) (2025-06-02)
+- chore(deps): bump creyD/prettier_action from 4.3 to 4.5 (#166) (2025-06-02)
+- chore(deps): bump undici from 6.21.1 to 6.21.3 in /ExpoDemo (#159) (2025-05-19)
+- chore(deps): bump @react-navigation/bottom-tabs in /demo (#154) (2025-05-01)
+- chore(deps): bump image-size from 1.1.1 to 1.2.1 in /ExpoDemo (#151) (2025-04-03)
+- chore(deps): bump image-size from 1.2.0 to 1.2.1 in /demo (#152) (2025-04-03)
+- chore(deps-dev): bump @react-native/metro-config in /demo (#164) (2025-06-02)
+- chore(deps-dev): bump @react-native-community/cli-platform-android (#163) (2025-06-02)
+- chore(deps-dev): bump @react-native/typescript-config in /demo (#165) (2025-06-02)
+- chore(deps-dev): bump @babel/runtime from 7.27.0 to 7.27.4 in /demo (#161) (2025-06-02)
+- chore(deps): bump react-native-safe-area-context in /demo (#158) (2025-05-01)
+- chore(deps-dev): bump prettier from 3.5.2 to 3.5.3 in /demo (#157) (2025-05-01)
+- chore(deps-dev): bump @react-native/typescript-config in /demo (#156) (2025-05-01)
+- chore(deps-dev): bump @babel/preset-env from 7.26.9 to 7.27.1 in /demo (#155) (2025-05-01)
+
 ## 1.5.3
 
 - fix: map RUM requests using a unique id (#149) (2025-04-02)
