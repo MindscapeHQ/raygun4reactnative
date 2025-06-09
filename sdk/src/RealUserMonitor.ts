@@ -1,14 +1,61 @@
 import { RealUserMonitoringEvents, RealUserMonitoringTimings, RealUserMonitorPayload, RequestMeta } from './Types';
 import { getCurrentUser, getCurrentTags, getRandomGUID } from './Utils';
 import { v4 as uuidv4 } from 'uuid';
-
-// @ts-expect-error "ignore the could not find module error"
-import XHRInterceptor from 'react-native/Libraries/Network/XHRInterceptor';
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
 import RaygunLogger from './RaygunLogger';
 
 const { RaygunNativeBridge } = NativeModules;
 const { osVersion, platform } = RaygunNativeBridge;
+
+// Attempt to require XHRInterceptor using dynamic paths
+let XHRInterceptorModule: any
+try {
+  // Try the new path first (for RN >= 0.79)
+  // https://github.com/facebook/react-native/releases/tag/v0.79.0#:~:text=APIs%3A%20Move-,XHRInterceptor,-API%20to%20src
+  XHRInterceptorModule = require("react-native/src/private/inspector/XHRInterceptor")
+} catch (e) {
+  try {
+    // Fallback to the old path (for RN < 0.79)
+    XHRInterceptorModule = require("react-native/Libraries/Network/XHRInterceptor")
+  } catch (e) {
+    RaygunLogger.w('Failed to load XHRInterceptor, network monitoring will be disabled', e);
+    XHRInterceptorModule = null;
+  }
+}
+
+let XHRInterceptor: any 
+if (XHRInterceptorModule) {
+  // Check if methods are directly on the module
+  if (
+    typeof XHRInterceptorModule.setSendCallback === "function" &&
+    typeof XHRInterceptorModule.setResponseCallback === "function" &&
+    typeof XHRInterceptorModule.enableInterception === "function"
+  ) {
+    XHRInterceptor = XHRInterceptorModule
+  }
+  // Check if methods are on the default export
+  else if (
+    XHRInterceptorModule.default &&
+    typeof XHRInterceptorModule.default.setSendCallback === "function" &&
+    typeof XHRInterceptorModule.default.setResponseCallback === "function" &&
+    typeof XHRInterceptorModule.default.enableInterception === "function"
+  ) {
+    XHRInterceptor = XHRInterceptorModule.default
+  }
+}
+
+// If still no valid XHRInterceptor after checking module and module.default, assign the dummy
+if (!XHRInterceptor) {
+  if (XHRInterceptorModule) {
+    RaygunLogger.e("Required XHRInterceptor module does not have expected methods.")
+    RaygunLogger.w("Network monitoring will be disabled.")
+  }
+  XHRInterceptor = {
+    setSendCallback: () => { },
+    setResponseCallback: () => { },
+    enableInterception: () => { },
+  }
+}
 
 const defaultURLIgnoreList: string[] = ['api.raygun.com', 'localhost:8081'];
 const defaultViewIgnoreList: string[] = []; // Nothing as of right now
@@ -363,6 +410,11 @@ export default class RealUserMonitor {
    * Instantiates the Open, Send and Response callback methods for the XHRInterceptor.
    */
   setupNetworkMonitoring() {
+    if (!XHRInterceptor) {
+      RaygunLogger.e('XHRInterceptor is not available, network monitoring will be disabled');
+      return;
+    }
+
     XHRInterceptor.setOpenCallback(this.handleRequestOpen.bind(this));
     XHRInterceptor.setSendCallback(this.handleRequestSend.bind(this));
     XHRInterceptor.setResponseCallback(this.handleResponse.bind(this));
