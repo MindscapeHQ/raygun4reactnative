@@ -8,6 +8,7 @@ import {
   ManualCrashReportDetails
 } from './Types';
 import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
+import parseErrorStack from 'react-native/Libraries/Core/Devtools/parseErrorStack';
 import { NativeModules, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RaygunLogger from './RaygunLogger';
@@ -311,15 +312,12 @@ export default class CrashReporter {
    * @param {Error} error - The error to be cleaned.
    */
   async cleanStackTrace(error: Error) {
-    // Extract the errors stack trace
-    const parseErrorStack = require('react-native/Libraries/Core/Devtools/parseErrorStack');
-
     let stackFrames;
     try {
       stackFrames = parseErrorStack(error);
     } catch (e) {
-      // parseErrorStack in ReactNative 0.64 requires a string
-      stackFrames = parseErrorStack(error.stack);
+      RaygunLogger.e('Failed to parse error stack:', e);
+      return [];
     }
 
     // Clean the stack trace and check for empty stack trace
