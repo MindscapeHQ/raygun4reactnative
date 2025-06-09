@@ -54,7 +54,6 @@
     "@types/jest": "^29.5.14",
     "@types/node": "^22.9.0",
     "@types/react": "^19.1.6",
-    "@types/react-native": "^0.73.0",
     "@typescript-eslint/eslint-plugin": "^8.13.0",
     "@typescript-eslint/parser": "^8.13.0",
     "babel-plugin-syntax-hermes-parser": "^0.25.1",
