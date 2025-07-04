@@ -1,5 +1,13 @@
+// TODO: Revert imports to named exports instead of default exports
+// import Types from './Types';
+// const { RealUserMonitoringEvents, RealUserMonitoringTimings, RealUserMonitorPayload, RequestMeta } from Types;
 import { RealUserMonitoringEvents, RealUserMonitoringTimings, RealUserMonitorPayload, RequestMeta } from './Types';
+
+// import Utils from './Utils';
+// const { getCurrentUser, getCurrentTags, getRandomGUID } = Utils;
 import { getCurrentUser, getCurrentTags, getRandomGUID } from './Utils';
+
+
 import { v4 as uuidv4 } from 'uuid';
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
 import RaygunLogger from './RaygunLogger';
@@ -9,40 +17,42 @@ const { osVersion, platform } = RaygunNativeBridge;
 
 // Attempt to require XHRInterceptor using dynamic paths
 let XHRInterceptorModule: any;
-try {
-  // Try the new path first (for RN >= 0.79)
-  // https://github.com/facebook/react-native/releases/tag/v0.79.0#:~:text=APIs%3A%20Move-,XHRInterceptor,-API%20to%20src
-  XHRInterceptorModule = require('react-native/src/private/inspector/XHRInterceptor');
-} catch (e) {
-  try {
-    // Fallback to the old path (for RN < 0.79)
-    XHRInterceptorModule = require('react-native/Libraries/Network/XHRInterceptor');
-  } catch (e) {
-    RaygunLogger.w('Failed to load XHRInterceptor, network monitoring will be disabled', e);
-    XHRInterceptorModule = null;
-  }
-}
+// try {
+//   // Try the new path first (for RN >= 0.79)
+//   // https://github.com/facebook/react-native/releases/tag/v0.79.0#:~:text=APIs%3A%20Move-,XHRInterceptor,-API%20to%20src
+//   XHRInterceptorModule = require('react-native/src/private/inspector/XHRInterceptor');
+// } catch (e) {
+//   try {
+//     // Fallback to the old path (for RN < 0.79)
+//     XHRInterceptorModule = require('react-native/Libraries/Network/XHRInterceptor');
+//   } catch (e) {
+//     RaygunLogger.w('Failed to load XHRInterceptor, network monitoring will be disabled', e);
+//     XHRInterceptorModule = null;
+//   }
+// }
 
 let XHRInterceptor: any;
-if (XHRInterceptorModule) {
-  // Check if methods are directly on the module
-  if (
-    typeof XHRInterceptorModule.setSendCallback === 'function' &&
-    typeof XHRInterceptorModule.setResponseCallback === 'function' &&
-    typeof XHRInterceptorModule.enableInterception === 'function'
-  ) {
-    XHRInterceptor = XHRInterceptorModule;
-  }
-  // Check if methods are on the default export
-  else if (
-    XHRInterceptorModule.default &&
-    typeof XHRInterceptorModule.default.setSendCallback === 'function' &&
-    typeof XHRInterceptorModule.default.setResponseCallback === 'function' &&
-    typeof XHRInterceptorModule.default.enableInterception === 'function'
-  ) {
-    XHRInterceptor = XHRInterceptorModule.default;
-  }
-}
+// if (XHRInterceptorModule) {
+//   // Check if methods are directly on the module
+//   if (
+//     typeof XHRInterceptorModule.setOpenCallback === 'function' &&
+//     typeof XHRInterceptorModule.setSendCallback === 'function' &&
+//     typeof XHRInterceptorModule.setResponseCallback === 'function' &&
+//     typeof XHRInterceptorModule.enableInterception === 'function'
+//   ) {
+//     XHRInterceptor = XHRInterceptorModule;
+//   }
+//   // Check if methods are on the default export
+//   else if (
+//     XHRInterceptorModule.default &&
+//     typeof XHRInterceptorModule.default.setOpenCallback === 'function' &&
+//     typeof XHRInterceptorModule.default.setSendCallback === 'function' &&
+//     typeof XHRInterceptorModule.default.setResponseCallback === 'function' &&
+//     typeof XHRInterceptorModule.default.enableInterception === 'function'
+//   ) {
+//     XHRInterceptor = XHRInterceptorModule.default;
+//   }
+// }
 
 // If still no valid XHRInterceptor after checking module and module.default, assign the dummy
 if (!XHRInterceptor) {
@@ -51,9 +61,10 @@ if (!XHRInterceptor) {
     RaygunLogger.w('Network monitoring will be disabled.');
   }
   XHRInterceptor = {
-    setSendCallback: () => {},
-    setResponseCallback: () => {},
-    enableInterception: () => {}
+    setOpenCallback: () => { },
+    setSendCallback: () => { },
+    setResponseCallback: () => { },
+    enableInterception: () => { }
   };
 }
 
