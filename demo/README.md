@@ -32,8 +32,10 @@ Configure the `apiKey` from the `RaygunClientOptions` in the `screens/Home.tsx` 
 
 ## Running
 
-1. Run `npx react-native start` to launch the application.
-2. Select options "run on iOS" or "run on Android".
+1. Run `npx react-native start` to start "metro".
+2. In another terminal, run `npx react-native run-android` or `run-ios` to start a simulator and launch the app.
+3. Recommened to launch the "Dev Tools" by pressing `j` in the "metro" terminal session.
 
-This command will take care of starting any necessary background processes, launch an emulator if present, and build and start the app.
+These commands will take care of starting any necessary background processes, launch an emulator if present, and build and start the app.
 
+If you need to clean the app build data, run `npx react-native clean`.

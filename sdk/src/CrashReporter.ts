@@ -312,7 +312,8 @@ export default class CrashReporter {
    */
   async cleanStackTrace(error: Error) {
     // Extract the errors stack trace
-    const parseErrorStack = require('react-native/Libraries/Core/Devtools/parseErrorStack');
+    const parseErrorStackModule = require('react-native/Libraries/Core/Devtools/parseErrorStack');
+    const parseErrorStack = parseErrorStackModule.default || parseErrorStackModule;
 
     let stackFrames;
     try {
