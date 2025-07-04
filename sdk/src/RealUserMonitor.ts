@@ -1,13 +1,5 @@
-// TODO: Revert imports to named exports instead of default exports
-// import Types from './Types';
-// const { RealUserMonitoringEvents, RealUserMonitoringTimings, RealUserMonitorPayload, RequestMeta } from Types;
 import { RealUserMonitoringEvents, RealUserMonitoringTimings, RealUserMonitorPayload, RequestMeta } from './Types';
-
-// import Utils from './Utils';
-// const { getCurrentUser, getCurrentTags, getRandomGUID } = Utils;
 import { getCurrentUser, getCurrentTags, getRandomGUID } from './Utils';
-
-
 import { v4 as uuidv4 } from 'uuid';
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
 import RaygunLogger from './RaygunLogger';
@@ -17,6 +9,7 @@ const { osVersion, platform } = RaygunNativeBridge;
 
 // Attempt to require XHRInterceptor using dynamic paths
 let XHRInterceptorModule: any;
+// TODO: Uncomment when RN 0.81 is released
 // try {
 //   // Try the new path first (for RN >= 0.79)
 //   // https://github.com/facebook/react-native/releases/tag/v0.79.0#:~:text=APIs%3A%20Move-,XHRInterceptor,-API%20to%20src
@@ -32,6 +25,7 @@ let XHRInterceptorModule: any;
 // }
 
 let XHRInterceptor: any;
+// TODO: Uncomment when RN 0.81 is released
 // if (XHRInterceptorModule) {
 //   // Check if methods are directly on the module
 //   if (
