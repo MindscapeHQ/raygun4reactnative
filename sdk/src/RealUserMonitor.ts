@@ -5,10 +5,14 @@ import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
 import RaygunLogger from './RaygunLogger';
 
 const { RaygunNativeBridge } = NativeModules;
-const { osVersion, platform } = RaygunNativeBridge;
+const { osVersion, platform } = RaygunNativeBridge; 
+
+import OldXHRInterceptorModule from './MaybeOldXHRInterceptorModule'; 
+import NewXHRInterceptorModule from './MaybeNewXHRInterceptorModule';
+const XHRInterceptorModule = NewXHRInterceptorModule ?? OldXHRInterceptorModule;
 
 // Attempt to require XHRInterceptor using dynamic paths
-let XHRInterceptorModule: any;
+// let XHRInterceptorModule: any;
 // TODO: Uncomment when RN 0.81 is released
 // try {
 //   // Try the new path first (for RN >= 0.79)
@@ -25,28 +29,27 @@ let XHRInterceptorModule: any;
 // }
 
 let XHRInterceptor: any;
-// TODO: Uncomment when RN 0.81 is released
-// if (XHRInterceptorModule) {
-//   // Check if methods are directly on the module
-//   if (
-//     typeof XHRInterceptorModule.setOpenCallback === 'function' &&
-//     typeof XHRInterceptorModule.setSendCallback === 'function' &&
-//     typeof XHRInterceptorModule.setResponseCallback === 'function' &&
-//     typeof XHRInterceptorModule.enableInterception === 'function'
-//   ) {
-//     XHRInterceptor = XHRInterceptorModule;
-//   }
-//   // Check if methods are on the default export
-//   else if (
-//     XHRInterceptorModule.default &&
-//     typeof XHRInterceptorModule.default.setOpenCallback === 'function' &&
-//     typeof XHRInterceptorModule.default.setSendCallback === 'function' &&
-//     typeof XHRInterceptorModule.default.setResponseCallback === 'function' &&
-//     typeof XHRInterceptorModule.default.enableInterception === 'function'
-//   ) {
-//     XHRInterceptor = XHRInterceptorModule.default;
-//   }
-// }
+if (XHRInterceptorModule) {
+  // Check if methods are directly on the module
+  if (
+    typeof XHRInterceptorModule.setOpenCallback === 'function' &&
+    typeof XHRInterceptorModule.setSendCallback === 'function' &&
+    typeof XHRInterceptorModule.setResponseCallback === 'function' &&
+    typeof XHRInterceptorModule.enableInterception === 'function'
+  ) {
+    XHRInterceptor = XHRInterceptorModule;
+  }
+  // Check if methods are on the default export
+  else if (
+    XHRInterceptorModule.default &&
+    typeof XHRInterceptorModule.default.setOpenCallback === 'function' &&
+    typeof XHRInterceptorModule.default.setSendCallback === 'function' &&
+    typeof XHRInterceptorModule.default.setResponseCallback === 'function' &&
+    typeof XHRInterceptorModule.default.enableInterception === 'function'
+  ) {
+    XHRInterceptor = XHRInterceptorModule.default;
+  }
+}
 
 // If still no valid XHRInterceptor after checking module and module.default, assign the dummy
 if (!XHRInterceptor) {
