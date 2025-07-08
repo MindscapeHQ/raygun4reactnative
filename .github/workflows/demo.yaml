@@ -23,14 +23,15 @@ jobs:
       - name: Setup Node  
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Build SDK
         working-directory: sdk
-        run: npm install
+        run: npm run build_pack_1
 
-      - name: Install dependencies
-        run: npm install --install-links
+      - name: Build Demo
+        working-directory: sdk
+        run: npm run build_demo_2
 
       - name: Build application
         run: |
@@ -49,14 +50,15 @@ jobs:
       - name: Setup Node  
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Build SDK
         working-directory: sdk
-        run: npm install
+        run: npm run build_pack_1
 
-      - name: Install dependencies
-        run: npm install --install-links
+      - name: Build Demo
+        working-directory: sdk
+        run: npm run build_demo_2
 
       - name: Pod Install
         working-directory: demo/ios

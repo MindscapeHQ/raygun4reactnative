@@ -1,3 +1,14 @@
+## 1.5.4-alpha.1
+
+**IMPORTANT** This alpha release disables `XHRInterceptor` in order to fix support for React-Native 0.79+. Real User Monitoring (RUM) will be affected by this change.
+
+A bug in React-Native/Metro https://github.com/facebook/metro/issues/1516 related to conditional `import`/`require` is currently blocking release support for `XHRInterceptor` for this package.
+
+This alpha build bypasses the error by disabling access to `XHRInterceptor` as a temporal solution.
+
+- fix: Support for React-Native 0.79+
+- perf: disabled XHRInterceptor in RUM
+
 ## 1.5.3
 
 - fix: map RUM requests using a unique id (#149) (2025-04-02)

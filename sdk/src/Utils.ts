@@ -22,7 +22,7 @@ export const anonUser: User = {
  * @param {number} length - The number of characters the returned string must not exceed.
  * @return {string} A unique GUID.
  */
-export const getRandomGUID = (length: number) => {
+export const getRandomGUID = (length: number): string => {
   // 1.) n = 36^(l+1) - ([0.0, 1.0] * 36^l)
   // 2.) n = convertToBase36(n.roundToWholeNumber())
   // 3.) n = n.removeFirstCharacter
