@@ -1,8 +1,8 @@
 ## 1.6.0
 
-This version is compatible with all recent React-Native versions, including those before and after 0.79 and fixes the `XHRInterceptor` issue.
+This release fixes compatibility issues with the recent React-Native versions 0.79+, and it is backwards compatible with older versions as well.
 
-Since React-Native 0.79, the `XHRInterceptor` module has moved to an internal location which might stop working in future React-Native versions. This affects to the capacity of Realtime User Monitoring.
+Since React-Native 0.79, the `XHRInterceptor` module has moved to an internal location which might stop working in future React-Native versions. This  might affect Realtime User Monitoring in the future.
 
 - fix: Support React-Native 0.80 (#168) (2025-07-08)
 - chore(deps): bump creyD/prettier_action from 4.5 to 4.6 (#175) (2025-07-01)
