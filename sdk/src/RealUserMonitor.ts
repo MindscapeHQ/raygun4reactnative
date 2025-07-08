@@ -5,9 +5,9 @@ import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
 import RaygunLogger from './RaygunLogger';
 
 const { RaygunNativeBridge } = NativeModules;
-const { osVersion, platform } = RaygunNativeBridge; 
+const { osVersion, platform } = RaygunNativeBridge;
 
-import OldXHRInterceptorModule from './MaybeOldXHRInterceptorModule'; 
+import OldXHRInterceptorModule from './MaybeOldXHRInterceptorModule';
 import NewXHRInterceptorModule from './MaybeNewXHRInterceptorModule';
 const XHRInterceptorModule = NewXHRInterceptorModule ?? OldXHRInterceptorModule;
 
@@ -41,10 +41,10 @@ if (!XHRInterceptor) {
     RaygunLogger.w('Network monitoring will be disabled.');
   }
   XHRInterceptor = {
-    setOpenCallback: () => { },
-    setSendCallback: () => { },
-    setResponseCallback: () => { },
-    enableInterception: () => { }
+    setOpenCallback: () => {},
+    setSendCallback: () => {},
+    setResponseCallback: () => {},
+    enableInterception: () => {}
   };
 }
 
