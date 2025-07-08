@@ -11,23 +11,6 @@ import OldXHRInterceptorModule from './MaybeOldXHRInterceptorModule';
 import NewXHRInterceptorModule from './MaybeNewXHRInterceptorModule';
 const XHRInterceptorModule = NewXHRInterceptorModule ?? OldXHRInterceptorModule;
 
-// Attempt to require XHRInterceptor using dynamic paths
-// let XHRInterceptorModule: any;
-// TODO: Uncomment when RN 0.81 is released
-// try {
-//   // Try the new path first (for RN >= 0.79)
-//   // https://github.com/facebook/react-native/releases/tag/v0.79.0#:~:text=APIs%3A%20Move-,XHRInterceptor,-API%20to%20src
-//   XHRInterceptorModule = require('react-native/src/private/inspector/XHRInterceptor');
-// } catch (e) {
-//   try {
-//     // Fallback to the old path (for RN < 0.79)
-//     XHRInterceptorModule = require('react-native/Libraries/Network/XHRInterceptor');
-//   } catch (e) {
-//     RaygunLogger.w('Failed to load XHRInterceptor, network monitoring will be disabled', e);
-//     XHRInterceptorModule = null;
-//   }
-// }
-
 let XHRInterceptor: any;
 if (XHRInterceptorModule) {
   // Check if methods are directly on the module
