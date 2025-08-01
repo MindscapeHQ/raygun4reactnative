@@ -11,7 +11,7 @@
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-community/checkbox": "^0.5.20",
-    "@react-navigation/bottom-tabs": "^7.3.14",
+    "@react-navigation/bottom-tabs": "^7.4.4",
     "@react-navigation/native": "^7.1.10",
     "raygun4reactnative": "file:raygun4reactnative-1.6.0.tgz",
     "react": "19.1.0",
