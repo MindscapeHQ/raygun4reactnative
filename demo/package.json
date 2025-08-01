@@ -14,7 +14,7 @@
     "@react-navigation/bottom-tabs": "^7.4.4",
     "@react-navigation/native": "^7.1.10",
     "raygun4reactnative": "file:raygun4reactnative-1.6.0.tgz",
-    "react": "19.1.0",
+    "react": "19.1.1",
     "react-native": "^0.80.1",
     "react-native-safe-area-context": "^5.4.1",
     "react-native-screens": "^4.11.1"
@@ -30,7 +30,7 @@
     "@react-native/eslint-config": "0.79.3",
     "@react-native/metro-config": "0.79.3",
     "@react-native/typescript-config": "0.79.3",
-    "@types/react": "^19.1.7",
+    "@types/react": "^19.1.9",
     "eslint": "^8.56.0",
     "prettier": "3.5.3",
     "typescript": "5.9.2"
