@@ -8,7 +8,7 @@ jobs:
         working-directory: demo
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install Java
         uses: actions/setup-java@v5
@@ -45,7 +45,7 @@ jobs:
         working-directory: demo
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup Node  
         uses: actions/setup-node@v6
