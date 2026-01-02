@@ -1,19 +1,12 @@
 // android/build.gradle
-
-// based on:
 //
-// * https://github.com/facebook/react-native/blob/0.60-stable/template/android/build.gradle
-//   original location:
-//   - https://github.com/facebook/react-native/blob/0.58-stable/local-cli/templates/HelloWorld/android/build.gradle
-//
-// * https://github.com/facebook/react-native/blob/0.60-stable/template/android/app/build.gradle
-//   original location:
-//   - https://github.com/facebook/react-native/blob/0.58-stable/local-cli/templates/HelloWorld/android/app/build.gradle
+// React Native library build configuration
+// Updated for React Native 0.83+ and AGP 8.x compatibility
 
-def DEFAULT_COMPILE_SDK_VERSION = 28
-def DEFAULT_BUILD_TOOLS_VERSION = '30.0.3'
-def DEFAULT_MIN_SDK_VERSION = 19
-def DEFAULT_TARGET_SDK_VERSION = 28
+def DEFAULT_COMPILE_SDK_VERSION = 35
+def DEFAULT_BUILD_TOOLS_VERSION = '35.0.0'
+def DEFAULT_MIN_SDK_VERSION = 24
+def DEFAULT_TARGET_SDK_VERSION = 35
 
 def safeExtGet(prop, fallback) {
     rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
@@ -22,85 +15,47 @@ def safeExtGet(prop, fallback) {
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
 
-buildscript {
-    // The Android Gradle plugin is only required when opening the android folder stand-alone.
-    // This avoids unnecessary downloads and potential conflicts when the library is included as a
-    // module dependency in an application project.
-    // ref: https://docs.gradle.org/current/userguide/tutorial_using_tasks.html#sec:build_script_external_dependencies
-    if (project == rootProject) {
-        repositories {
-            google()
-            mavenCentral()
-        }
-        dependencies {
-            classpath 'com.android.tools.build:gradle:7.4.2'
-        }
-    }
-}
-
-apply plugin: 'com.android.library'
-apply plugin: 'maven-publish'
-
 android {
-    compileSdkVersion safeExtGet('compileSdkVersion', DEFAULT_COMPILE_SDK_VERSION)
+    namespace "com.raygun.react"
+    
+    compileSdk safeExtGet('compileSdkVersion', DEFAULT_COMPILE_SDK_VERSION)
     buildToolsVersion safeExtGet('buildToolsVersion', DEFAULT_BUILD_TOOLS_VERSION)
+    
     defaultConfig {
-        minSdkVersion safeExtGet('minSdkVersion', DEFAULT_MIN_SDK_VERSION)
-        targetSdkVersion safeExtGet('targetSdkVersion', DEFAULT_TARGET_SDK_VERSION)
+        minSdk safeExtGet('minSdkVersion', DEFAULT_MIN_SDK_VERSION)
+        targetSdk safeExtGet('targetSdkVersion', DEFAULT_TARGET_SDK_VERSION)
         versionCode 1
         versionName "1.0"
     }
-    lintOptions {
+    
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+    
+    lint {
         abortOnError false
     }
 }
 
 repositories {
-    // ref: https://www.baeldung.com/maven-local-repository
     mavenLocal()
-    maven {
-        // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
-        url "$rootDir/../node_modules/react-native/android"
-    }
-    maven {
-        // Android JSC is installed from npm
-        url "$rootDir/../node_modules/jsc-android/dist"
-    }
-    maven {
-        // Android JSC is installed from npm
-        url "$rootDir/../lib"
-    }
     google()
     mavenCentral()
 }
 
 dependencies {
     //noinspection GradleDynamicVersion
-    implementation 'com.facebook.react:react-native:+'  // From node_modules
+    implementation 'com.facebook.react:react-android:+'
     implementation 'com.raygun:raygun4android:4.2.1'
-    implementation 'com.jakewharton.timber:timber:4.7.1'
+    implementation 'com.jakewharton.timber:timber:5.0.1'
 }
 
 afterEvaluate { project ->
-    // some Gradle build hooks ref:
-    // https://www.oreilly.com/library/view/gradle-beyond-the/9781449373801/ch03.html
-    task androidSourcesJar(type: Jar) {
-        archiveClassifier = 'sources'
+    tasks.register('androidSourcesJar', Jar) {
+        archiveClassifier.set('sources')
         from android.sourceSets.main.java.srcDirs
         include '**/*.java'
-    }
-
-    android.libraryVariants.all { variant ->
-        def name = variant.name.capitalize()
-        def javaCompileTask = variant.javaCompileProvider.get()
-
-        task "jar${name}"(type: Jar, dependsOn: javaCompileTask) {
-            from javaCompileTask.destinationDir
-        }
-    }
-
-    artifacts {
-        archives androidSourcesJar
     }
 
     publishing {
@@ -108,7 +63,7 @@ afterEvaluate { project ->
             maven(MavenPublication) {
                 def packageJson = new groovy.json.JsonSlurper().parseText(file('../package.json').text)
 
-                artifact androidSourcesJar
+                artifact tasks.named('androidSourcesJar')
                 artifactId packageJson.name
                 version packageJson.version
 
@@ -116,19 +71,19 @@ afterEvaluate { project ->
                     name = packageJson.title
                     group = "com.raygun.react"
                     description = packageJson.description
-                    url = packageJson.repository.baseUrl
+                    url = packageJson.repository.url
 
                     licenses {
                         license {
                             name = packageJson.license
-                            url = packageJson.repository.baseUrl + '/blob/master/' + packageJson.licenseFilename
+                            url = packageJson.repository.url + '/blob/master/' + packageJson.licenseFilename
                             distribution = 'repo'
                         }
                     }
 
                     developers {
                         developer {
-                            id = packageJson.author.username
+                            id = packageJson.author.email
                             name = packageJson.author.name
                         }
                     }
@@ -138,7 +93,7 @@ afterEvaluate { project ->
 
         repositories {
             maven {
-                url "file://${projectDir}/../android/libs"
+                url = uri("file://${projectDir}/../android/libs")
             }
         }
     }
