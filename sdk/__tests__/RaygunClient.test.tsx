@@ -43,6 +43,37 @@ describe('RaygunClient', () => {
     expect(body.Details.Version).toBe('1.2.3');
   });
 
+  it('should tag unhandled errors with UnhandledException', async () => {
+    const error = new Error('Unhandled error');
+    const handler = ErrorUtils.getGlobalHandler();
+    try {
+      await handler(error, false);
+    } catch (_) {
+      // The chained previous handler may re-throw; ignore it
+    }
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    const body = JSON.parse(fetch.mock.calls[0][1].body);
+    expect(body.Details.Tags).toContain('UnhandledException');
+    expect(body.Details.Tags).not.toContain('UnhandledError');
+  });
+
+  it('should tag fatal unhandled errors with both UnhandledException and Fatal', async () => {
+    const error = new Error('Fatal error');
+    const handler = ErrorUtils.getGlobalHandler();
+    try {
+      await handler(error, true);
+    } catch (_) {
+      // The chained previous handler may re-throw; ignore it
+    }
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    const body = JSON.parse(fetch.mock.calls[0][1].body);
+    expect(body.Details.Tags).toContain('UnhandledException');
+    expect(body.Details.Tags).toContain('Fatal');
+    expect(body.Details.Tags).not.toContain('UnhandledError');
+  });
+
   it('should fail to send error', async () => {
     fetch.mockImplementationOnce(() => Promise.reject('API is down'));
     const error = new Error('Failed error');
