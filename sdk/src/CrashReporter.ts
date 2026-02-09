@@ -269,11 +269,13 @@ export default class CrashReporter {
     const stack = await this.cleanStackTrace(error);
 
     const payload = await this.generateCrashReportPayload(error, stack);
-    payload.Details.Tags = getCurrentTags().concat('UnhandledError');
+    const tags = getCurrentTags().concat('UnhandledException');
 
     if (isFatal) {
-      payload.Details.Tags = getCurrentTags().concat('Fatal');
+      tags.push('Fatal');
     }
+
+    payload.Details.Tags = tags;
 
     await this.managePayload(payload);
   }
