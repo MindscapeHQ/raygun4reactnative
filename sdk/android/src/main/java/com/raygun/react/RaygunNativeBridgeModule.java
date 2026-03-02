@@ -344,7 +344,7 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
      */
     @ReactMethod
     public void setUser(ReadableMap userObj) {
-        RaygunUserInfo user = new RaygunUserInfo(
+        RaygunUserInfo user = RaygunUserInfo.create(
                 userObj.getString("identifier"),
                 userObj.getString("firstName"),
                 userObj.getString("fullName"),
