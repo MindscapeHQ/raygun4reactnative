@@ -162,7 +162,8 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
         @Override
         public RaygunMessage onBeforeSend(RaygunMessage raygunMessage) {
             RaygunErrorMessage error = raygunMessage.getDetails().getError();
-            if (error.getMessage().contains("JavascriptException")) {
+            String message = error != null ? error.getMessage() : null;
+            if (message != null && message.contains("JavascriptException")) {
                 return null;
             }
             return raygunMessage;
