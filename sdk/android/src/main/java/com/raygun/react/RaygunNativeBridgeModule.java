@@ -32,7 +32,9 @@ import com.raygun.raygun4android.messages.shared.RaygunUserInfo;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nullable;
@@ -107,10 +109,10 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
             return;
         }
 
-        RaygunClient.init(reactContext, apiKey, version);
-        RaygunClient.enableCrashReporting();
-        RaygunClient.setOnBeforeSend(new OnBeforeSendHandler());
-        RaygunClient.setCustomCrashReportingEndpoint(customCrashReportingEndpoint);
+        RaygunClient.INSTANCE.init(reactContext, apiKey, version);
+        RaygunClient.INSTANCE.enableCrashReporting();
+        RaygunClient.INSTANCE.setOnBeforeSend(new OnBeforeSendHandler());
+        RaygunClient.INSTANCE.setCustomCrashReportingEndpoint(customCrashReportingEndpoint);
 
         crashReportingInitialized = true;
     }
@@ -350,7 +352,7 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
                 userObj.getString("fullName"),
                 userObj.getString("email"));
 
-        RaygunClient.setUser(user);
+        RaygunClient.INSTANCE.setUser(user);
     }
 
     /**
@@ -360,7 +362,11 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
      */
     @ReactMethod
     public void setTags(ReadableArray tags) {
-        RaygunClient.setTags(tags.toArrayList());
+        List<String> tagList = new ArrayList<>();
+        for (int i = 0; i < tags.size(); i++) {
+            tagList.add(tags.getString(i));
+        }
+        RaygunClient.INSTANCE.setTags(tagList);
     }
 
     /**
@@ -371,7 +377,7 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
      */
     @ReactMethod
     public void setCustomData(ReadableMap customData) {
-        RaygunClient.setCustomData(customData.toHashMap());
+        RaygunClient.INSTANCE.setCustomData(customData.toHashMap());
     }
 
     /**
@@ -403,7 +409,7 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
                 .customData(customData.toHashMap())
                 .build();
 
-        RaygunClient.recordBreadcrumb(breadcrumbMessage);
+        RaygunClient.INSTANCE.recordBreadcrumb(breadcrumbMessage);
     }
 
     /**
@@ -411,7 +417,7 @@ public class RaygunNativeBridgeModule extends ReactContextBaseJavaModule impleme
      */
     @ReactMethod
     public void clearBreadcrumbs() {
-        RaygunClient.clearBreadcrumbs();
+        RaygunClient.INSTANCE.clearBreadcrumbs();
     }
     //#endregion--------------------------------------------------------------------------------------
 
