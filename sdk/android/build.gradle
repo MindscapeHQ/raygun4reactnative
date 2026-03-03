@@ -5,7 +5,7 @@
 
 def DEFAULT_COMPILE_SDK_VERSION = 35
 def DEFAULT_BUILD_TOOLS_VERSION = '35.0.0'
-def DEFAULT_MIN_SDK_VERSION = 19
+def DEFAULT_MIN_SDK_VERSION = 23
 def DEFAULT_TARGET_SDK_VERSION = 35
 
 def safeExtGet(prop, fallback) {
@@ -47,7 +47,7 @@ repositories {
 dependencies {
     //noinspection GradleDynamicVersion
     implementation 'com.facebook.react:react-android:+'
-    implementation 'com.raygun:raygun4android:4.2.1'
+    implementation 'com.raygun:raygun4android:5.2.1'
     implementation 'com.jakewharton.timber:timber:4.7.1'
 }
 
