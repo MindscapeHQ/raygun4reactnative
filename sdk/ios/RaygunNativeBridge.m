@@ -13,7 +13,9 @@
 #import "RCTConvert.h"
 #endif
 
-#import <raygun4apple/raygun4apple_iOS.h>
+#import <raygun4apple/RaygunClient.h>
+#import <raygun4apple/RaygunUserInformation.h>
+#import <raygun4apple/RaygunBreadcrumb.h>
 #import <raygun4apple/RaygunCrashReportConverter.h>
 
 #if TARGET_OS_IOS || TARGET_OS_TV

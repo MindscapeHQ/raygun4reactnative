@@ -22,6 +22,11 @@ Pod::Spec.new do |s|
   s.requires_arc = true
 
   s.dependency "React-Core"
-  s.dependency "raygun4apple", '~> 2.1.3'
+
+  spm_dependency(s,
+    url: 'https://github.com/MindscapeHQ/raygun4apple.git',
+    requirement: {kind: 'upToNextMajorVersion', minimumVersion: '2.1.3'},
+    products: ['raygun4apple']
+  )
 
 end
