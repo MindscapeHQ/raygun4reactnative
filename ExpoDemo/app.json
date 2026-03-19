@@ -25,6 +25,7 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      "./plugins/withRaygunAndroid",
       "expo-router",
       [
         "expo-splash-screen",
