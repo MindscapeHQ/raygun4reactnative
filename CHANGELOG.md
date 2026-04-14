@@ -1,3 +1,39 @@
+## 1.7.0
+
+This release adds a new `RaygunErrorBoundary` React component for capturing render-time errors with the React `componentStack`, upgrades the underlying native SDKs (`raygun4android` 5.2.1, `raygun4apple` 2.1.6), modernises the Android build for Gradle 9 / AGP 8.x (`compileSdkVersion 36`), and refreshes the demo projects to React Native 0.84.
+
+- feat: Add `RaygunErrorBoundary` component for capturing React render-time errors with `componentStack` (#228)
+- feat: bump raygun4apple to 2.1.6 (#226) (2026-03-12)
+- feat: bump to raygun4android v5.2.1 (#224) (2026-03-03)
+- fix: breaking changes in raygun4android 5.2.1 (#225) (2026-03-03)
+- fix: use compileSdkVersion 36 (#223) (2026-03-03)
+- fix: unhandled exception tag and fatal tag overwrite in CrashReporter (#217) (2026-02-10)
+- chore: upgrade demo projects and align dependencies (#227) (2026-03-19)
+- chore(deps): bump react-native from 0.83.1 to 0.84.1 in /demo (#220) (2026-03-02)
+- chore(deps): bump react-native from 0.80.1 to 0.83.1 in /demo (#209) (2026-01-06)
+- chore(deps): bump @react-navigation/native from 7.1.31 to 7.2.2 in /demo (#232) (2026-04-01)
+- chore(deps): bump @react-navigation/bottom-tabs in /demo (#219, #207, #203, #196, #189, #181) (2025-08 → 2026-03)
+- chore(deps): bump react-native-screens (#205, #193) (2025-11 → 2026-01)
+- chore(deps): bump react and @types/react in /demo (#201, #183, plus 2026-02-02) (2025-08 → 2026-02)
+- chore(deps-dev): bump @react-native-community/cli-platform-android (#229, #195) (2025-11, 2026-04)
+- chore(deps-dev): bump @react-native-community/cli-platform-ios in /demo (#230, #211) (2026-02, 2026-04)
+- chore(deps-dev): bump @react-native-community/cli (#188, plus 2026-02-02) (2025-10 → 2026-02)
+- chore(deps-dev): bump @react-native/babel-preset in /demo (#221, #182) (2025-08, 2026-03)
+- chore(deps-dev): bump @react-native/metro-config in /demo (#218, #202) (2025-12, 2026-03)
+- chore(deps-dev): bump @react-native/eslint-config in /demo (#222, #185) (2025-10, 2026-03)
+- chore(deps-dev): bump @react-native/typescript-config in /demo (#204) (2025-12-10)
+- chore(deps-dev): bump eslint from 8.57.1 to 9.39.2 in /demo (#208) (2026-01-02)
+- chore(deps-dev): bump typescript (#180, plus 2026-02-02) (2025-08 → 2026-02)
+- chore(deps-dev): bump prettier (#184, #206, plus 2026-02-02) (2025-08 → 2026-02)
+- chore(deps-dev): bump @babel/core from 7.28.5 to 7.29.0 in /demo (#233) (2026-04-01)
+- chore(deps-dev): bump @babel/preset-env from 7.28.0 to 7.28.5 in /demo (#194) (2025-11-01)
+- chore(deps-dev): bump @babel/runtime from 7.27.6 to 7.28.4 in /demo (#187) (2025-10-01)
+- chore(deps): bump on-headers and compression in /demo and /ExpoDemo (#178, #179) (2025-07-22)
+- chore(deps): bump gradle/actions from 4 to 6 (#199, #234) (2025-11, 2026-04)
+- chore(deps): bump actions/checkout from 4 to 6 (#191, #200) (2025-10, 2025-12)
+- chore(deps): bump actions/setup-node from 4 to 6 (#190, #198) (2025-10, 2025-11)
+- chore(deps): bump actions/setup-java from 4 to 5 (#192) (2025-10-01)
+
 ## 1.6.0
 
 This release fixes compatibility issues with the recent React-Native versions 0.79+, and it is backwards compatible with older versions as well.
