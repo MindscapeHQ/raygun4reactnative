@@ -25,6 +25,8 @@
         - [sendError](#senderrorerror-error-details-manualcrashreportdetails)
         - [setMaxReportsStoredOnDevice](#setmaxreportsstoredondevicesize-number)
         - [sendRUMTimingEvent](#sendrumtimingeventeventtype-realusermonitoringtimings-name-string-timeusedinms-number)
+    - [Components](#components)
+        - [RaygunErrorBoundary](#raygunerrorboundary)
     - [Raygun specific types](#raygun-specific-types)
         - [BeforeSendHandler](#beforesendhandler)
         - [GroupingKeyHandler](#groupingkeyhandler)
@@ -468,6 +470,8 @@ can utilize this method, and send the error through to Raygun. Appended to this 
 ManualCrashReportDetails object. This non-mandatory object can apply specific tags and CustomData to
 the error you are sending away as well as the global tags and CustomData.
 
+For React render-time errors, see [RaygunErrorBoundary](#raygunerrorboundary).
+
 See also:<br/>
 [CustomData](#customdata)
 <br/>
@@ -581,6 +585,59 @@ RaygunClient.sendRUMTimingEvent(RealUserMonitoringTimings.ViewLoaded, 'name of t
 // Monitoring a network call
 RaygunClient.sendRUMTimingEvent(RealUserMonitoringTimings.NetworkCall, 'name of the network event', 255);
 ```
+
+<br/>
+
+## Components
+
+### RaygunErrorBoundary
+
+`RaygunErrorBoundary` is a React [error boundary](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary) component that catches render-time errors anywhere in its child tree, reports them to Raygun (with the React `componentStack` attached as custom data), and renders a fallback UI in place of the crashed subtree.
+
+Use this for render-time errors. For errors caught manually in event handlers or async code, continue to use [sendError](#senderrorerror-error-details-manualcrashreportdetails).
+
+The boundary does **not** catch errors thrown by the `fallback` itself, errors in event handlers, or errors thrown asynchronously. For those, use `try/catch` with `RaygunClient.sendError`, and nest another `RaygunErrorBoundary` above if your `fallback` can throw.
+
+#### Props
+
+| Prop          | Type                                                                                                                                                                  | Description                                                                                                                                                                          |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `children`    | `ReactNode`                                                                                                                                                           | The subtree to protect.                                                                                                                                                              |
+| `fallback?`   | `ReactNode \| ({ error, componentStack, reset }) => ReactNode`                                                                                                         | UI to render after an error. As a function, receives the captured error, the React `componentStack`, and a `reset` callback that clears the error and remounts `children`. If omitted, the boundary renders `null` after an error (report-only mode). On the very first fallback render, `componentStack` may be an empty string before being populated on the immediately-following re-render. The function must not throw. |
+| `tags?`       | `string[]`                                                                                                                                                            | Tags to attach to the report. Always merged (de-duplicated) with `'error-boundary'`.                                                                                                 |
+| `customData?` | `CustomData`                                                                                                                                                          | Custom data to attach to the report. The captured `componentStack` is always merged in under the `componentStack` key and overrides any user-supplied value with the same key.       |
+| `onError?`    | `(error: Error, info: ErrorInfo) => void`                                                                                                                             | Called after the error is captured.                                                                                                                                                  |
+| `onReset?`    | `(error: Error \| null, info: ErrorInfo \| null) => void`                                                                                                              | Called when `reset` is invoked from the fallback.                                                                                                                                    |
+
+#### Basic example
+
+```tsx
+import { RaygunErrorBoundary } from 'raygun4reactnative';
+
+<RaygunErrorBoundary fallback={<MyErrorScreen />}>
+  <App />
+</RaygunErrorBoundary>
+```
+
+#### Render-prop fallback with reset
+
+```tsx
+import { RaygunErrorBoundary } from 'raygun4reactnative';
+
+<RaygunErrorBoundary
+  tags={['feature:checkout']}
+  fallback={({ error, reset }) => (
+    <View>
+      <Text>Something went wrong: {error.message}</Text>
+      <Button title="Try again" onPress={reset} />
+    </View>
+  )}
+>
+  <CheckoutScreen />
+</RaygunErrorBoundary>
+```
+
+See also: [CustomData](#customdata), [sendError](#senderrorerror-error-details-manualcrashreportdetails).
 
 ---
 

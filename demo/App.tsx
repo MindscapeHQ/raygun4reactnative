@@ -4,6 +4,7 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import Home from "./screens/Home";
 import CrashReporting from "./screens/CrashReporting";
 import RealUserMonitoring from "./screens/RealUserMonitoring";
+import ErrorBoundaryScreen from "./screens/ErrorBoundary";
 import {raygunClient} from "./utils/Utils";
 import {LogLevel, RaygunClientOptions} from "raygun4reactnative";
 
@@ -46,6 +47,13 @@ function Tabs() {
         component={RealUserMonitoring}
         options={{
           tabBarLabel: 'RUM'
+        }}
+      />
+      <Tab.Screen
+        name="ErrorBoundary"
+        component={ErrorBoundaryScreen}
+        options={{
+          tabBarLabel: 'Boundary'
         }}
       />
     </Tab.Navigator>

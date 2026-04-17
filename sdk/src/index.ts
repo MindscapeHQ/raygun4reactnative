@@ -59,3 +59,10 @@ export type {
 };
 
 export { LogLevel, RealUserMonitoringTimings };
+
+export { RaygunErrorBoundary } from './RaygunErrorBoundary';
+export type {
+  RaygunErrorBoundaryProps,
+  RaygunErrorBoundaryFallback,
+  RaygunErrorBoundaryFallbackProps
+} from './RaygunErrorBoundary';
