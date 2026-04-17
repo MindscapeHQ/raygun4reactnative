@@ -98,6 +98,20 @@ describe('RaygunErrorBoundary', () => {
     expect(onError).toHaveBeenCalledWith(error, info);
   });
 
+  it('invokes onError with a normalised Error when a non-Error is thrown', () => {
+    const onError = jest.fn();
+    const boundary = makeBoundary({ onError });
+    const info = { componentStack: 'cs' };
+
+    boundary.componentDidCatch('plain string' as unknown as Error, info);
+
+    expect(onError).toHaveBeenCalledTimes(1);
+    const [reportedError, reportedInfo] = onError.mock.calls[0];
+    expect(reportedError).toBeInstanceOf(Error);
+    expect(reportedError.message).toBe('plain string');
+    expect(reportedInfo).toBe(info);
+  });
+
   it('renders a ReactNode fallback when an error is set', () => {
     const boundary = makeBoundary({ fallback: 'oops' });
     boundary.state = { error: new Error('x'), info: null };

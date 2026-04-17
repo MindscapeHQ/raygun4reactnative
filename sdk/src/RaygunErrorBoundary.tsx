@@ -5,18 +5,26 @@ import { CustomData } from './Types';
 
 export interface RaygunErrorBoundaryFallbackProps {
   error: Error;
+  /** React component stack, or `''` if unavailable. */
   componentStack: string;
+  /** Clears the boundary's error state and re-renders `children`. */
   reset: () => void;
 }
 
+/** Static node, or a render-prop called with {@link RaygunErrorBoundaryFallbackProps}. */
 export type RaygunErrorBoundaryFallback = ReactNode | ((props: RaygunErrorBoundaryFallbackProps) => ReactNode);
 
 export interface RaygunErrorBoundaryProps {
   children: ReactNode;
+  /** Rendered in place of `children` once an error is captured. Defaults to `null`. */
   fallback?: RaygunErrorBoundaryFallback;
+  /** Forwarded to `sendError`. `'error-boundary'` is always added; duplicates are removed. */
   tags?: string[];
+  /** Forwarded to `sendError`. The captured React `componentStack` overrides any `componentStack` key here. */
   customData?: CustomData;
+  /** Invoked after capture. Non-`Error` throws are normalized to `Error` before being passed in. */
   onError?: (error: Error, info: ErrorInfo) => void;
+  /** Invoked from `reset()` with the error and info that were active before the reset. */
   onReset?: (error: Error | null, info: ErrorInfo | null) => void;
 }
 
