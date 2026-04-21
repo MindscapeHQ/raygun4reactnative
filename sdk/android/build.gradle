@@ -47,7 +47,14 @@ repositories {
 dependencies {
     //noinspection GradleDynamicVersion
     implementation 'com.facebook.react:react-android:+'
-    implementation 'com.raygun:raygun4android:5.2.1'
+    // Exclude kotlin-stdlib so the host app's Kotlin version wins conflict resolution.
+    // raygun4android's stdlib (currently 2.3.0) would otherwise force-upgrade stdlib for
+    // every other module in the graph, breaking builds whose Kotlin compiler is older
+    // (e.g. React Native 0.81 / Expo SDK 55 pin Kotlin 2.1.20, which cannot read 2.3.0
+    // metadata). See https://github.com/MindscapeHQ/raygun4reactnative/issues/237.
+    implementation('com.raygun:raygun4android:5.2.1') {
+        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib'
+    }
     implementation 'com.jakewharton.timber:timber:4.7.1'
 }
 
