@@ -1,3 +1,9 @@
+## 1.7.1
+
+This release fixes an Android build failure for consumers whose Kotlin compiler is older than the version `raygun4android` was compiled against (notably Expo SDK 55 / React Native 0.81, which pin Kotlin 2.1.20).
+
+- fix: exclude `kotlin-stdlib` from `raygun4android` to avoid forcing a stdlib upgrade on the host app (#237)
+
 ## 1.7.0
 
 This release adds a new `RaygunErrorBoundary` React component for capturing render-time errors with the React `componentStack`, upgrades the underlying native SDKs (`raygun4android` 5.2.1, `raygun4apple` 2.1.6), modernises the Android build for Gradle 9 / AGP 8.x (`compileSdkVersion 36`), and refreshes the demo projects to React Native 0.84.
