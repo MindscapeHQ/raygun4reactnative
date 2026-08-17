@@ -10,7 +10,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Install Java
+      - name: Setup Java
         uses: actions/setup-java@v5.6.0
         with:
           java-version: 17
@@ -20,20 +20,20 @@ jobs:
       - name: Validate Gradle wrapper
         uses: gradle/actions/wrapper-validation@v6
 
-      - name: Setup Node  
+      - name: Setup Node
         uses: actions/setup-node@v7
         with:
           node-version: '24'
 
-      - name: Build SDK
+      - name: Build and pack SDK
         working-directory: sdk
         run: npm run build_pack_1
 
-      - name: Build Demo
+      - name: Install SDK into demo app
         working-directory: sdk
         run: npm run build_demo_2
 
-      - name: Build application
+      - name: Build Android app
         run: |
              cd android
              ./gradlew assembleDebug
@@ -52,22 +52,22 @@ jobs:
              sudo xcode-select -switch /Applications/Xcode_16.4.app
              xcodebuild -version
 
-      - name: Setup Node  
+      - name: Setup Node
         uses: actions/setup-node@v7
         with:
           node-version: '24'
 
-      - name: Build SDK
+      - name: Build and pack SDK
         working-directory: sdk
         run: npm run build_pack_1
 
-      - name: Build Demo
+      - name: Install SDK into demo app
         working-directory: sdk
         run: npm run build_demo_2
 
-      - name: Pod Install
+      - name: Install CocoaPods dependencies
         working-directory: demo/ios
         run: pod install
 
-      - name: Build application
+      - name: Build iOS app
         run: npx react-native build-ios
