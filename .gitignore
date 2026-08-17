@@ -71,7 +71,6 @@ yarn-error.log
 
 /sdk/dist/
 /sdk/node_modules/
-/sdk/package-lock.json
 /sdk/raygun4reactnative-0.0.1-alpha.tgz
 .jest/
 coverage/
