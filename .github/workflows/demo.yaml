@@ -39,13 +39,18 @@ jobs:
              ./gradlew assembleDebug
 
   demo-ios-build:
-    runs-on: macos-latest
+    runs-on: macos-15
     defaults:
       run:
         working-directory: demo
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+
+      - name: Select Xcode
+        run: |
+             sudo xcode-select -switch /Applications/Xcode_16.4.app
+             xcodebuild -version
 
       - name: Setup Node  
         uses: actions/setup-node@v7
