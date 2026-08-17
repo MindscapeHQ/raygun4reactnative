@@ -2,7 +2,7 @@ version: 2
 updates:
 # Dependencies updates config for SDK
   - package-ecosystem: "npm"
-    directory: "/src"
+    directory: "/sdk"
     schedule:
       interval: "monthly"
     commit-message:
@@ -19,6 +19,18 @@ updates:
       include: "scope"
     ignore:
       # Package in example is accessed by path, 
+      # do not update in package.json.
+      - dependency-name: "raygun4reactnative"
+
+  - package-ecosystem: "npm"
+    directory: "/ExpoDemo"
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    ignore:
+      # Package in example is accessed by path,
       # do not update in package.json.
       - dependency-name: "raygun4reactnative"
 
