@@ -59,7 +59,7 @@
     "babel-plugin-syntax-hermes-parser": "^0.28.1",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "copyfiles": "^2.4.1",
-    "eslint": "^9.28.0",
+    "eslint": "^10.8.1",
     "eslint-config-google": "^0.14.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-import-resolver-typescript": "^4.4.3",
