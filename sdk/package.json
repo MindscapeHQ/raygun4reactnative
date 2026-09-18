@@ -47,7 +47,7 @@
   "readmeFilename": "README.md",
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.2.0",
-    "uuid": "^11.1.0"
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.28.0",
