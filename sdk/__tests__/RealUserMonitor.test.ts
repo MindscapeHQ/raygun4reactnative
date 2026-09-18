@@ -106,6 +106,26 @@ describe('RealUserMonitor network monitoring', () => {
     ]);
   });
 
+  it('reports a fetch made through XMLHttpRequest once', async () => {
+    (global as any).fetch = jest.fn((url: string) => {
+      const xhr = new XMLHttpRequest() as unknown as FakeXMLHttpRequest;
+      xhr.open();
+      xhr.send();
+      xhr.complete();
+      return Promise.resolve({ status: 200, url });
+    });
+    const sendNetworkTimingEvent = createMonitor();
+
+    await fetch('https://example.com/items');
+
+    expect(sendNetworkTimingEvent).toHaveBeenCalledTimes(1);
+    expect(sendNetworkTimingEvent).toHaveBeenCalledWith(
+      'GET https://example.com/items',
+      expect.any(Number),
+      expect.any(Number)
+    );
+  });
+
   it('upper-cases the method in the event name', () => {
     const sendNetworkTimingEvent = createMonitor();
 

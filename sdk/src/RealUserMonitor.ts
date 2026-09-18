@@ -362,7 +362,7 @@ export default class RealUserMonitor {
     });
 
     if (!isInstalled) {
-      RaygunLogger.w('XMLHttpRequest is not available, so network monitoring is disabled');
+      RaygunLogger.w('Neither XMLHttpRequest nor fetch is available, so network monitoring is disabled');
     }
   }
 
