@@ -22,7 +22,7 @@ where `x.y.z` is the Major, Minor and Patch release numbers.
 
 ### Update version
 
-Update the `version` in the `src/package.json` file.
+Update the `version` in the `sdk/package.json` file.
 
 ### Run npm install
 
@@ -81,6 +81,7 @@ squash and merge the PR into `master`.
 Go to https://github.com/MindscapeHQ/raygun4reactnative/releases and create a new Release.
 
 GitHub will create a tag for you, you don't need to create the tag manually.
+Name the tag `v<version>`, e.g. `v2.0.0`: the podspec's `s.source` points at that tag.
 
 You can also generate the release notes automatically.
 

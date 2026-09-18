@@ -4,9 +4,8 @@
 
 1. [Requirements](#requirements)
 2. [Installations](#installation)
-    - [Additional step for IOS](#additional-step-for-ios)
-    - [Additional step for ANDROID](#additional-step-for-android)
-    - [Manual integration](#manual-integration)
+    - [Additional step for iOS](#additional-step-for-ios)
+    - [Troubleshooting native linking](#troubleshooting-native-linking)
     - [Expo](#expo)
     - [Additional Public Documentation](#additional-public-documentation)
 3. [API guide](#api-guide)
@@ -47,12 +46,20 @@
 
 # Requirements
 
-```json
-{
-  "react-native": "^0.60.0",
-  "@react-native-async-storage/async-storage": "^1.13.3"
-}
-```
+| Dependency | Minimum version |
+|---|---|
+| React Native | 0.81 |
+| React | 19.1 |
+| `@react-native-async-storage/async-storage` | 1.13 (1.x, 2.x and 3.x are supported) |
+| Android | `compileSdk` 36, `minSdk` 24 |
+| iOS | 15.1 |
+| Expo | SDK 54, with a [development build](#expo) |
+
+Android apps must compile against Android SDK 36 or higher, which `raygun4android` 6 requires.
+React Native 0.81 and later use SDK 36 by default.
+
+`@react-native-async-storage/async-storage` is a peer dependency: install it in your app, and
+the SDK uses your app's copy.
 
 ---
 
@@ -61,24 +68,19 @@
 To install the package:
 
 ```shell script
-npm install --save raygun4reactnative
+npm install --save raygun4reactnative @react-native-async-storage/async-storage
 # OR
-yarn add raygun4reactnative
+yarn add raygun4reactnative @react-native-async-storage/async-storage
 ```
+
+Autolinking adds the native modules to your Android and iOS projects. Android needs no
+additional step.
 
 <br/>
 
 ### Additional step for iOS
 
-Since our SDK supports native crashes, we need to link the SDK to your native projects.
-
-Modify **Podfile**
-
-```
-platform :ios, '10.0'
-```
-
-then run
+Install the native iOS dependencies:
 
 ```sh
 cd ios && pod install
@@ -89,90 +91,12 @@ npx pod-install ios
 <br/>
 <br/>
 
-### Additional step for Android
+## Troubleshooting native linking
 
-Modify the app's **android/app/src/main/AndroidManifest.xml** to include the following line to
-enable the background Crash Reporting Service & Real-time User monitoring
-
-```html
-
-<application ...>
-  ...
-  <service
-      android:name="com.raygun.raygun4android.services.CrashReportingPostService"
-      android:exported="false"
-      android:permission="android.permission.BIND_JOB_SERVICE"
-      android:process=":crashreportingpostservice"
-  />
-  <service
-      android:name="com.raygun.raygun4android.services.RUMPostService"
-      android:exported="false"
-      android:permission="android.permission.BIND_JOB_SERVICE"
-      android:process=":rumpostservice"
-  />
-  ...
-</application>
-```
-
-## Manual Integration
-
-React-Native projects should load the native components of Raygun4ReactNative automatically.
-
-If for some reason your project is not able to load the Android and iOS modules code, for example if you are using an old architecture, you can follow these steps to load the native code.
-
-> [!IMPORTANT]  
-> This step is only necessary if your project is not loading the native code automatically, e.g. you are getting a "DEVICE_ID is null exception" on start.
-
-### iOS
-
-1. Enter into iOS Folder `cd ios/` (on your project's root folder).
-
-2. Add this line to your `Podfile` just below the last pod (if you don't have one, you can create it by running `pod init`):
-
-```
-+ pod 'raygun4reactnative', :path => '../node_modules/raygun4reactnative'
-```
-
-3. Run `pod install`.
-
-### Android
-
-1. Add the project to `android/settings.gradle`:
-
-```
-rootProject.name = 'MyApp'
-
-include ':app'
-
-+ include ':raygun4reactnative'
-+ project(':raygun4reactnative').projectDir = new File(rootProject.projectDir, '../node_modules/raygun4reactnative/android')
-```
-
-2. In `android/app/build.gradle` add to dependencies:
-
-```
-dependencies {
-  ...
-+ implementation project(':@raygun4reactnative')
-}
-```
-
-3. Then, in `android/app/src/main/java/your/package/MainApplication.java`:
-
-```
-package com.myapp;
-
-+ import com.raygun.react.RaygunNativeBridgePackage;
-...
-
-@Override
-protected List<ReactPackage> getPackages() {
-    return Arrays.<ReactPackage>asList(
-        new MainReactPackage(),
-+       new RaygunNativeBridgePackage()
-    );
-}
-```
+If your app throws a "DEVICE_ID is null" exception on start, the native module wasn't linked
+into the build. Rebuild the native app after installing the SDK: run `pod install` for iOS,
+then rebuild both the iOS and Android apps. On React Native 0.81 and later, autolinking links
+the module on both platforms, so no manual linking is needed.
 
 ## Expo
 
@@ -207,10 +131,8 @@ Install Raygun4ReactNative and AsyncStorage dependency:
 
 ```
 npm install --save raygun4reactnative
-npm install --save @react-native-async-storage/async-storage
+npx expo install @react-native-async-storage/async-storage
 ```
-
-To complete the setup, perform the [additional step for Android](#additional-step-for-android).
 
 Proceed to the [API guide](#api-guide) to start using the package.
 
@@ -219,14 +141,14 @@ Proceed to the [API guide](#api-guide) to start using the package.
 Run the app on iOS once to create the native files directory:
 
 ```
-npx expo run:android
+npx expo run:ios
 ```
 
 If not done already, install Raygun4ReactNative and AsyncStorage dependency:
 
 ```
 npm install --save raygun4reactnative
-npm install --save @react-native-async-storage/async-storage
+npx expo install @react-native-async-storage/async-storage
 ```
 
 The [additional step for iOS](#additional-step-for-ios) should not be necessary for Expo apps. As the native package should be automatically linked.
