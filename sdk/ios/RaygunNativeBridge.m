@@ -7,14 +7,8 @@
 #import <QuartzCore/QuartzCore.h>
 #include <math.h>
 #import <sys/utsname.h>
-#if __has_include(<React/RCTConvert.h>)
-#import <React/RCTConvert.h>
-#else
-#import "RCTConvert.h"
-#endif
 
 #import <raygun4apple/raygun4apple_iOS.h>
-#import <raygun4apple/RaygunCrashReportConverter.h>
 
 #if TARGET_OS_IOS || TARGET_OS_TV
 #import <UIKit/UIKit.h>
