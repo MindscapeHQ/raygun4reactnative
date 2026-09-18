@@ -9,12 +9,22 @@
   },
   "typings": "dist/index.d.ts",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "android/build.gradle",
+    "android/gradle.properties",
+    "android/src",
+    "ios",
+    "!ios/RaygunNativeBridge.xcodeproj",
+    "raygun4reactnative.podspec",
+    "react-native.config.js"
+  ],
   "scripts": {
     "eslint": "eslint src/**",
     "clean": "npx rimraf node_modules dist ../**/*.tgz ../demo/node_modules ../demo/dist ../demo/android/.gradle ../demo/android/app/build ../demo/ios/Pods",
     "builder": "npm run build_pack_1 && npm run build_demo_2",
     "build_run": "npm run builder && npm run run_demo_3",
-    "prepublish": "tsc -p ./",
+    "prepare": "rimraf dist && tsc -p ./",
     "prebuild": "npx rimraf release",
     "build_pack_1": "cd ../sdk && npm ci && npm pack && run-script-os",
     "build_pack_1:windows": "copyfiles raygun4reactnative-%npm_package_version%.tgz ../demo",
