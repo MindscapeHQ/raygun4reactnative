@@ -43,6 +43,17 @@ export type User = {
   uuid?: string;
 };
 
+/**
+ * A stack frame as returned by React Native's parseErrorStack. Defined here because React Native
+ * 0.87 no longer publishes types for deep imports from react-native/Libraries.
+ */
+export type StackFrame = {
+  file: string;
+  methodName: string;
+  lineNumber: number;
+  column: number | null;
+};
+
 export type RaygunStackFrame = {
   FileName: string;
   LineNumber: number;
