@@ -1,6 +1,5 @@
 import { RealUserMonitoringEvents, RealUserMonitoringTimings, RealUserMonitorPayload, RequestMeta } from './Types';
 import { getCurrentUser, getCurrentTags, getRandomGUID } from './Utils';
-import { v4 as uuidv4 } from 'uuid';
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
 import RaygunLogger from './RaygunLogger';
 
@@ -61,7 +60,7 @@ export default class RealUserMonitor {
   private disableNetworkMonitoring: boolean;
   private ignoredURLs: string[];
   private ignoredViews: string[];
-  private requests = new Map<string, RequestMeta>();
+  private requests = new WeakMap<object, RequestMeta>();
   private raygunRumEndpoint = 'https://api.raygun.com/events';
 
   private loadingViews = new Map<string, number>();
@@ -341,13 +340,8 @@ export default class RealUserMonitor {
       return;
     }
 
-    // Create a unique ID for this request
-    const id = uuidv4();
-
-    // Set the ID of the XHRInterceptor to the unique ID
-    xhr._id_ = id;
-    // Store the ID and the action taken on the device in a map, ID => REQUEST_META
-    this.requests.set(id, { name: `${method} ${url}` });
+    // Store the action taken on the device against the request itself, REQUEST => REQUEST_META
+    this.requests.set(xhr, { name: `${method} ${url}` });
   }
 
   /**
@@ -357,9 +351,8 @@ export default class RealUserMonitor {
    * @param {any} xhr - The interceptor that picked up the send request.
    */
   handleRequestSend(data: string, xhr: any) {
-    // Extract the XHRInterceptor's ID. Use that to get the RequestMeta object from the map
-    const { _id_ } = xhr;
-    const requestMeta = this.requests.get(_id_);
+    // Get the RequestMeta object stored against this request
+    const requestMeta = this.requests.get(xhr);
 
     // If the object exists, then store the current time
     if (requestMeta) {
@@ -382,9 +375,8 @@ export default class RealUserMonitor {
    * @param {any} xhr
    */
   handleResponse(status: number, timeout: number, resp: string, respUrl: string, respType: string, xhr: any) {
-    // Extract the XHRInterceptor's ID. Use that to get the RequestMeta object from the map
-    const { _id_ } = xhr;
-    const requestMeta = this.requests.get(_id_);
+    // Get the RequestMeta object stored against this request
+    const requestMeta = this.requests.get(xhr);
 
     // If the object exists, then ...
     if (requestMeta) {
@@ -393,7 +385,7 @@ export default class RealUserMonitor {
       const duration = Date.now() - sendTime!;
       this.sendNetworkTimingEvent(name, sendTime!, duration);
       // Remove the request from the map
-      this.requests.delete(_id_);
+      this.requests.delete(xhr);
     }
   }
 
