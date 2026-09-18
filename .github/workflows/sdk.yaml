@@ -21,6 +21,9 @@ jobs:
       - name: Run ESLint
         run: npm run eslint
 
+      - name: Type-check
+        run: npx tsc --noEmit
+
       - name: Run unit tests
         run: npm run test
 
