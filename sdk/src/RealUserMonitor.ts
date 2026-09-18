@@ -2,50 +2,10 @@ import { RealUserMonitoringEvents, RealUserMonitoringTimings, RealUserMonitorPay
 import { getCurrentUser, getCurrentTags, getRandomGUID } from './Utils';
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
 import RaygunLogger from './RaygunLogger';
+import { installNetworkInterceptor } from './NetworkInterceptor';
 
 const { RaygunNativeBridge } = NativeModules;
 const { osVersion, platform } = RaygunNativeBridge;
-
-import OldXHRInterceptorModule from './MaybeOldXHRInterceptorModule';
-import NewXHRInterceptorModule from './MaybeNewXHRInterceptorModule';
-const XHRInterceptorModule = NewXHRInterceptorModule ?? OldXHRInterceptorModule;
-
-let XHRInterceptor: any;
-if (XHRInterceptorModule) {
-  // Check if methods are directly on the module
-  if (
-    typeof XHRInterceptorModule.setOpenCallback === 'function' &&
-    typeof XHRInterceptorModule.setSendCallback === 'function' &&
-    typeof XHRInterceptorModule.setResponseCallback === 'function' &&
-    typeof XHRInterceptorModule.enableInterception === 'function'
-  ) {
-    XHRInterceptor = XHRInterceptorModule;
-  }
-  // Check if methods are on the default export
-  else if (
-    XHRInterceptorModule.default &&
-    typeof XHRInterceptorModule.default.setOpenCallback === 'function' &&
-    typeof XHRInterceptorModule.default.setSendCallback === 'function' &&
-    typeof XHRInterceptorModule.default.setResponseCallback === 'function' &&
-    typeof XHRInterceptorModule.default.enableInterception === 'function'
-  ) {
-    XHRInterceptor = XHRInterceptorModule.default;
-  }
-}
-
-// If still no valid XHRInterceptor after checking module and module.default, assign the dummy
-if (!XHRInterceptor) {
-  if (XHRInterceptorModule) {
-    RaygunLogger.e('Required XHRInterceptor module does not have expected methods.');
-    RaygunLogger.w('Network monitoring will be disabled.');
-  }
-  XHRInterceptor = {
-    setOpenCallback: () => {},
-    setSendCallback: () => {},
-    setResponseCallback: () => {},
-    enableInterception: () => {}
-  };
-}
 
 const defaultURLIgnoreList: string[] = ['api.raygun.com', 'localhost:8081'];
 const defaultViewIgnoreList: string[] = []; // Nothing as of right now
@@ -71,7 +31,7 @@ export default class RealUserMonitor {
   /**
    * RealUserMonitor: Manages RUM specific logic tasks.
    * @param {string} apiKey - The User's API key that gives them access to RUM. (User provided).
-   * @param {boolean} disableNetworkMonitoring - If true, XHRInterceptor is not switched on. All requests go through without monitoring.
+   * @param {boolean} disableNetworkMonitoring - If true, network requests aren't intercepted. All requests go through without monitoring.
    * @param {sting[]} ignoredURLs - A string array of URLs to ignore when watching the network.
    * @param {string[]} ignoredViews - A string array of all the view names to ignore logging.
    * @param {string} customRealUserMonitoringEndpoint - The custom API URL endpoint where this API should send data to.
@@ -326,31 +286,31 @@ export default class RealUserMonitor {
   }
 
   /**
-   * This method returns a callback method to utilize in the XHRInterceptor.setOpenCallback method.
-   * It determines the method request, url and XHRInterceptor specific for this device.
-   * Using that information, this method will create an instance of this device to store for later data gathering.
+   * Called by the network interceptor when a request is opened. Records the request's method and URL under a new
+   * ID, and stores that ID on the request so the send and response callbacks can find it.
    *
    * @param {string} method - The request operation being performed.
    * @param {string} url - The destination this request is reaching.
-   * @param {any} xhr - The interceptor that picked up the request.
+   * @param {any} xhr - The request being opened.
    */
-  handleRequestOpen(method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', url: string, xhr: any) {
+  handleRequestOpen(method: string, url: string, xhr: any) {
     // If this URL is on the IGNORE list, then do nothing.
     if (this.shouldIgnoreURL(url)) {
       return;
     }
 
-    // Store the action taken on the device against the request itself, REQUEST => REQUEST_META
-    this.requests.set(xhr, { name: `${method} ${url}` });
+    // Store the action taken on the device against the request itself, REQUEST => REQUEST_META. The name upper-cases
+    // the method, so `post` and `POST` share a name, and leaves out the query string and fragment, as Raygun's other
+    // SDKs do: they can carry tokens, and split one endpoint into many names
+    this.requests.set(xhr, { name: `${method.toUpperCase()} ${url.split(/[?#]/)[0]}` });
   }
 
   /**
-   * When the XHRInterceptor receives a send request, this method is called. It stores the current time in the relevant
-   * device RequestMeta object (last known activity).
-   * @param {string} data - UNUSED.
-   * @param {any} xhr - The interceptor that picked up the send request.
+   * Called by the network interceptor when a request is sent. Stores the current time in the request's RequestMeta
+   * object (last known activity).
+   * @param {any} xhr - The request being sent.
    */
-  handleRequestSend(data: string, xhr: any) {
+  handleRequestSend(xhr: any) {
     // Get the RequestMeta object stored against this request
     const requestMeta = this.requests.get(xhr);
 
@@ -361,20 +321,14 @@ export default class RealUserMonitor {
   }
 
   /**
-   * This method returns a callback method to utilize in the XHRInterceptor.setResponseCallback method.
-   * Upon receiving a response, the XHRInterceptor calls this method. This method acts like an intermediate step for the
+   * Called by the network interceptor when a request completes. This method acts like an intermediate step for the
    * NetworkTimingCallback. Before calling the 'sendNetworkTimingEvent', this method finds the duration since this device
    * has last sent a request (called the handleRequestSend method above), and then it calls the 'sendNetworkTimingEvent'
    * parsing the name and sendTime from the RequestMeta along with the calculated duration (Time taken from request to
    * response).
-   * @param {number} status
-   * @param {number} timeout
-   * @param {string} resp
-   * @param {string} respUrl
-   * @param {string} respType
-   * @param {any} xhr
+   * @param {any} xhr - The request that completed.
    */
-  handleResponse(status: number, timeout: number, resp: string, respUrl: string, respType: string, xhr: any) {
+  handleResponse(xhr: any) {
     // Get the RequestMeta object stored against this request
     const requestMeta = this.requests.get(xhr);
 
@@ -390,18 +344,18 @@ export default class RealUserMonitor {
   }
 
   /**
-   * Instantiates the Open, Send and Response callback methods for the XHRInterceptor.
+   * Starts intercepting network requests, so each one is reported as a network timing event.
    */
   setupNetworkMonitoring() {
-    if (!XHRInterceptor) {
-      RaygunLogger.e('XHRInterceptor is not available, network monitoring will be disabled');
-      return;
-    }
+    const isInstalled = installNetworkInterceptor({
+      onOpen: this.handleRequestOpen.bind(this),
+      onSend: this.handleRequestSend.bind(this),
+      onResponse: this.handleResponse.bind(this)
+    });
 
-    XHRInterceptor.setOpenCallback(this.handleRequestOpen.bind(this));
-    XHRInterceptor.setSendCallback(this.handleRequestSend.bind(this));
-    XHRInterceptor.setResponseCallback(this.handleResponse.bind(this));
-    XHRInterceptor.enableInterception();
+    if (!isInstalled) {
+      RaygunLogger.w('XMLHttpRequest is not available, so network monitoring is disabled');
+    }
   }
 
   shouldIgnoreURL(url: string): boolean {
