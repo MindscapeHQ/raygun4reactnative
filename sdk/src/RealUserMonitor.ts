@@ -1,6 +1,5 @@
 import { RealUserMonitoringEvents, RealUserMonitoringTimings, RealUserMonitorPayload, RequestMeta } from './Types';
 import { getCurrentUser, getCurrentTags, getRandomGUID } from './Utils';
-import { v4 as uuidv4 } from 'uuid';
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
 import RaygunLogger from './RaygunLogger';
 
@@ -61,7 +60,8 @@ export default class RealUserMonitor {
   private disableNetworkMonitoring: boolean;
   private ignoredURLs: string[];
   private ignoredViews: string[];
-  private requests = new Map<string, RequestMeta>();
+  private requests = new Map<number, RequestMeta>();
+  private lastRequestId = 0; // Incremented to give each monitored request its own key in `requests`
   private raygunRumEndpoint = 'https://api.raygun.com/events';
 
   private loadingViews = new Map<string, number>();
@@ -341,8 +341,8 @@ export default class RealUserMonitor {
       return;
     }
 
-    // Create a unique ID for this request
-    const id = uuidv4();
+    // Create an ID for this request, unique within this monitor
+    const id = ++this.lastRequestId;
 
     // Set the ID of the XHRInterceptor to the unique ID
     xhr._id_ = id;
