@@ -1,5 +1,21 @@
 name: Demo CI
-on: [ push, pull_request ]
+on:
+  # Pull requests run on pull_request only; push covers master, so a PR isn't checked twice.
+  push:
+    branches: [ master ]
+    paths: [ 'sdk/**', 'demo/**', '.github/workflows/demo.yaml' ]
+  pull_request:
+    paths: [ 'sdk/**', 'demo/**', '.github/workflows/demo.yaml' ]
+
+permissions:
+  contents: read
+
+# A new push to a PR cancels its runs for older commits. Each push to master gets its own
+# group, so master runs are never cancelled or replaced while pending.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   demo-android-build:
     runs-on: ubuntu-latest
