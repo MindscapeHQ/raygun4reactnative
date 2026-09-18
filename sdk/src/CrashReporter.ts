@@ -5,9 +5,9 @@ import {
   CrashReportPayload,
   CustomData,
   GroupingKeyHandler,
-  ManualCrashReportDetails
+  ManualCrashReportDetails,
+  StackFrame
 } from './Types';
-import { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
 import { NativeModules, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RaygunLogger from './RaygunLogger';
