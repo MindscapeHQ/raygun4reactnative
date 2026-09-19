@@ -1,23 +1,31 @@
 buildscript {
     ext {
-        buildToolsVersion = "35.0.0"
+        buildToolsVersion = "37.0.0"
         minSdkVersion = 24
-        compileSdkVersion = 36
-        targetSdkVersion = 35
+        compileSdkVersion = 37
+        targetSdkVersion = 36
         ndkVersion = "27.1.12297006"
-        kotlinVersion = "2.3.0"
-        agpVersion = "8.12.0"
+        kotlinVersion = "2.2.0"
     }
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:${agpVersion}")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}")
+        classpath("com.android.tools.build:gradle")
+        classpath("com.facebook.react:react-native-gradle-plugin")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
     }
 }
 
-plugins {
-    id("com.facebook.react.rootproject")
+apply plugin: "com.facebook.react.rootproject"
+
+// @react-native-community/checkbox 0.5.20, its newest release that builds, defines BuildConfig fields.
+// Android Gradle Plugin 9 only generates BuildConfig for modules that turn it on, so turn it on there.
+subprojects {
+    if (name == "react-native-community_checkbox") {
+        plugins.withId("com.android.library") {
+            android.buildFeatures.buildConfig = true
+        }
+    }
 }
