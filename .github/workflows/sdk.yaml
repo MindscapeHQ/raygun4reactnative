@@ -41,7 +41,7 @@ jobs:
         run: npm run eslint
 
       - name: Type-check
-        run: npx tsc --noEmit
+        run: npx tsc --noEmit -p tsconfig.test.json
 
       - name: Run unit tests
         run: npm run test
