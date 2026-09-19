@@ -1,8 +1,10 @@
 import React from 'react';
+import { ManualCrashReportDetails } from '../src/Types';
 
-const mockSendError = jest.fn(() => Promise.resolve());
+// Typed like the real sendError, so the recorded calls keep their types.
+const mockSendError = jest.fn((_error: Error, _details?: ManualCrashReportDetails) => Promise.resolve());
 jest.mock('../src/RaygunClient', () => ({
-  sendError: (...args: unknown[]) => mockSendError(...args)
+  sendError: (...args: unknown[]) => mockSendError(...(args as Parameters<typeof mockSendError>))
 }));
 
 import { RaygunErrorBoundary } from '../src/RaygunErrorBoundary';
@@ -37,7 +39,7 @@ describe('RaygunErrorBoundary', () => {
   it('normalises non-Error throws in getDerivedStateFromError', () => {
     const result = RaygunErrorBoundary.getDerivedStateFromError('string-thrown');
     expect(result.error).toBeInstanceOf(Error);
-    expect(result.error.message).toBe('string-thrown');
+    expect(result.error!.message).toBe('string-thrown');
   });
 
   it('reports error with merged tags and componentStack on componentDidCatch', async () => {
@@ -53,9 +55,10 @@ describe('RaygunErrorBoundary', () => {
 
     expect(mockSendError).toHaveBeenCalledTimes(1);
     const [reportedError, details] = mockSendError.mock.calls[0];
+    expect(details).toBeDefined();
     expect(reportedError).toBe(error);
-    expect(details.tags).toEqual(['error-boundary', 'feature:checkout']);
-    expect(details.customData).toEqual({
+    expect(details!.tags).toEqual(['error-boundary', 'feature:checkout']);
+    expect(details!.customData).toEqual({
       route: '/cart',
       componentStack: '\n  in Foo\n  in Bar'
     });
@@ -64,19 +67,19 @@ describe('RaygunErrorBoundary', () => {
   it('de-duplicates tags', () => {
     const boundary = makeBoundary({ tags: ['error-boundary', 'extra'] });
     boundary.componentDidCatch(new Error('x'), { componentStack: '' });
-    expect(mockSendError.mock.calls[0][1].tags).toEqual(['error-boundary', 'extra']);
+    expect(mockSendError.mock.calls[0][1]!.tags).toEqual(['error-boundary', 'extra']);
   });
 
   it('boundary-supplied componentStack overrides user-supplied customData.componentStack', () => {
     const boundary = makeBoundary({ customData: { componentStack: 'user-value' } });
     boundary.componentDidCatch(new Error('x'), { componentStack: 'real-stack' });
-    expect(mockSendError.mock.calls[0][1].customData.componentStack).toBe('real-stack');
+    expect(mockSendError.mock.calls[0][1]!.customData!.componentStack).toBe('real-stack');
   });
 
   it('coerces a null componentStack to an empty string in customData', () => {
     const boundary = makeBoundary();
     boundary.componentDidCatch(new Error('x'), { componentStack: null } as unknown as React.ErrorInfo);
-    expect(mockSendError.mock.calls[0][1].customData.componentStack).toBe('');
+    expect(mockSendError.mock.calls[0][1]!.customData!.componentStack).toBe('');
   });
 
   it('normalises non-Error throws before sending', () => {
