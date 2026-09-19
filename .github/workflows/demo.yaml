@@ -41,13 +41,13 @@ jobs:
         with:
           node-version: '24'
 
-      - name: Build and pack SDK
+      # The demo uses the SDK from ../sdk, and installing it runs the SDK's build.
+      - name: Install SDK dependencies
         working-directory: sdk
-        run: npm run build_pack_1
+        run: npm ci
 
-      - name: Install SDK into demo app
-        working-directory: sdk
-        run: npm run build_demo_2
+      - name: Install demo dependencies
+        run: npm ci
 
       - name: Build Android app
         run: |
@@ -73,13 +73,13 @@ jobs:
         with:
           node-version: '24'
 
-      - name: Build and pack SDK
+      # The demo uses the SDK from ../sdk, and installing it runs the SDK's build.
+      - name: Install SDK dependencies
         working-directory: sdk
-        run: npm run build_pack_1
+        run: npm ci
 
-      - name: Install SDK into demo app
-        working-directory: sdk
-        run: npm run build_demo_2
+      - name: Install demo dependencies
+        run: npm ci
 
       - name: Install CocoaPods dependencies
         working-directory: demo/ios
