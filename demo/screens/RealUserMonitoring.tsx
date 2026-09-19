@@ -140,6 +140,7 @@ export default function RealUserMonitoring() {
     const timeElapsed = Date.now() - startTime;
     raygunClient.sendRUMTimingEvent(RealUserMonitoringTimings.ViewLoaded, "Test Login", timeElapsed);
     setTimeout(() => setLoggedIn(false), 3000);
+    return null;
   }
 
   return (
