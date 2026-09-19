@@ -2,19 +2,12 @@
 #import <Foundation/Foundation.h>
 #import <React/RCTLog.h>
 #import <mach/mach.h>
-#include <mach-o/dyld.h>
 #include <sys/sysctl.h>
 #import <QuartzCore/QuartzCore.h>
 #include <math.h>
 #import <sys/utsname.h>
-#if __has_include(<React/RCTConvert.h>)
-#import <React/RCTConvert.h>
-#else
-#import "RCTConvert.h"
-#endif
 
 #import <raygun4apple/raygun4apple_iOS.h>
-#import <raygun4apple/RaygunCrashReportConverter.h>
 
 #if TARGET_OS_IOS || TARGET_OS_TV
 #import <UIKit/UIKit.h>
@@ -24,33 +17,6 @@
 // ============================================================================
 #pragma mark - STATIC SYSTEM INFORMATION GETTERS -
 // ============================================================================
-
-static uint32_t ksdl_imageNamed(const char* const imageName, bool exactMatch)
-{
-    if(imageName != NULL)
-    {
-        const uint32_t imageCount = _dyld_image_count();
-        for(uint32_t iImg = 0; iImg < imageCount; iImg++)
-        {
-            const char* name = _dyld_get_image_name(iImg);
-            if(exactMatch)
-            {
-                if(strcmp(name, imageName) == 0)
-                {
-                    return iImg;
-                }
-            }
-            else
-            {
-                if(strstr(name, imageName) != NULL)
-                {
-                    return iImg;
-                }
-            }
-        }
-    }
-    return UINT32_MAX;
-}
 
 static bool VMStats(vm_statistics_data_t* const vmStats, vm_size_t* const pageSize)
 {
@@ -130,7 +96,7 @@ static bool realUserMonitoringInitialized = FALSE;
     return YES;
 }
 
-static CFTimeInterval processStartTime() {
+static CFTimeInterval processStartTime(void) {
     size_t len = 4;
     int mib[len];
     struct kinfo_proc kp;

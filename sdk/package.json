@@ -1,7 +1,7 @@
 {
   "name": "raygun4reactnative",
   "title": "Raygun4reactnative",
-  "version": "1.7.1",
+  "version": "2.0.0",
   "description": "Raygun React Native SDK",
   "main": "dist/index.js",
   "typescript": {
@@ -9,25 +9,20 @@
   },
   "typings": "dist/index.d.ts",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "android/build.gradle",
+    "android/gradle.properties",
+    "android/src",
+    "ios",
+    "raygun4reactnative.podspec",
+    "react-native.config.js"
+  ],
   "scripts": {
     "eslint": "eslint src/**",
     "clean": "npx rimraf node_modules dist ../**/*.tgz ../demo/node_modules ../demo/dist ../demo/android/.gradle ../demo/android/app/build ../demo/ios/Pods",
-    "builder": "npm run build_pack_1 && npm run build_demo_2",
-    "build_run": "npm run builder && npm run run_demo_3",
-    "prepublish": "tsc -p ./",
+    "prepare": "rimraf dist && tsc -p ./",
     "prebuild": "npx rimraf release",
-    "build_pack_1": "cd ../sdk && npm ci && npm pack && run-script-os",
-    "build_pack_1:windows": "copyfiles raygun4reactnative-%npm_package_version%.tgz ../demo",
-    "build_pack_1:macos": "copyfiles raygun4reactnative-$npm_package_version.tgz ../demo",
-    "build_pack_1:linux": "copyfiles raygun4reactnative-$npm_package_version.tgz ../demo",
-    "build_demo_2": "cd ../demo && npm uninstall raygun4reactnative && npm i && cd ../sdk && run-script-os",
-    "build_demo_2:windows": "cd ../demo && npm install raygun4reactnative-%npm_package_version%.tgz",
-    "build_demo_2:macos": "cd ../demo && npm install raygun4reactnative-$npm_package_version.tgz",
-    "build_demo_2:linux": "cd ../demo && npm install raygun4reactnative-$npm_package_version.tgz",
-    "run_demo_3": "run-script-os",
-    "run_demo_3:windows": "cd ../demo && npx react-native run-android",
-    "run_demo_3:macos": "cd ../demo && cd ios && pod install && cd ../ && npx react-native run-ios",
-    "run_demo_3:linux": "cd ../demo && gnome-terminal -x bash -c \"npx react-native start\" && npx react-native run-android",
     "prettier": "npx prettier --write **/*.js __mocks__/**/*.js **/*.ts **/*.tsx",
     "test": "jest"
   },
@@ -45,11 +40,13 @@
   "license": "MIT",
   "licenseFilename": "LICENSE",
   "readmeFilename": "README.md",
-  "dependencies": {
-    "uuid": "^14.0.0"
-  },
   "peerDependencies": {
-    "@react-native-async-storage/async-storage": "^1.13.0 || ^2.0.0 || ^3.0.0"
+    "@react-native-async-storage/async-storage": "^1.13.0 || ^2.0.0 || ^3.0.0",
+    "react": ">=19.1.0",
+    "react-native": ">=0.81.0"
+  },
+  "engines": {
+    "node": ">=20.19.4"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -59,20 +56,16 @@
     "@types/jest": "^29.5.14",
     "@types/node": "^24.0.0",
     "@types/react": "^19.1.7",
-    "babel-plugin-transform-class-properties": "^6.24.1",
-    "copyfiles": "^2.4.1",
     "eslint": "^10.10.0",
     "eslint-plugin-react": "^7.37.5",
-    "glob": "^11.0.2",
     "globals": "^16.2.0",
     "jest": "^29.7.0",
     "jest-fetch-mock": "^3.0.3",
     "mockdate": "^3.0.5",
+    "prettier": "^3.9.8",
     "react": "^19.3.0",
     "react-native": "^0.87.1",
     "rimraf": "^6.0.1",
-    "run-script-os": "^1.1.6",
-    "ts-jest": "^29.3.4",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.34.0"
   },

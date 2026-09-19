@@ -1,6 +1,38 @@
+## 2.0.0
+
+This release raises the minimum supported versions to React Native 0.81, Android `compileSdk` 36 and iOS 15.1, updates the Android SDK to `raygun4android` 6.2.2, restores Real User Monitoring network timing, which hasn't reported requests on React Native 0.80 or later since 1.6.0, and fixes a crash when an app uses `@react-native-async-storage/async-storage` v3. The published package no longer has any runtime dependencies, and no longer ships test or config files.
+
+### Breaking changes
+
+- React Native 0.81 or later and React 19.1 or later are required. Both are now declared as peer dependencies.
+- Android apps must compile against Android SDK 36 or higher, which `raygun4android` 6 requires. React Native 0.81 and later use SDK 36 by default. The library's `minSdk` is now 24, and it builds with Java 17.
+- iOS 15.1 or later is required.
+- `@react-native-async-storage/async-storage` is now a peer dependency (`^1.13.0 || ^2.0.0 || ^3.0.0`). Add it to your app's dependencies if it isn't there already; the SDK uses your app's copy.
+- Node 20.19.4 or later is required, as declared in `engines`.
+
+### Changes
+
+- fix: restore RUM network timing on React Native 0.80+, by intercepting XMLHttpRequest in the SDK instead of loading React Native's private XHRInterceptor (#269)
+- fix: capture `fetch` requests in RUM on Expo SDK 56+, where `fetch` no longer uses XMLHttpRequest (#269)
+- fix: name RUM network events with the method upper-cased and without the query string or fragment, as Raygun's other SDKs do, so tokens in URLs aren't sent and each endpoint is reported under one name (#269)
+- fix: make async-storage a peer dependency, so apps on async-storage v3 no longer crash when importing the SDK (#252)
+- chore: update raygun4android to 6.2.2 (#269)
+- fix: point the podspec at the MindscapeHQ repo (#269)
+- fix: build dist on pack and publish only runtime files (#269)
+- fix: key monitored requests with a counter instead of uuid, removing the `uuid` dependency (#269)
+- chore: declare react and react-native peer dependencies and engines (#269)
+- chore: ship the MIT license with the npm package (#269)
+- docs: update requirements and installation for React Native 0.81+ (#269)
+- chore: upgrade the sdk's react-native dev toolchain to 0.87 (#244)
+- chore: upgrade eslint to 10 (#251)
+- chore: remove unused eslint, babel and jest dependencies (#247, #269)
+- ci: type-check the sdk, and stop running each check twice per pull request (#269)
+- ci: harden dependency installation and updates, and pin Xcode 16.4 for the demo iOS build (#242, #243)
+- chore(deps): dependency updates (#239, #240, #241, #246, #254, #255, #256, #257, #258, #259, #260, #261, #262, #263, #265, #266, #267, #268)
+
 ## 1.7.1
 
-This release fixes an Android build failure for consumers whose Kotlin compiler is older than the version `raygun4android` was compiled against (notably Expo SDK 55 / React Native 0.81, which pin Kotlin 2.1.20).
+This release fixes an Android build failure for consumers whose Kotlin compiler is older than the version `raygun4android` was compiled against (notably Expo SDK 55 / React Native 0.83, which pin Kotlin 2.1.20).
 
 - fix: exclude `kotlin-stdlib` from `raygun4android` to avoid forcing a stdlib upgrade on the host app (#237)
 
