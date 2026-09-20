@@ -1,5 +1,7 @@
 # Raygun for React Native
 
+[![CI](https://github.com/MindscapeHQ/raygun4reactnative/actions/workflows/sdk.yaml/badge.svg)](https://github.com/MindscapeHQ/raygun4reactnative/actions/workflows/sdk.yaml)
+
 The Raygun4ReactNative provider allows you to automatically capture and report 
 on unhandled runtime errors within your project by setting up event listeners 
 for the JavaScript and platform-native (Android/iOS) sides of your project.
