@@ -1,5 +1,7 @@
 # Raygun SDK for React Native
 
+[![CI](https://github.com/MindscapeHQ/raygun4reactnative/actions/workflows/sdk.yaml/badge.svg)](https://github.com/MindscapeHQ/raygun4reactnative/actions/workflows/sdk.yaml)
+
 ## Table of contents
 
 1. [Requirements](#requirements)
@@ -23,7 +25,7 @@
         - [getCustomData](#getcustomdata-customdata--null)
         - [sendError](#senderrorerror-error-details-manualcrashreportdetails)
         - [setMaxReportsStoredOnDevice](#setmaxreportsstoredondevicesize-number)
-        - [sendRUMTimingEvent](#sendrumtimingeventeventtype-realusermonitoringtimings-name-string-timeusedinms-number)
+        - [sendRUMTimingEvent](#sendrumtimingeventeventtype-realusermonitoringtimings-name-string-durationms-number)
     - [Components](#components)
         - [RaygunErrorBoundary](#raygunerrorboundary)
     - [Raygun specific types](#raygun-specific-types)
@@ -161,7 +163,7 @@ Proceed to the [API guide](#api-guide) to start using the package.
 [Crash Reporting Installation](https://raygun.com/documentation/language-guides/react-native/crash-reporting/installation/) <br/>
 [Crash Reporting Features](https://raygun.com/documentation/language-guides/react-native/crash-reporting/features/) <br/>
 [Real User Monitoring Installation](https://raygun.com/documentation/language-guides/react-native/real-user-monitoring/installation/) <br/>
-[Real USer Monitoring Features](https://raygun.com/documentation/language-guides/react-native/real-user-monitoring/features/)
+[Real User Monitoring Features](https://raygun.com/documentation/language-guides/react-native/real-user-monitoring/features/)
 
 ---
 
@@ -830,7 +832,7 @@ export type RaygunStackFrame = {
 The `RealUserMonitoringTimings` enum is a parameter in the `sendRUMTimingEvent` method.
 
 See also: <br/>
-[sendRUMTimingEvent](#sendrumtimingeventeventtype-realusermonitoringtimings-name-string-timeusedinms-number)
+[sendRUMTimingEvent](#sendrumtimingeventeventtype-realusermonitoringtimings-name-string-durationms-number)
 
 ```typescript
 export enum RealUserMonitoringTimings {
@@ -851,7 +853,7 @@ method. It is also found in other objects.
 [Find out more here!](https://raygun.com/documentation/product-guides/real-user-monitoring/for-mobile/users/)
 
 See also: <br/>
-[setUser](#setuseruser-user--string)
+[setUser](#setuseruser-user--null)
 [getUser](#getuser-user)
 
 ```typescript
@@ -873,8 +875,8 @@ export type User = {
 Raygun4ReactNative uses internally [Raygun4Android](https://github.com/MindscapeHQ/raygun4android/) 
 and [Raygun4Apple](https://github.com/MindscapeHQ/raygun4apple) to capture errors on the platform framework layer.
 
-These two platform providers are initialized by default when the Raygun4ReactNative provider is initalized.
-To disable this, set `disableNativeCrashReporting` to `false` in the `RaygunClientOptions`.
+These two platform providers are initialized by default when the Raygun4ReactNative provider is initialized.
+To disable this, set `disableNativeCrashReporting` to `true` in the `RaygunClientOptions`.
 
 > [!IMPORTANT]  
 > Errors happening in the platform framework layer won't be captured by Raygun unless the provider has been initialized.
@@ -882,8 +884,8 @@ To disable this, set `disableNativeCrashReporting` to `false` in the `RaygunClie
 You can also initialize the platform providers directly by performing the setup steps documented in each respective provider project.
 This ensures that the platform providers are initialized before the React Native application loads.
 
-Setting `disableNativeCrashReporting` to `false` also disables all communication between Raygun4ReactNative and the platform providers,
-therefore data like breadcrumbs or user information won't be accesible by the platform providers.
+Setting `disableNativeCrashReporting` to `true` also disables all communication between Raygun4ReactNative and the platform providers,
+therefore data like breadcrumbs or user information won't be accessible by the platform providers.
 
 ## Generating Sourcemaps
 
