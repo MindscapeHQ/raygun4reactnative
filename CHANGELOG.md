@@ -1,6 +1,43 @@
+## 2.0.0
+
+This release raises the minimum supported versions to React Native 0.81, Android `compileSdk` 36 and iOS 15.1, updates the Android SDK to `raygun4android` 6.2.3, restores Real User Monitoring network timing on React Native 0.80 and later, and fixes a crash when an app uses `@react-native-async-storage/async-storage` v3. The published package no longer has any runtime dependencies, and no longer ships test or config files.
+
+### Breaking changes
+
+- React Native 0.81 or later and React 19.1 or later are required. Both are now declared as peer dependencies.
+- Android apps must compile against Android SDK 36 or higher, which `raygun4android` 6 requires. React Native 0.81 and later use SDK 36 by default. The library's `minSdk` is now 24, and it builds with Java 17.
+- iOS 15.1 or later is required.
+- `@react-native-async-storage/async-storage` is now a peer dependency (`^1.13.0 || ^2.0.0 || ^3.0.0`). Add it to your app's dependencies if it isn't there already; the SDK uses your app's copy.
+- Node 20.19.4 or later is required, as declared in `engines`.
+
+Everything below landed in #269, except where another pull request is named.
+
+### Fixes
+
+- Real User Monitoring network timing is restored on React Native 0.80 and later, by intercepting XMLHttpRequest in the SDK instead of loading React Native's private XHRInterceptor
+- Real User Monitoring captures `fetch` requests on Expo SDK 56 and later, where `fetch` no longer uses XMLHttpRequest
+- Real User Monitoring network events are named with the method upper-cased and without the query string or fragment, as Raygun's other SDKs do, so tokens in URLs aren't sent and each endpoint is reported under one name
+- Importing the SDK no longer crashes apps that use async-storage v3 (#252)
+- Android crash reports for uncaught native exceptions are no longer lost when the process stops before the report is queued. They are saved before the app exits and sent after it restarts ([raygun4android#322](https://github.com/MindscapeHQ/raygun4android/issues/322))
+- Android apps no longer stop with a `NoClassDefFoundError` from React Native's cookie jar. raygun4android requires okhttp 5, which left React Native's `okhttp-urlconnection` on 4.x; raygun4android 6.2.3 now aligns the okhttp artifacts to one version ([raygun4android#324](https://github.com/MindscapeHQ/raygun4android/issues/324))
+- The podspec points at the MindscapeHQ repository
+- The iOS sources no longer produce 8 compiler warnings in every app build
+- The Native Crash Reporting documentation had `disableNativeCrashReporting` inverted
+
+### Packaging
+
+- No runtime dependencies: monitored requests are keyed by the request itself, so `uuid` is gone
+- `dist` is built on pack, and only runtime files are published
+- The MIT license ships with the package
+- The Android SDK is `raygun4android` 6.2.3
+
+### Internal
+
+- Development toolchain, CI and dependency updates (#242, #243, #244, #247, #251, and the Dependabot updates #239 to #268)
+
 ## 1.7.1
 
-This release fixes an Android build failure for consumers whose Kotlin compiler is older than the version `raygun4android` was compiled against (notably Expo SDK 55 / React Native 0.81, which pin Kotlin 2.1.20).
+This release fixes an Android build failure for consumers whose Kotlin compiler is older than the version `raygun4android` was compiled against (notably Expo SDK 55 / React Native 0.83, which pin Kotlin 2.1.20).
 
 - fix: exclude `kotlin-stdlib` from `raygun4android` to avoid forcing a stdlib upgrade on the host app (#237)
 
