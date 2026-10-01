@@ -57,7 +57,7 @@
     "@react-native/babel-preset": "^0.87.1",
     "@react-native/jest-preset": "^0.87.1",
     "@types/jest": "^29.5.14",
-    "@types/node": "^24.0.0",
+    "@types/node": "^26.6.3",
     "@types/react": "^19.1.7",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "copyfiles": "^2.4.1",
