@@ -12,7 +12,13 @@ import React, {useState} from "react";
 import {styles} from "../utils/Utils";
 import {raygunClient} from "../utils/Utils";
 import {Breadcrumb, CustomData, ManualCrashReportDetails} from "raygun4reactnative";
-import CheckBox from "@react-native-community/checkbox";
+import CheckBoxBase from "@react-native-community/checkbox";
+
+// The checkbox's typings declare a class component that React 19's JSX types reject, so give it a component type.
+const CheckBox = CheckBoxBase as unknown as React.ComponentType<{
+  value: boolean;
+  onValueChange: (value: boolean) => void;
+}>;
 
 //#region -- Breadcrumb Objects --------------------------------------------------------------------
 
@@ -22,7 +28,7 @@ import CheckBox from "@react-native-community/checkbox";
 const bc1: Breadcrumb = {
   message: "Stage 1",
   customData: undefined,
-  level: null,
+  level: undefined,
 }
 
 /**
@@ -213,7 +219,7 @@ export default function CrashReporting() {
       // After catching the error, send it to Raygun to log
       if (!isSelected) {
         // Simply send the error away, only attaching global variables
-        raygunClient.sendError(e)
+        raygunClient.sendError(e as Error)
       } else {
         // LOCAL VARIABLES (these parameters will be local to this error only, along with all
         // currently existing global variables).
@@ -223,7 +229,7 @@ export default function CrashReporting() {
           customData: customData, // Neither of these are mandatory.
           tags: tags
         }
-        raygunClient.sendError(e, mcr);
+        raygunClient.sendError(e as Error, mcr);
       }
     }
   }
@@ -241,12 +247,12 @@ export default function CrashReporting() {
       // After catching the error, send it to Raygun to log
       if (!isSelected) {
         // Simply send the error away, only attaching global variables
-        raygunClient.sendError(e)
+        raygunClient.sendError(e as Error)
       } else {
         const mcr: ManualCrashReportDetails = {
           tags: ["ignore"]
         }
-        raygunClient.sendError(e, mcr);
+        raygunClient.sendError(e as Error, mcr);
       }
     }
   }

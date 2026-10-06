@@ -3,8 +3,4 @@
 
 @interface RaygunNativeBridge : RCTEventEmitter <RCTBridgeModule>
 
-- (void)viewStartedLoading:(NSString*)viewName atTime:(NSNumber*)startTime;
-
-- (void)viewFinishedLoading:(NSString*)viewName atTime:(NSNumber*)endTime;
-
 @end

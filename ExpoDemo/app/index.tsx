@@ -10,6 +10,7 @@ const options: RaygunClientOptions = {
   apiKey: "INSERT_YOUR_API_KEY_HERE",
   version: "0.1.2",
   enableCrashReporting: true,
+  enableRealUserMonitoring: true,
   logLevel: LogLevel.verbose,
 };
 
@@ -44,6 +45,25 @@ export default function Index() {
       <Button
         title="Send Error"
         onPress={() => RaygunClient.sendError(Error("Error from Expo app"))}
+      />
+
+      <Button
+        title="Send fetch request"
+        onPress={() => {
+          fetch("https://www.example.com/expo-fetch?token=secret", { method: "post", body: "x" })
+            .then((r) => console.log("fetch request finished with", r.status))
+            .catch((e) => console.log("fetch request failed", String(e)));
+        }}
+      />
+
+      <Button
+        title="Send XHR request"
+        onPress={() => {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", "https://www.example.com/expo-xhr-test?token=secret#frag");
+          xhr.onload = () => console.log("XHR request finished with", xhr.status);
+          xhr.send();
+        }}
       />
 
       <RaygunErrorBoundary

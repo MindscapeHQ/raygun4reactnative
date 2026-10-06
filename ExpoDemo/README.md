@@ -15,13 +15,20 @@ This is an [Expo](https://expo.dev) project created following the instructions i
   };
 ```
 
-2. Install dependencies
+2. Install the SDK's dependencies. ExpoDemo uses the SDK from `../sdk`, and installing it runs the SDK's build,
+   which needs them
+
+   ```bash
+   cd ../sdk && npm install && cd ../ExpoDemo
+   ```
+
+3. Install dependencies
 
    ```bash
    npm install
    ```
 
-3. Start the app
+4. Start the app
 
    ```bash
     npx expo start

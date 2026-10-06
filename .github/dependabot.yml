@@ -8,6 +8,10 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
+    ignore:
+      # Matches the minimum Node in `engines`; raise it with that floor.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
 
 # Dependencies updates config for examples
   - package-ecosystem: "npm"
@@ -33,6 +37,18 @@ updates:
       # Package in example is accessed by path,
       # do not update in package.json.
       - dependency-name: "raygun4reactnative"
+      # Expo pins these to the versions its SDK supports. Update them
+      # with `npx expo install` when moving to a new Expo SDK instead.
+      - dependency-name: "expo"
+      - dependency-name: "expo-*"
+      - dependency-name: "@expo/*"
+      - dependency-name: "react"
+      - dependency-name: "react-dom"
+      - dependency-name: "react-native"
+      - dependency-name: "react-native-*"
+      - dependency-name: "@react-native-async-storage/async-storage"
+      - dependency-name: "@types/react"
+      - dependency-name: "typescript"
 
 # Github Actions dependencies updates config
   - package-ecosystem: "github-actions"

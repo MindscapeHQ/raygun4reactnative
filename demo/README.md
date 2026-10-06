@@ -18,13 +18,15 @@ Verify your system setup running `npx react-native doctor` and follow the instru
 
 Go to the folder `../sdk` and run `npm install`.
 
-This is necessary since the demo application uses the local sdk package.
+This is necessary since the demo application uses the local sdk package: installing it runs the SDK's build, which
+needs the SDK's dependencies.
 
 ### Install dependencies
 
-Run `npm install --install-links` to install the project dependencies.
+Run `npm install` to install the project dependencies.
 
-Note that `--install-links` is required since the package `raygun4reactnative` should be copied over and not linked with a symbolic link, otherwise React-Native won't be able to access it.
+The package `raygun4reactnative` is linked from `../sdk`, and `metro.config.js` points Metro at it, so changes to the
+SDK are picked up after rebuilding it.
 
 ### Setup Raygun Options
 

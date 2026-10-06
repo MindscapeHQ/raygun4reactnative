@@ -1,11 +1,11 @@
-name: Demo CI
+name: Expo Demo CI
 on:
   # Pull requests run on pull_request only; push covers master, so a PR isn't checked twice.
   push:
     branches: [ master ]
-    paths: [ 'sdk/**', 'demo/**', '.github/workflows/demo.yaml' ]
+    paths: [ 'sdk/**', 'ExpoDemo/**', '.github/workflows/expo-demo.yaml' ]
   pull_request:
-    paths: [ 'sdk/**', 'demo/**', '.github/workflows/demo.yaml' ]
+    paths: [ 'sdk/**', 'ExpoDemo/**', '.github/workflows/expo-demo.yaml' ]
 
 permissions:
   contents: read
@@ -17,11 +17,8 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  demo-android-build:
+  expo-demo-android-build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: demo
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -33,39 +30,38 @@ jobs:
           distribution: temurin
           cache: gradle
 
-      - name: Validate Gradle wrapper
-        uses: gradle/actions/wrapper-validation@v6
-
       - name: Setup Node
         uses: actions/setup-node@v7
         with:
           node-version: '24'
 
-      # The demo uses the SDK from ../sdk, and installing it runs the SDK's build.
+      # ExpoDemo uses the SDK from ../sdk, and installing it runs the SDK's build.
       - name: Install SDK dependencies
         working-directory: sdk
         run: npm ci
 
-      - name: Install demo dependencies
+      - name: Install ExpoDemo dependencies
+        working-directory: ExpoDemo
         run: npm ci
 
-      - name: Build Android app
-        run: |
-             cd android
-             ./gradlew assembleDebug
+      - name: Generate the Android project
+        working-directory: ExpoDemo
+        run: npx expo prebuild --platform android --no-install
 
-  demo-ios-build:
-    runs-on: macos-15
-    defaults:
-      run:
-        working-directory: demo
+      - name: Build Android app
+        working-directory: ExpoDemo/android
+        run: ./gradlew assembleDebug
+
+  expo-demo-ios-build:
+    runs-on: macos-26
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
 
+      # Expo SDK 56 and later need Xcode 26.4 or later.
       - name: Select Xcode
         run: |
-             sudo xcode-select -switch /Applications/Xcode_16.4.app
+             sudo xcode-select -switch /Applications/Xcode_26.6.app
              xcodebuild -version
 
       - name: Setup Node
@@ -73,17 +69,22 @@ jobs:
         with:
           node-version: '24'
 
-      # The demo uses the SDK from ../sdk, and installing it runs the SDK's build.
+      # ExpoDemo uses the SDK from ../sdk, and installing it runs the SDK's build.
       - name: Install SDK dependencies
         working-directory: sdk
         run: npm ci
 
-      - name: Install demo dependencies
+      - name: Install ExpoDemo dependencies
+        working-directory: ExpoDemo
         run: npm ci
 
-      - name: Install CocoaPods dependencies
-        working-directory: demo/ios
-        run: pod install
+      - name: Generate the iOS project and install pods
+        working-directory: ExpoDemo
+        run: npx expo prebuild --platform ios
 
       - name: Build iOS app
-        run: npx react-native build-ios
+        working-directory: ExpoDemo/ios
+        run: >
+          xcodebuild -workspace ExpoDemo.xcworkspace -scheme ExpoDemo -configuration Debug
+          -sdk iphonesimulator -destination 'generic/platform=iOS Simulator'
+          CODE_SIGNING_ALLOWED=NO build

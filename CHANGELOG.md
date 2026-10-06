@@ -1,6 +1,6 @@
 ## 1.7.1
 
-This release fixes an Android build failure for consumers whose Kotlin compiler is older than the version `raygun4android` was compiled against (notably Expo SDK 55 / React Native 0.81, which pin Kotlin 2.1.20).
+This release fixes an Android build failure for consumers whose Kotlin compiler is older than the version `raygun4android` was compiled against (notably Expo SDK 55 / React Native 0.83, which pin Kotlin 2.1.20).
 
 - fix: exclude `kotlin-stdlib` from `raygun4android` to avoid forcing a stdlib upgrade on the host app (#237)
 
