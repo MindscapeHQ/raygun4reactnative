@@ -1,3 +1,45 @@
+## 2.0.0
+
+This release sets React Native 0.81 as the minimum and updates `raygun4android` to 6.3.0. It restores Real User Monitoring network timing on React Native 0.80+, which sent no network events since 1.6.0, and captures `fetch` requests on Expo SDK 56+. The SDK no longer has runtime dependencies.
+
+Breaking changes:
+
+- React Native 0.81+ and React 19.1+ are peer dependencies
+- Android: `compileSdk` 36, `minSdk` 24 and Java 17
+- iOS: the minimum is 15.1, from React Native's `min_ios_version_supported`
+- Node: `engines` requires `>=20.19.4`
+- `raygun4android` 6.2.3 cannot read crash reports that 6.3.0 caches. If an app downgrades to a release with 6.2.3, the device loses its pending reports
+
+- chore: update brace-expansion to 1.1.21 and 5.0.12 in the sdk (#269) (2026-10-18)
+- chore: update shell-quote to 1.12.0 in the sdk (#269) (2026-10-18)
+- chore: update raygun4android to 6.3.0 and drop the stdlib exclude (#269) (2026-10-06)
+- ci: stop dependabot updating expo-managed packages in ExpoDemo (#269) (2026-10-06)
+- chore: update globals and typescript-eslint, pin @types/node to node 20 (#269) (2026-10-06)
+- chore: remove unused jest-fetch-mock and mockdate (#269) (2026-10-06)
+- feat: exercise the xhr and expo network paths in the demos (#269) (2026-09-20)
+- docs: add a ci badge and correct the native crash reporting section (#269) (2026-09-20)
+- ci: type-check the tests as well as the sdk source (#269) (2026-09-19)
+- chore: remove stale ios declarations and unused code (#269) (2026-09-19)
+- chore: install the sdk into the demo from ../sdk (#269) (2026-09-19)
+- chore: remove ExpoDemo's obsolete plugin, packages and scripts (#269) (2026-09-19)
+- fix: resolve the type errors in the demo screens (#269) (2026-09-19)
+- chore: upgrade ExpoDemo to expo sdk 57 (#269) (2026-09-19)
+- chore: upgrade the demo to react native 0.87 (#269) (2026-09-19)
+- fix: capture fetch requests in rum on expo sdk 56+ (#269) (2026-09-18)
+- fix: restore rum network timing on react native 0.80+ (#269) (2026-09-18)
+- fix: key monitored requests by the request instead of uuid (#269) (2026-09-18)
+- chore: ship the MIT license with the npm package (#269) (2026-09-18)
+- chore: raise the demo's activesupport floor to 7.2.3.1 (#269) (2026-09-18)
+- chore: fix the prettier and eslint config warnings (#269) (2026-09-18)
+- docs: update requirements and installation for react-native 0.81+ (#269) (2026-09-18)
+- chore: declare react and react-native peer dependencies and engines (#269) (2026-09-18)
+- fix: build dist on pack and publish only runtime files (#269) (2026-09-18)
+- fix: point the podspec at the MindscapeHQ repo (#269) (2026-09-18)
+- chore: update raygun4android to 6.2.3 (#269) (2026-09-18)
+- ci: stop running each check twice per pull request (#269) (2026-09-18)
+- ci: type-check the sdk (#269) (2026-09-18)
+- chore: remove unused babel and jest dependencies (#269) (2026-09-18)
+
 ## 1.7.1
 
 This release fixes an Android build failure for consumers whose Kotlin compiler is older than the version `raygun4android` was compiled against (notably Expo SDK 55 / React Native 0.83, which pin Kotlin 2.1.20).
