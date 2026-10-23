@@ -87,7 +87,7 @@ const user1: User = {
   identifier: "Test_User_1",
   isAnonymous: false,
   firstName: undefined,
-  fullName: null,
+  fullName: undefined,
 }
 
 /**

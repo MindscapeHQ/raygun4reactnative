@@ -12,6 +12,11 @@ export default [
   ...tseslint.configs.recommended,
   pluginReact.configs.flat.recommended,
   {
+    settings: {
+      // The oldest React in the peer dependency range. "detect" calls context.getFilename(),
+      // which ESLint 10 removed, so eslint-plugin-react 7.37.5 crashes with it.
+      react: { version: "19.1" },
+    },
     rules: {
       "@typescript-eslint/no-unused-vars": 0,
       "@typescript-eslint/no-explicit-any": 0,
