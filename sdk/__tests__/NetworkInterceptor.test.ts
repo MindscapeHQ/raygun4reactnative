@@ -32,6 +32,12 @@ class FakeXMLHttpRequest {
     }
   }
 
+  removeEventListener(type: string, listener: () => void) {
+    if (type === 'loadend') {
+      this.listeners = this.listeners.filter(existing => existing !== listener);
+    }
+  }
+
   complete() {
     this.readyState = this.DONE;
     this.listeners.forEach(listener => listener());
@@ -109,6 +115,21 @@ describe('NetworkInterceptor', () => {
 
     expect(xhr.listenedTo).not.toContain('readystatechange');
     expect(xhr.listenedTo).not.toContain('progress');
+  });
+
+  it("doesn't keep a response listener per request when an XMLHttpRequest is reused", () => {
+    const callbacks = createCallbacks();
+    installNetworkInterceptor(callbacks);
+
+    const xhr = new XMLHttpRequest() as unknown as FakeXMLHttpRequest;
+
+    for (let i = 0; i < 3; i++) {
+      xhr.open('GET', 'https://example.com/items');
+      xhr.send();
+      xhr.complete();
+    }
+
+    expect(callbacks.onResponse).toHaveBeenCalledTimes(3);
   });
 
   it('still opens and sends the request when a callback throws', () => {
