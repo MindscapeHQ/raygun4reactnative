@@ -67,6 +67,17 @@ export default function RealUserMonitoring() {
     raygunClient.sendRUMTimingEvent(RealUserMonitoringTimings.NetworkCall, "Test Network Event", 100);
   }
 
+  /**
+   * This is an example of a request made with XMLHttpRequest rather than fetch. Libraries such as axios use it,
+   * and RUM reports it under the same name, without the query string or the fragment.
+   */
+  const sendXHRRequest = () => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("GET", "https://www.example.com/xhr-test?token=secret&page=2#frag");
+    xhr.onload = () => console.log(`XHR request to example.com finished with ${xhr.status}`);
+    xhr.send();
+  }
+
   const sendMultipleNetworkEvent = () => {
     for (let i = 0; i < 5; i++) {
       fetch("https://www.example.com/").then(() => {
@@ -140,6 +151,7 @@ export default function RealUserMonitoring() {
     const timeElapsed = Date.now() - startTime;
     raygunClient.sendRUMTimingEvent(RealUserMonitoringTimings.ViewLoaded, "Test Login", timeElapsed);
     setTimeout(() => setLoggedIn(false), 3000);
+    return null;
   }
 
   return (
@@ -239,6 +251,24 @@ export default function RealUserMonitoring() {
             {loggedIn && (
               completedImageLoad()
             )}
+          </View>
+
+          {/*Send XHR Request section*/}
+          <View style={styles.mainView}>
+            <View style={styles.secondView}>
+              <Text key={"Send XHR"} style={styles.title}>Send an XHR Request:</Text>
+              <Text key={"Send XHR explain"} style={styles.text}>
+                Sends a request with XMLHttpRequest rather than fetch, as libraries such as
+                axios do. RUM reports it without the query string or the fragment
+              </Text>
+            </View>
+
+            <View style={styles.secondView}>
+              <Button
+                title={"Send XHR Request"}
+                color={"green"}
+                onPress={() => sendXHRRequest()} />
+            </View>
           </View>
 
           <View style={styles.mainView}>
