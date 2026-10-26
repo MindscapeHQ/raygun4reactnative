@@ -12,6 +12,15 @@ updates:
       # Matches the minimum Node in `engines`; raise it with that floor.
       - dependency-name: "@types/node"
         update-types: ["version-update:semver-major"]
+      # typescript-eslint must support a TypeScript major before the SDK can move to it.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+    groups:
+      # The Babel and Jest presets are released with react-native and should match it.
+      react-native:
+        patterns:
+          - "react-native"
+          - "@react-native/*"
 
 # Dependencies updates config for examples
   - package-ecosystem: "npm"
@@ -25,6 +34,15 @@ updates:
       # Package in example is accessed by path, 
       # do not update in package.json.
       - dependency-name: "raygun4reactnative"
+      # A React Native upgrade also changes the native projects, so these
+      # move together by hand, with the React Native Upgrade Helper.
+      - dependency-name: "react"
+      - dependency-name: "react-test-renderer"
+      - dependency-name: "react-native"
+      - dependency-name: "@react-native/*"
+      # @react-native/eslint-config supports eslint 8 and 9 only.
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "npm"
     directory: "/ExpoDemo"
@@ -49,6 +67,10 @@ updates:
       - dependency-name: "@react-native-async-storage/async-storage"
       - dependency-name: "@types/react"
       - dependency-name: "typescript"
+      # babel-preset-expo is built on Babel 7; move to a new Babel major
+      # with the Expo SDK.
+      - dependency-name: "@babel/*"
+        update-types: ["version-update:semver-major"]
 
 # Github Actions dependencies updates config
   - package-ecosystem: "github-actions"
