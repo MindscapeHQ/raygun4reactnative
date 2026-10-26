@@ -30,6 +30,12 @@ class FakeXMLHttpRequest {
     }
   }
 
+  removeEventListener(type: string, listener: () => void) {
+    if (type === 'loadend') {
+      this.listeners = this.listeners.filter(existing => existing !== listener);
+    }
+  }
+
   complete() {
     this.readyState = this.DONE;
     this.listeners.forEach(listener => listener());

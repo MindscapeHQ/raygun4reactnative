@@ -68,8 +68,15 @@ const patchXMLHttpRequest = () => {
     if (active && fetchCallDepth === 0) {
       runSafely('send', () => active.onSend(this));
       // loadend rather than readystatechange: in React Native, a readystatechange listener turns on incremental
-      // response updates from native, which completion alone doesn't need
-      this.addEventListener('loadend', () => runSafely('response', () => active.onResponse(this)));
+      // response updates from native, which completion alone doesn't need. The listener removes itself so that an
+      // XMLHttpRequest reused after abort() doesn't keep one per request; { once: true } can't be used, because React
+      // Native's XMLHttpRequest.addEventListener drops the options argument
+      const onLoadEnd = () => {
+        this.removeEventListener('loadend', onLoadEnd);
+        runSafely('response', () => active.onResponse(this));
+      };
+
+      this.addEventListener('loadend', onLoadEnd);
     }
 
     return (send as (...sendArgs: any[]) => void).apply(this, args);
